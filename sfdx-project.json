@@ -1,0 +1,11 @@
+{
+  "packageDirectories": [
+    {
+      "path": "adyen-appexchange",
+      "default": true
+    }
+  ],
+  "namespace": "adyensompackage",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "51.0"
+}
