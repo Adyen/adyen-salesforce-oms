@@ -80,9 +80,9 @@ public with sharing class AdyenPaymentUtility {
         if (
             Schema.sObjectType.Payment.fields.Id.isAccessible() && 
             Schema.sObjectType.Payment.fields.GatewayRefNumber.isAccessible() && 
-            Schema.sObjectType.Payment.fields.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c.isAccessible() &&
+            Schema.sObjectType.Payment.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() && 
-            Schema.sObjectType.PaymentAuthorization.fields.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c.isAccessible() &&
+            Schema.sObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
             Schema.sObjectType.Payment.fields.CurrencyIsoCode.isAccessible() && 
             Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() && 
             Schema.sObjectType.SalesChannel.fields.AdyenMerchantID__c.isAccessible()
@@ -91,7 +91,7 @@ public with sharing class AdyenPaymentUtility {
                 SELECT  
                     Id, 
                     GatewayRefNumber, PaymentAuthorization.GatewayRefNumber, 
-                    ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c, PaymentAuthorization.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c,
+                    adyenOverrideMerchantConfig__c, PaymentAuthorization.adyenOverrideMerchantConfig__c,
                     CurrencyIsoCode,
                     OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
                 FROM    
@@ -170,21 +170,21 @@ public with sharing class AdyenPaymentUtility {
             Schema.sObjectType.PaymentAuthorization.fields.PaymentAuthorizationNumber.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.CurrencyIsoCode.isAccessible() &&
-            Schema.sObjectType.PaymentAuthorization.fields.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c.isAccessible() &&
+            Schema.sObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
 			Schema.sObjectType.PaymentGatewayLog.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.OrderPaymentSummary.fields.Id.isAccessible() &&
             Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() && 
-            Schema.sObjectType.SalesChannel.fields.ADYENSOMPACKAGE__ADYENMERCHANTID__C.isAccessible()
+            Schema.sObjectType.SalesChannel.fields.ADYENMERCHANTID__C.isAccessible()
 		) {
             List<PaymentAuthorization> paymentAuthorizations = [
                 SELECT
-                    Id, PaymentAuthorizationNumber, GatewayRefNumber, ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c,
+                    Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c,
                     OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber,
                     OrderPaymentSummary.Id,
                     OrderPaymentSummary.FullName, CurrencyIsoCode,
                     OrderPaymentSummary.OrderSummary.Id,
                     OrderPaymentSummary.OrderSummary.Adyen_paymentMethod__c,
-                	OrderPaymentSummary.OrderSummary.SalesChannel.ADYENSOMPACKAGE__ADYENMERCHANTID__C
+                	OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C
                 FROM
                     PaymentAuthorization
                 WHERE
@@ -194,7 +194,7 @@ public with sharing class AdyenPaymentUtility {
             ];
             if(!paymentAuthorizations.isEmpty()) {
                 pa = paymentAuthorizations[0];
-                System.debug(LoggingLevel.INFO, 'SalesChannel Config: ' + pa.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENSOMPACKAGE__ADYENMERCHANTID__C);
+                System.debug(LoggingLevel.INFO, 'SalesChannel Config: ' + pa.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C);
             }
         }
         return pa;
