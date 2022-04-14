@@ -214,19 +214,6 @@ public with sharing class AdyenPaymentUtility {
         if (pa != null && pa.OrderPaymentSummary != null && pa.OrderPaymentSummary.OrderSummary.Adyen_paymentMethod__c != null) {
             isKlarnaOrder = pa.OrderPaymentSummary.OrderSummary.Adyen_paymentMethod__c.containsIgnoreCase('klarna');
         }
-        // String soql = '';
-        // soql =  'SELECT adyenPaymentMethod__c FROM PaymentAuthorization where Id = :paymentAuthId';
-
-        // List<PaymentAuthorization> paymentAuthorizations = Database.query(soql);
-        
-        // if(!paymentAuthorizations.isEmpty()) {
-        //     if (paymentAuthorizations[0].adyenPaymentMethod__c != null) {
-        //         adyenPaymentMethod = paymentAuthorizations[0].adyenPaymentMethod__c;
-        //         if(adyenPaymentMethod.containsIgnoreCase('klarna')){
-        //             isKlarnaOrder = true;
-        //         }
-        //     }
-        // }
         return isKlarnaOrder;
     }
 
