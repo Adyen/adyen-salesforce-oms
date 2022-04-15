@@ -55,11 +55,11 @@ public with sharing class AdyenPaymentHelper {
         PaymentAuthorization pa = AdyenPaymentUtility.retrievePaymentAuthorization(captureRequest.paymentAuthorizationId);
 
         // By Default, retrieve the metadata key from the order's sales channel
-        String adapterName = pa?.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENSOMPACKAGE__ADYENMERCHANTID__C; 
+        String adapterName = pa?.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C;
 
         // Override config for this specific PaymentAuthorization
-        if (String.isNotBlank(pa?.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c)) {
-            adapterName = pa.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c;
+        if (String.isNotBlank(pa?.adyenOverrideMerchantConfig__c)) {
+            adapterName = pa.adyenOverrideMerchantConfig__c;
         }
         if (String.isBlank(adapterName)) {
             adapterName = DEFAULT_ADAPTER_NAME;
@@ -234,14 +234,14 @@ public with sharing class AdyenPaymentHelper {
         Payment payment = AdyenPaymentUtility.retrievePayment( refundRequest.PaymentId);
 
         // By Default, retrieve the metadata key from the order's sales channel
-        String adapterName = payment?.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENSOMPACKAGE__ADYENMERCHANTID__C;
+        String adapterName = payment?.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C;
 
         // Override config for this specific Payment (i.e., a pre-capture) or inherit override from the original PaymentAuthorization
-        if (String.isNotBlank(payment?.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c)) {
-            adapterName = payment.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c;
+        if (String.isNotBlank(payment?.adyenOverrideMerchantConfig__c)) {
+            adapterName = payment.adyenOverrideMerchantConfig__c;
         }
         if (String.isNotBlank(payment?.PaymentAuthorization?.adyenOverrideMerchantConfig__c)) {
-            adapterName = payment.PaymentAuthorization.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c;
+            adapterName = payment.PaymentAuthorization.adyenOverrideMerchantConfig__c;
         }
         if (String.isBlank(adapterName)) {
             adapterName = DEFAULT_ADAPTER_NAME;
@@ -375,11 +375,11 @@ public with sharing class AdyenPaymentHelper {
         PaymentAuthorization pa = AdyenPaymentUtility.retrievePaymentAuthorization(authReversalRequest.PaymentAuthorizationId);
 
         // By Default, retrieve the metadata key from the order's sales channel
-        String adapterName = pa?.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENSOMPACKAGE__ADYENMERCHANTID__C;
+        String adapterName = pa?.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C;
 
         // Override config for this specific Payment (i.e., a pre-capture) or inherit override from the original PaymentAuthorization
-        if (String.isNotBlank(pa?.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c)) {
-            adapterName = pa.ADYENSOMPACKAGE__adyenOverrideMerchantConfig__c;
+        if (String.isNotBlank(pa?.adyenOverrideMerchantConfig__c)) {
+            adapterName = pa.adyenOverrideMerchantConfig__c;
         }
         if (String.isBlank(adapterName)) {
             adapterName = DEFAULT_ADAPTER_NAME;
@@ -417,8 +417,11 @@ public with sharing class AdyenPaymentHelper {
         AdyenService.NotificationRequestItem notificationRequestItem;
 
         notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
+        String apexAdapterId;
+        if (notificationRequestItem.originalReference != null) {
+            apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
+        }
 
-        String apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
         System.debug('---->apexAdapterId ='+apexAdapterId);
 
         String nameSpacePrefix = '';
@@ -433,11 +436,11 @@ public with sharing class AdyenPaymentHelper {
         
         notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
         
-        if (notificationSaveResult != null){
+        if (notificationSaveResult != null) {
             if(notificationSaveResult.isSuccess()){ // Notification is accepted by the platform
                 gatewayNotificationResponse.setStatusCode(AdyenService.HTTP_SUCCESS_CODE);
                 gatewayNotificationResponse.setResponseBody(Blob.valueOf( NOTIFICATION_ACCEPTED_RESPONSE ));
-                    System.debug('---->Exiting AdyenPaymentHelper.handleAsyncNotificationCallback after the notification is accepted=' + gatewayNotificationResponse);
+                    System.debug('---->Exiting AdyenPaymentHelper.handleAsyncNotificationCallback after the notification is accepted: ' + gatewayNotificationResponse);
                 return gatewayNotificationResponse;
                 } else { // Notification is not accepted by the platform, generate system event
                 gatewayNotificationResponse.setStatusCode(integer.valueOf(AdyenService.HTTP_SERVER_ERROR_CODE));
@@ -450,18 +453,25 @@ public with sharing class AdyenPaymentHelper {
             }
                 } else{
                 String msg = '';
-                msg += '[accepted] But unsupported notification type = '+notificationRequestItem.eventCode;
+                msg += '[accepted] But unsupported notification type: ' + notificationRequestItem.eventCode;
                     gatewayNotificationResponse.setResponseBody(Blob.valueOf( msg ));
                     gatewayNotificationResponse.setStatusCode(AdyenService.HTTP_SUCCESS_CODE);
                 return gatewayNotificationResponse;
             }
 
         } else {
-            String msg = '';
-            msg += '[accepted] But not processed - wrong payment adapter or wrong instance';
+            String msg = '[accepted] ';
+            if (notificationRequestItem.originalReference == null) {
+                msg += 'Notification skipped, original reference is not available';
                 gatewayNotificationResponse.setResponseBody(Blob.valueOf( msg ));
                 gatewayNotificationResponse.setStatusCode(AdyenService.HTTP_SUCCESS_CODE);
-            System.debug('---->Exiting AdyenPaymentHelper.handleAsyncNotificationCallback after identifying that it was the wrong payment adapter='+gatewayNotificationResponse);
+                System.debug('---->Exiting AdyenPaymentHelper.handleAsyncNotificationCallback, originalReference is n/a: '+ gatewayNotificationResponse);
+            } else {
+                msg += 'But not processed - wrong payment adapter or wrong instance';
+                gatewayNotificationResponse.setResponseBody(Blob.valueOf( msg ));
+                gatewayNotificationResponse.setStatusCode(AdyenService.HTTP_SUCCESS_CODE);
+                System.debug('---->Exiting AdyenPaymentHelper.handleAsyncNotificationCallback after identifying that it was the wrong payment adapter: ' + gatewayNotificationResponse);
+            }
             return gatewayNotificationResponse;
         }
     }

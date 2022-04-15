@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
   <types>
-    <members>adyensompackage__AdyenAsyncAdapter</members>
-    <members>adyensompackage__AdyenAsyncAdapterTest</members>
-    <members>adyensompackage__AdyenPaymentHelper</members>
-    <members>adyensompackage__AdyenService</members>
-    <members>adyensompackage__AdyenPaymentUtility</members>
+    <members>AdyenAsyncAdapter</members>
+    <members>AdyenAsyncAdapterTest</members>
+    <members>AdyenPaymentHelper</members>
+    <members>AdyenService</members>
+    <members>AdyenPaymentUtility</members>
     <name>ApexClass</name>
   </types>
   <types>
@@ -13,7 +13,7 @@
     <name>CustomMetadata</name>
   </types>
   <types>
-    <members>adyensompackage__Adyen_Adapter_mdt</members>
+    <members>Adyen_Adapter_mdt</members>
     <name>CustomObject</name>
   </types>
   <types>
