@@ -1,32 +1,11 @@
 public with sharing class AdyenPaymentUtility {
 
-    @TestVisible private static final String  TEST_ENDPOINT             = 'https://bogus.unittest.com'; // Unit test EP
-    @TestVisible private static final String  CONTENT_TYPE              = 'application/json';
-    @TestVisible private static final String  INVALID_ADYEN_RESPONSE    = '[Invalid Adyen Response]';
-    @TestVisible private static final String  TEST_REF_NUMBER           = '853589212870047B';  // default used for test postman
-
-    public static final Integer HTTP_SUCCESS_CODE                       = 200;
-    public static final Integer HTTP_SERVER_ERROR_CODE                  = 500;
-    public static final String  GATEWAY_ERROR_RESPONSE_CODE             = '400';
-    public static final String  APEX_RESERVED_CURRENCY_FIELD            = 'currency_x'; // allows deserialization of reserved words.
-
     public static final Set<String> threeDecimalCurrencies              = new Set<String> {'BHD','IQD','JOD','KWD','LWD','OMR','TND'};
     public static final Set<String> zeroDecimalCurrencies               = new Set<String>{
             'CVE', 'DJF', 'GNF', 'IDR', 'JPY', 'KMF', 'KRW',
             'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'
     };
-
-
-    private static final CommercePayments.SalesforceResultCodeInfo SUCCESS_SALESFORCE_RESULT_CODE_INFO =
-            new CommercePayments.SalesforceResultCodeInfo(CommercePayments.SalesforceResultCode.Success);
-
-    private static final CommercePayments.SalesforceResultCodeInfo DECLINE_SALESFORCE_RESULT_CODE_INFO =
-            new CommercePayments.SalesforceResultCodeInfo(CommercePayments.SalesforceResultCode.Decline);
-
-    @TestVisible private static final String NOTIFICATION_REQUEST_TYPE_CAPTURE  = 'capture';
-    @TestVisible private static final String NOTIFICATION_REQUEST_TYPE_REFUND   = 'refund';
-    @TestVisible private static final String NOTIFICATION_ACCEPTED_RESPONSE     = '[accepted]';
-
+    public static Boolean skipMerchantAccount = false;
 
     /**
      * Looks for the Gateway ref number on the Payment record passed in. If not found gets its from
@@ -35,38 +14,12 @@ public with sharing class AdyenPaymentUtility {
      * @param payment the Payment sObject.
      * @return the GatewayRefNumber for the request.
      */
-    public static String getRefundGatewayRefNumber( Payment payment ) {
-        String originalRefNumber = '852588607835597D'; // defaulted for apex unit testing.
-        String msg = '';
-        String gwRefNumber;
-
-        // For transactions that were originally authorized 
-        if(payment != null && payment.PaymentAuthorization != null && payment.PaymentAuthorization.GatewayRefNumber != null) {
-            gwRefNumber = payment.PaymentAuthorization.GatewayRefNumber;
+    public static String getRefundGatewayRefNumber(Payment payment) {
+        if (payment == null) {
+            throw new AdyenAsyncAdapter.GatewayException('Payment Info Missing');
         }
-        // Transactions that were capture/sale by the front-end commerce platform
-        else if (payment != null && payment.GatewayRefNumber != null) {
-            gwRefNumber = payment.GatewayRefNumber;
-        }
-        else {
-            // ERROR - need gateway ref number
-        }
-        if(gwRefNumber != null) {
-            originalRefNumber = gwRefNumber;
-            //msg += '-------> Using Payment.GatewayRefNumber as match to Adyen PSPReference via ';
-            //msg += ' using Payment.PaymentAuthoriziation.GatwwayRefNumber as match to Adyen PspReference via: ';
-            //msg += ' Payment:  '+payment + ' from captureRequest: '+originalRefNumber;
-        } else {
-            //https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=852588546520527A&txType=Payment
-            gwRefNumber = TEST_REF_NUMBER;
-            msg += '-------> No paymentId or payment.GatewayRefNumber in captureRequest. ';
-            msg += 'Payment=' + payment;
-            msg += 'Using sample of ' + originalRefNumber;
-            msg += 'Running Test? ' + String.valueOf(Test.isRunningTest());
-        }
-        return originalRefNumber;
+        return payment.PaymentAuthorization?.GatewayRefNumber != null ? payment.PaymentAuthorization.GatewayRefNumber : payment.GatewayRefNumber;
     }
-
 
     /**
      * Retrieve Payment Info.
@@ -115,19 +68,21 @@ public with sharing class AdyenPaymentUtility {
      *  @returns Adyen_Adapter__mdt for the passed metadata type with all fields.
      */
     public static Adyen_Adapter__mdt retrieveGatewayMetadata(String metaType) {
-
+        String merchantAccountName = 'TEST_MERCHANT_ACCOUNT';
         if (Test.isRunningTest()) {
-            Adyen_Adapter__mdt testAdyenAdapter = new Adyen_Adapter__mdt();
-            testAdyenAdapter.MasterLabel = 'AdyenDefault';
-            testAdyenAdapter.Single_Currency_Code__c = 'USD';
-            testAdyenAdapter.System_Integrator_Name__c = 'CAPGEMINI';
-            testAdyenAdapter.Endpoint_Method__c = 'POST';
-            testAdyenAdapter.Refund_Endpoint__c = '/refund';
-            testAdyenAdapter.Refund_Endpoint__c = '/capture';
-            testAdyenAdapter.Endpoint_Api_Version__c = '/testEPV';
-            testAdyenAdapter.Service_Password__c = 'ABC123';
-            testAdyenAdapter.Service_Username__c = 'TEST_USER';
-            return testAdyenAdapter;
+                    if (skipMerchantAccount) {
+                        merchantAccountName = '';
+                    }
+        return new Adyen_Adapter__mdt(
+                MasterLabel = 'AdyenDefault',
+                Single_Currency_Code__c = 'USD',
+                System_Integrator_Name__c = 'Test integrator',
+                Endpoint_Method__c = 'POST',
+                Refund_Endpoint__c = '/{paymentPspReference}/refund',
+                Capture_Endpoint__c = '/{paymentPspReference}/capture',
+                Endpoint_Api_Version__c = '/v1',
+                Merchant_Account__c = merchantAccountName
+            );
         }
         else {
             Adyen_Adapter__mdt adyenAdapterMdt;
@@ -294,42 +249,26 @@ public with sharing class AdyenPaymentUtility {
     }
 
     /**
-     * Looks for the Gateway ref number on the PaymentAuthorization record passed in. If not found gets its from
-     * the LastPaymentGateway log on the OrderPaymentSummary record.
-     *
-     * @param pa  The PaymentAuthorization sObject
-     * @return the GatewayRefNumber for the request.
-     */
-    public static String getCaptureGatewayRefNumber( PaymentAuthorization pa ) {
-
-        String originalRefNumber = TEST_REF_NUMBER; //  '852588546520527A';
-        String msg = '';
-        String gwRefNumber;
-        if(pa!=null) {
-            gwRefNumber = pa.GatewayRefNumber;
-            if (gwRefNumber == null) {
-                gwRefNumber = pa.OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber;
-            }
+    * Looks for the Gateway ref number on the PaymentAuthorization record passed in. If not found gets its from
+    * the LastPaymentGateway log on the OrderPaymentSummary record.
+    *
+    * @param pa  The PaymentAuthorization sObject
+    * @return the GatewayRefNumber for the request.
+    * @see https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=852588546520527A&txType=Payment
+    */
+    public static String getCaptureGatewayRefNumber(PaymentAuthorization pa) {
+        if (pa == null) {
+            throw new AdyenAsyncAdapter.GatewayException('Payment Authorization Missing');
         }
-        if(gwRefNumber != null) {
-            originalRefNumber = gwRefNumber;
-            msg += '-------> Found payment gateway ref to Adyen PSPReference via ';
-            msg += ' PaymentAuth:  '+pa + ' from captureRequest: '+originalRefNumber;
-        } else {
-            //https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=852588546520527A&txType=Payment
-            gwRefNumber = TEST_REF_NUMBER;
-            msg += '-------> No paymentauthId or paymentAuthorization.GatewayRefNumber in captureRequest. ';
-            msg += 'PaymentAuth='+pa + ' Where is the number supposed to come from? ';
-            msg += 'Using sample of  '+originalRefNumber;
-        }
-        return originalRefNumber;
+        return pa.GatewayRefNumber != null ? pa.GatewayRefNumber : pa.OrderPaymentSummary?.LastPaymentGatewayLog?.GatewayRefNumber;
     }
 
+    //ApplicationInfo is not an attribute for Modification Requests, hence commenting this code for now. We will need it when we add authorize functionality to OMS.
     /**
      * Add application information to the webservice request
      *
      * @return application information map for the request.
-     */
+
     public static Map<String, Object> getApplicationInfo(String integratorName) {
 
         Map<String, Object> applicationInfo = new Map<String, Object>();
@@ -345,7 +284,87 @@ public with sharing class AdyenPaymentUtility {
 
         applicationInfo.put('merchantApplication', merchantApplication);
         applicationInfo.put('externalPlatform', externalPlatform);
-
         return applicationInfo;
+    }
+    */
+
+    public static Map<String, Object> addInvoiceData(Id invoiceId, PaymentAuthorization pa) {
+        Map<String, Object> additionalData = new Map<String, Object>();
+        Integer invoiceLineCount = 0;
+        for (InvoiceLine invoiceLine :  [SELECT Id, Product2.Name, Quantity, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount, ChargeAmountWithTax, Type
+                                                       FROM InvoiceLine
+                                                       WHERE Type = 'Charge' AND InvoiceId = :invoiceId]) {
+
+            Decimal itemAmount = Integer.valueOf(invoiceLine.ChargeAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
+            Decimal itemVatAmount = Integer.valueOf(invoiceLine.ChargeTaxAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
+            Decimal itemVatPercentage = invoiceLine.ChargeAmount / invoiceLine.ChargeTaxAmount;
+            invoiceLineCount++;
+            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.currencyCode',          invoiceLine.CurrencyIsoCode);
+            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.description',           invoiceLine.Product2.Name);
+            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemAmount',            String.valueOf(itemAmount));
+            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatAmount',         String.valueOf(itemVatAmount));
+            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatPercentage',     String.valueOf(itemVatPercentage));
+            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.numberOfItems',         String.valueOf(Integer.valueOf(invoiceLine.Quantity)));
+            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.productUrl',            '');
+            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.imageUrl',              '');
+        }
+        additionalData.put('openinvoicedata.numberOfLines', invoiceLineCount);
+        return additionalData;
+    }
+
+   /**
+    * Convert a request body from the adyen apex library into an api consumable json string
+    * (strips the '_x' from attributes that would otherwise be Apex reserved keywords)
+    *
+    * @param input - the json string containing a *_x key
+    * @return output - the same json string with the _x removed
+    */
+    public static String makeAdyenCompatible(String input) {
+        Map<String, String> mapKeyToReplace = new Map<String, String> {
+            'currency_x' => 'currency',
+            'number_x' => 'number',
+            'group_x' => 'group'
+        };
+        String output = input;
+        for (String key : mapKeyToReplace.keySet()) {
+            output = output.replace(key, mapKeyToReplace.get(key));
+        }
+        return output;
+    }
+
+        /**
+        * Convert a response from adyen into an Adyen apex library friendly object
+        * (adds the '_x' back into attributes that are apex keywords)
+        *
+        * @param input - the json string missing the *_x from its keys
+        * @return output - the same json string with *_x added back in
+        */
+        public static String makeSalesforceCompatible(String input) {
+            String output = input;
+            Map<String, String> mapKeyToReplace = new Map<String, String>{
+                'recurring.recurringDetailReference' => 'recurring_recurringDetailReference',
+                'currency' => 'currency_x',
+                'number' => 'number_x',
+                'group' => 'group_x'
+            };
+            for (String key : mapKeyToReplace.keySet()) {
+                output = output.replace(key, mapKeyToReplace.get(key));
+            }
+            return output;
+        }
+
+    /**
+    * Send modification request (payment/refund) to Adyen platform
+    *
+    * @return response from adyen platform.
+    */
+    public static HttpResponse sendModificationRequest(CheckoutModificationRequest modRequest, Adyen_Adapter__mdt adyenAdapterMdt, String endPoint) {
+        CheckoutModificationResponse adyenResponse;
+        String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(modRequest, true));
+        AdyenService client = new AdyenService(adyenAdapterMdt);
+        client.setEndpoint(endPoint);
+        client.setBody(body);
+        HttpResponse response = client.execute();
+        return response;
     }
 }
