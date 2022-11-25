@@ -354,6 +354,38 @@ public with sharing class AdyenPaymentUtility {
         }
 
     /**
+    * For generating payment tokens
+    *
+    * @param stringLength
+    * @return a random number with stringLength characters
+    */
+    public static String getRandomNumber(Integer stringLength) {
+        final Integer MAX = Integer.valueOf(Math.pow(10, stringLength) - 1);
+        return String.valueOf(Math.round(Math.random() * MAX)).leftPad(stringLength, '0');
+    }
+
+    /**
+    * Create a modification request by populating required properties (capture/refund)
+    *
+    * @return CheckoutModificationRequest to send to Adyen.
+    */
+    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Double amount, String pspReference, String merchantAccount) {
+       CheckoutModificationRequest modRequest;
+       if (paymentType == CommercePayments.RequestType.Capture) {
+         modRequest = new CheckoutCaptureRequest();
+       } else if (paymentType == CommercePayments.RequestType.ReferencedRefund) {
+         modRequest = new CheckoutRefundRequest();
+       }
+       modRequest.setReference(AdyenPaymentUtility.getRandomNumber(16));
+       modRequest.setMerchantAccount(merchantAccount);
+       Amount requestAmount = new Amount();
+       requestAmount.value = (amount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
+       requestAmount.currency_x = currencyCode;
+       modRequest.setAmount(requestAmount);
+       return modRequest;
+    }
+
+    /**
     * Send modification request (payment/refund) to Adyen platform
     *
     * @return response from adyen platform.

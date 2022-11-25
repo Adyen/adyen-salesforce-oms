@@ -37,20 +37,9 @@ public with sharing class AdyenCaptureHelper {
         }
 
         Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
-        CheckoutModificationRequest modRequest = createCaptureRequest(adyenAdapterMdt, captureRequest, pspReference, pa);
-        String captureEndPointURL = adyenAdapterMdt.Capture_Endpoint__c;
-        captureEndPointURL = captureEndPointURL.replace('{paymentPspReference}', pspReference);
-        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, captureEndPointURL);
-        return processCaptureResponse(adyenHttpResponse, captureRequest.amount);
-    }
+        String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : pa.CurrencyIsoCode;
+        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.Capture, currencyCode, captureRequest.amount, pspReference, adyenAdapterMdt.Merchant_Account__c);
 
-    /**
-    * Create a modification request by populating required properties (payment/refund)
-    *
-    * @return CheckoutModificationRequest to send to Adyen.
-    */
-    public static CheckoutModificationRequest createCaptureRequest(Adyen_Adapter__mdt adyenAdapterMdt, CommercePayments.CaptureRequest captureRequest, String pspReference, PaymentAuthorization pa) {
-       CheckoutCaptureRequest modRequest = new CheckoutCaptureRequest();
        // For payment methods requiring Open Invoice data (e.g., Klarna), append it
         if (AdyenPaymentUtility.checkIfKlarnaOrderFromAuthorization(pa)) {
             // Get invoice id
@@ -61,15 +50,11 @@ public with sharing class AdyenCaptureHelper {
             System.debug('--------> paymentRequest InvoiceId: ' + invoiceId);
             modRequest.setAdditionalData(AdyenPaymentUtility.addInvoiceData(invoiceId, pa));
         }
-       String defaultCurrencyCode = adyenAdapterMdt.Single_Currency_Code__c;
-       String currencyCode = pa != null && defaultCurrencyCode == null ? (String)pa.get('CurrencyIsoCode') : defaultCurrencyCode;
-       modRequest.setReference(pspReference);
-       modRequest.setMerchantAccount(adyenAdapterMdt.Merchant_Account__c);
-       Amount requestAmount = new Amount();
-       requestAmount.value = (captureRequest.amount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
-       requestAmount.currency_x = currencyCode;
-       modRequest.setAmount(requestAmount);
-       return modRequest;
+
+        String captureEndPointURL = adyenAdapterMdt.Capture_Endpoint__c;
+        captureEndPointURL = captureEndPointURL.replace('{paymentPspReference}', pspReference);
+        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, captureEndPointURL);
+        return processCaptureResponse(adyenHttpResponse, captureRequest.amount);
     }
 
      /**

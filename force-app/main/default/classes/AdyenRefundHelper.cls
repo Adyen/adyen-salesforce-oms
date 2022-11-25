@@ -38,32 +38,14 @@ public with sharing class AdyenRefundHelper {
             adapterName = AdyenConstants.DEFAULT_ADAPTER_NAME;
         }
         Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
+        String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : payment.CurrencyIsoCode.toUppercase();
         String pspReference = (payment.OrderPaymentSummary.FullName == 'DeclineRefund' ? 'dummytransaction' : AdyenPaymentUtility.getRefundGatewayRefNumber(payment));
-        CheckoutModificationRequest modRequest = createRefundRequest(refundRequest, pspReference, adyenAdapterMdt, payment);
+        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.ReferencedRefund, currencyCode, refundRequest.amount, pspReference, adyenAdapterMdt.Merchant_Account__c);
         String refundEndPointURL = adyenAdapterMdt.Refund_Endpoint__c;
         refundEndPointURL = refundEndPointURL.replace('{paymentPspReference}', pspReference);
         HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, refundEndPointURL);
         return processRefundResponse(adyenHttpResponse, refundRequest.amount);
     }
-
-    /**
-    * Create a modification request by populating required properties (payment/refund)
-    *
-    * @return CheckoutModificationRequest to send to Adyen.
-    */
-        private static CheckoutModificationRequest createRefundRequest(CommercePayments.ReferencedRefundRequest refundRequest, String pspReference, Adyen_Adapter__mdt adyenAdapterMdt, Payment payment ) {
-           CheckoutRefundRequest modRequest = new CheckoutRefundRequest();
-           String merchantAccount = adyenAdapterMdt.Merchant_Account__c;
-           String defaultCurrencyCode = adyenAdapterMdt.Single_Currency_Code__c;
-           String currencyCode = payment != null && defaultCurrencyCode == null ? (String)payment.get('CurrencyIsoCode') : defaultCurrencyCode;
-           Amount refundAmount = new Amount();
-           refundAmount.value = (refundRequest.amount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
-           refundAmount.currency_x = currencyCode;
-           modRequest.setAmount(refundAmount);
-           modRequest.setReference(pspReference);
-           modRequest.setMerchantAccount(adyenAdapterMdt.Merchant_Account__c);
-           return modRequest;
-        }
 
     /**
      * @param adyenResponse: Response from Adyen's api after requesting a refund
