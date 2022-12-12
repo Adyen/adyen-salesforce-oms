@@ -7,6 +7,9 @@ public with sharing class AdyenPaymentUtility {
     };
     public static Boolean skipMerchantAccount = false;
 
+    @TestVisible
+    private static final String TEST_ENDPOINT = 'https://test.com';
+
     /**
      * Looks for the Gateway ref number on the Payment record passed in. If not found gets its from
      * the LastPaymentGateway log on the OrderPaymentSummary record.
@@ -390,13 +393,12 @@ public with sharing class AdyenPaymentUtility {
     *
     * @return response from adyen platform.
     */
-    public static HttpResponse sendModificationRequest(CheckoutModificationRequest modRequest, Adyen_Adapter__mdt adyenAdapterMdt, String endPoint) {
-        CheckoutModificationResponse adyenResponse;
+    public static HttpResponse sendModificationRequest(CheckoutModificationRequest modRequest, Adyen_Adapter__mdt adyenAdapterMdt, String endpoint) {
         String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(modRequest, true));
-        AdyenService client = new AdyenService(adyenAdapterMdt);
-        client.setEndpoint(endPoint);
-        client.setBody(body);
-        HttpResponse response = client.execute();
+        String apiKey = AdyenService.MERCHANT_API_KEY;
+        endpoint = Test.isRunningTest() ? TEST_ENDPOINT : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + endpoint;
+        AdyenClient client = new AdyenClient(apiKey, endpoint);
+        HttpResponse response = client.request(client.config, body);
         return response;
     }
 }

@@ -51,9 +51,9 @@ public with sharing class AdyenCaptureHelper {
             modRequest.setAdditionalData(AdyenPaymentUtility.addInvoiceData(invoiceId, pa));
         }
 
-        String captureEndPointURL = adyenAdapterMdt.Capture_Endpoint__c;
-        captureEndPointURL = captureEndPointURL.replace('{paymentPspReference}', pspReference);
-        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, captureEndPointURL);
+        String captureEndpointURL = adyenAdapterMdt.Capture_Endpoint__c;
+        captureEndpointURL = captureEndpointURL.replace('{paymentPspReference}', pspReference);
+        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, captureEndpointURL);
         return processCaptureResponse(adyenHttpResponse, captureRequest.amount);
     }
 

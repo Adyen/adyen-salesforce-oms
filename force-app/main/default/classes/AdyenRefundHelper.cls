@@ -41,9 +41,9 @@ public with sharing class AdyenRefundHelper {
         String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : payment.CurrencyIsoCode.toUppercase();
         String pspReference = (payment.OrderPaymentSummary.FullName == 'DeclineRefund' ? 'dummytransaction' : AdyenPaymentUtility.getRefundGatewayRefNumber(payment));
         CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.ReferencedRefund, currencyCode, refundRequest.amount, pspReference, adyenAdapterMdt.Merchant_Account__c);
-        String refundEndPointURL = adyenAdapterMdt.Refund_Endpoint__c;
-        refundEndPointURL = refundEndPointURL.replace('{paymentPspReference}', pspReference);
-        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, refundEndPointURL);
+        String refundEndpointURL = adyenAdapterMdt.Refund_Endpoint__c;
+        refundEndpointURL = refundEndpointURL.replace('{paymentPspReference}', pspReference);
+        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, refundEndpointURL);
         return processRefundResponse(adyenHttpResponse, refundRequest.amount);
     }
 
