@@ -59,7 +59,7 @@ public with sharing class AdyenPaymentHelper {
                 gatewayNotificationResponse.setResponseBody(Blob.valueOf(AdyenConstants.NOTIFICATION_ACCEPTED_RESPONSE ));
                     System.debug('----> Exiting AdyenPaymentHelper.handleAsyncNotificationCallback after the notification is accepted: ' + gatewayNotificationResponse);
                 return gatewayNotificationResponse;
-                } else { // Notification is not accepted by the platform, generate system event
+            } else { // Notification is not accepted by the platform, generate system event
                 gatewayNotificationResponse.setStatusCode(integer.valueOf(AdyenConstants.HTTP_SERVER_ERROR_CODE));
                 String msg = '[accepted] ';
                 if (notificationSaveResult != null && notificationSaveResult.getErrorMessage() != null) {
@@ -68,13 +68,13 @@ public with sharing class AdyenPaymentHelper {
                 gatewayNotificationResponse.setResponseBody(Blob.valueOf(msg));
                 return gatewayNotificationResponse;
             }
-                } else{
+        } else {
                 String msg = '';
                 msg += '[accepted] But unsupported notification type: ' + notificationRequestItem.eventCode;
                     gatewayNotificationResponse.setResponseBody(Blob.valueOf( msg ));
                     gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
                 return gatewayNotificationResponse;
-            }
+        }
 
         } else {
             String msg = '[accepted] ';
@@ -136,16 +136,14 @@ public with sharing class AdyenPaymentHelper {
             notificationStatus = CommercePayments.NotificationStatus.Success;
             notificationStatusSF = CommercePayments.SalesforceResultCode.Success;
         }
+
         if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE.equalsIgnoreCase(notificationRequestItem.eventCode)) {
             notification = new CommercePayments.CaptureNotification();
         } else if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND.equalsIgnoreCase(notificationRequestItem.eventCode)) {
             notification = new CommercePayments.ReferencedRefundNotification();
-        } else {
-            if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED.equalsIgnoreCase(notificationRequestItem.eventCode))
-            {
+        } else if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED.equalsIgnoreCase(notificationRequestItem.eventCode)){
                 // process exception caught via platform event subscriber
-            }
-            unsupportedNotificationType = true;
+                unsupportedNotificationType = true;
         }
 
         CommercePayments.NotificationSaveResult notificationSaveResult;

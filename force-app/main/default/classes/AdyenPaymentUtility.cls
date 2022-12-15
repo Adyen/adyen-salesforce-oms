@@ -45,15 +45,15 @@ public with sharing class AdyenPaymentUtility {
         ) {
             List<Payment> payments = [
                 SELECT  
-                    Id, 
-                    GatewayRefNumber, PaymentAuthorization.GatewayRefNumber, 
-                    adyenOverrideMerchantConfig__c, PaymentAuthorization.adyenOverrideMerchantConfig__c,
-                    CurrencyIsoCode,
-                    OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
+                Id,
+                GatewayRefNumber, PaymentAuthorization.GatewayRefNumber,
+                adyenOverrideMerchantConfig__c, PaymentAuthorization.adyenOverrideMerchantConfig__c,
+                CurrencyIsoCode,
+                OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
                 FROM    
-                    Payment
+                Payment
                 WHERE   
-                    Id = :paymentId
+                Id = :paymentId
             ];
 
         	if (!payments.isEmpty()) {
@@ -73,18 +73,18 @@ public with sharing class AdyenPaymentUtility {
     public static Adyen_Adapter__mdt retrieveGatewayMetadata(String metaType) {
         String merchantAccountName = 'TEST_MERCHANT_ACCOUNT';
         if (Test.isRunningTest()) {
-                    if (skipMerchantAccount) {
-                        merchantAccountName = '';
-                    }
-        return new Adyen_Adapter__mdt(
-                MasterLabel = 'AdyenDefault',
-                Single_Currency_Code__c = 'USD',
-                System_Integrator_Name__c = 'Test integrator',
-                Endpoint_Method__c = 'POST',
-                Refund_Endpoint__c = '/{paymentPspReference}/refund',
-                Capture_Endpoint__c = '/{paymentPspReference}/capture',
-                Endpoint_Api_Version__c = '/v1',
-                Merchant_Account__c = merchantAccountName
+            if (skipMerchantAccount) {
+                merchantAccountName = '';
+            }
+            return new Adyen_Adapter__mdt(
+                    MasterLabel = 'AdyenDefault',
+                    Single_Currency_Code__c = 'USD',
+                    System_Integrator_Name__c = 'Test integrator',
+                    Endpoint_Method__c = 'POST',
+                    Refund_Endpoint__c = '/{paymentPspReference}/refund',
+                    Capture_Endpoint__c = '/{paymentPspReference}/capture',
+                    Endpoint_Api_Version__c = '/v1',
+                    Merchant_Account__c = merchantAccountName
             );
         }
         else {
@@ -98,16 +98,16 @@ public with sharing class AdyenPaymentUtility {
                 Schema.sObjectType.Adyen_Adapter__mdt.fields.Single_Currency_Code__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Username__c.isAccessible() && 
                 Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Password__c.isAccessible())  {
 
-                adyenAdapterMdt = [
-                    SELECT
-                        Developername, NamespacePrefix, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c, 
-                        System_Integrator_Name__c, Endpoint_Method__c, Endpoint_Path__c, Merchant_Account__c, 
+                    adyenAdapterMdt = [
+                        SELECT
+                        Developername, NamespacePrefix, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
+                        System_Integrator_Name__c, Endpoint_Method__c, Endpoint_Path__c, Merchant_Account__c,
                         Refund_Endpoint__c, Single_Currency_Code__c, Service_Username__c, Service_Password__c
-                    FROM
+                        FROM
                         Adyen_Adapter__mdt
-                    WHERE
+                        WHERE
                         Developername = :metaType
-                ];
+                    ];
             }
             return adyenAdapterMdt;
         }
@@ -132,28 +132,27 @@ public with sharing class AdyenPaymentUtility {
 			Schema.sObjectType.PaymentGatewayLog.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.OrderPaymentSummary.fields.Id.isAccessible() &&
             Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() && 
-            Schema.sObjectType.SalesChannel.fields.ADYENMERCHANTID__C.isAccessible()
-		) {
-            List<PaymentAuthorization> paymentAuthorizations = [
-                SELECT
+            Schema.sObjectType.SalesChannel.fields.ADYENMERCHANTID__C.isAccessible()) {
+                List<PaymentAuthorization> paymentAuthorizations = [
+                    SELECT
                     Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c,
                     OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber,
                     OrderPaymentSummary.Id,
                     OrderPaymentSummary.FullName, CurrencyIsoCode,
                     OrderPaymentSummary.OrderSummary.Id,
                     OrderPaymentSummary.OrderSummary.Adyen_paymentMethod__c,
-                	OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C
-                FROM
+                    OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C
+                    FROM
                     PaymentAuthorization
-                WHERE
+                    WHERE
                     Id = :paymentAuthId
-                ORDER BY
+                    ORDER BY
                     CreatedDate DESC
-            ];
-            if(!paymentAuthorizations.isEmpty()) {
-                pa = paymentAuthorizations[0];
-                System.debug(LoggingLevel.INFO, 'SalesChannel Config: ' + pa.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C);
-            }
+                ];
+                if(!paymentAuthorizations.isEmpty()) {
+                    pa = paymentAuthorizations[0];
+                    System.debug(LoggingLevel.INFO, 'SalesChannel Config: ' + pa.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C);
+                }
         }
         return pa;
     }
@@ -187,13 +186,12 @@ public with sharing class AdyenPaymentUtility {
                 // Prioritize the payment authorization record if it exists
                 for (PaymentAuthorization paymentAuthorization : [
                     SELECT 
-                        PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id 
+                    PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
                     FROM 
-                        PaymentAuthorization 
+                    PaymentAuthorization
                     WHERE 
-                        GatewayRefNumber = :gatewayRefNumber
-                ]
-                ) {
+                    GatewayRefNumber = :gatewayRefNumber
+                ]) {
                     if(null!=paymentAuthorization.PaymentGateway && null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider && null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
                     {
                         apexAdapterId = paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
@@ -202,20 +200,19 @@ public with sharing class AdyenPaymentUtility {
 
             // Fall back to a payment record for pre-captured transactions
             if (null==apexAdapterId) {
-                    for (Payment payment : [
-                        SELECT 
-                            PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id 
-                        FROM 
-                            Payment
-                        WHERE 
-                            GatewayRefNumber = :gatewayRefNumber
-                    ]
-                    ) {
-                        if (null!=payment.PaymentGateway && null!=payment.PaymentGateway.PaymentGatewayProvider && null!=payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter) 
-                        {
-                            apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
-                        }
+                for (Payment payment : [
+                    SELECT
+                    PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+                    FROM
+                    Payment
+                    WHERE
+                    GatewayRefNumber = :gatewayRefNumber
+                ]) {
+                    if (null!=payment.PaymentGateway && null!=payment.PaymentGateway.PaymentGatewayProvider && null!=payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
+                    {
+                        apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
                     }
+                }
             }
 
         return apexAdapterId;
@@ -266,50 +263,26 @@ public with sharing class AdyenPaymentUtility {
         return pa.GatewayRefNumber != null ? pa.GatewayRefNumber : pa.OrderPaymentSummary?.LastPaymentGatewayLog?.GatewayRefNumber;
     }
 
-    //ApplicationInfo is not an attribute for Modification Requests, hence commenting this code for now. We will need it when we add authorize functionality to OMS.
-    /**
-     * Add application information to the webservice request
-     *
-     * @return application information map for the request.
-
-    public static Map<String, Object> getApplicationInfo(String integratorName) {
-
-        Map<String, Object> applicationInfo = new Map<String, Object>();
-        Map<String, Object> merchantApplication = new Map<String, Object>();
-        Map<String, Object> externalPlatform = new Map<String, Object>();
-
-        merchantApplication.put('name', 'AdyenSOM');
-        merchantApplication.put('version', '1.0');
-
-        externalPlatform.put('name', 'Salesforce Order Management');
-        externalPlatform.put('version', '2020_winter');
-        externalPlatform.put('integrator', integratorName);
-
-        applicationInfo.put('merchantApplication', merchantApplication);
-        applicationInfo.put('externalPlatform', externalPlatform);
-        return applicationInfo;
-    }
-    */
-
     public static Map<String, Object> addInvoiceData(Id invoiceId, PaymentAuthorization pa) {
         Map<String, Object> additionalData = new Map<String, Object>();
         Integer invoiceLineCount = 0;
-        for (InvoiceLine invoiceLine :  [SELECT Id, Product2.Name, Quantity, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount, ChargeAmountWithTax, Type
-                                                       FROM InvoiceLine
-                                                       WHERE Type = 'Charge' AND InvoiceId = :invoiceId]) {
+        for (InvoiceLine invoiceLine :  [
+            SELECT Id, Product2.Name, Quantity, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount, ChargeAmountWithTax, Type
+            FROM InvoiceLine
+            WHERE Type = 'Charge' AND InvoiceId = :invoiceId]) {
 
-            Decimal itemAmount = Integer.valueOf(invoiceLine.ChargeAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
-            Decimal itemVatAmount = Integer.valueOf(invoiceLine.ChargeTaxAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
-            Decimal itemVatPercentage = invoiceLine.ChargeAmount / invoiceLine.ChargeTaxAmount;
-            invoiceLineCount++;
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.currencyCode',          invoiceLine.CurrencyIsoCode);
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.description',           invoiceLine.Product2.Name);
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemAmount',            String.valueOf(itemAmount));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatAmount',         String.valueOf(itemVatAmount));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatPercentage',     String.valueOf(itemVatPercentage));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.numberOfItems',         String.valueOf(Integer.valueOf(invoiceLine.Quantity)));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.productUrl',            '');
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.imageUrl',              '');
+                Decimal itemAmount = Integer.valueOf(invoiceLine.ChargeAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
+                Decimal itemVatAmount = Integer.valueOf(invoiceLine.ChargeTaxAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
+                Decimal itemVatPercentage = invoiceLine.ChargeAmount / invoiceLine.ChargeTaxAmount;
+                invoiceLineCount++;
+                additionalData.put('openinvoicedata.line' + invoiceLineCount + '.currencyCode',          invoiceLine.CurrencyIsoCode);
+                additionalData.put('openinvoicedata.line' + invoiceLineCount + '.description',           invoiceLine.Product2.Name);
+                additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemAmount',            String.valueOf(itemAmount));
+                additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatAmount',         String.valueOf(itemVatAmount));
+                additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatPercentage',     String.valueOf(itemVatPercentage));
+                additionalData.put('openinvoicedata.line' + invoiceLineCount + '.numberOfItems',         String.valueOf(Integer.valueOf(invoiceLine.Quantity)));
+                additionalData.put('openinvoicedata.line' + invoiceLineCount + '.productUrl',            '');
+                additionalData.put('openinvoicedata.line' + invoiceLineCount + '.imageUrl',              '');
         }
         additionalData.put('openinvoicedata.numberOfLines', invoiceLineCount);
         return additionalData;
@@ -396,7 +369,7 @@ public with sharing class AdyenPaymentUtility {
     public static HttpResponse sendModificationRequest(CheckoutModificationRequest modRequest, Adyen_Adapter__mdt adyenAdapterMdt, String endpoint) {
         String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(modRequest, true));
         String apiKey = AdyenService.MERCHANT_API_KEY;
-        endpoint = Test.isRunningTest() ? TEST_ENDPOINT : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + endpoint;
+        endpoint = Test.isRunningTest() ? TEST_ENDPOINT + endpoint : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + endpoint;
         AdyenClient client = new AdyenClient(apiKey, endpoint);
         HttpResponse response = client.request(client.config, body);
         return response;
