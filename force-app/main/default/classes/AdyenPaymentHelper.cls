@@ -141,9 +141,8 @@ public with sharing class AdyenPaymentHelper {
             notification = new CommercePayments.CaptureNotification();
         } else if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND.equalsIgnoreCase(notificationRequestItem.eventCode)) {
             notification = new CommercePayments.ReferencedRefundNotification();
-        } else if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED.equalsIgnoreCase(notificationRequestItem.eventCode)){
-                // process exception caught via platform event subscriber
-                unsupportedNotificationType = true;
+        } else {
+            unsupportedNotificationType = true;
         }
 
         CommercePayments.NotificationSaveResult notificationSaveResult;
