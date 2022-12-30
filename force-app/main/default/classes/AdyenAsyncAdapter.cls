@@ -11,9 +11,9 @@
 global with sharing class AdyenAsyncAdapter implements   CommercePayments.PaymentGatewayAdapter,
                                             CommercePayments.PaymentGatewayAsyncAdapter {
 
-    
+
     global AdyenAsyncAdapter() {}
-  
+
    /**
     * The entry point for processing payment requests. Returns the response from the payment gateway.
     * Accepts the gateway context request and handover the operation to AdyenPaymentHelper to call the appropriate capture or refund operation.
@@ -34,7 +34,7 @@ global with sharing class AdyenAsyncAdapter implements   CommercePayments.Paymen
 
    /**
     *  Listens to the incoming async notification callback from Adyen and handover to AdyenPaymentHelper for processing
-    *  
+    *
     * @param gatewayNotificationContext
     * @return CommercePayments.GatewayNotificationResponse
     */
@@ -42,5 +42,7 @@ global with sharing class AdyenAsyncAdapter implements   CommercePayments.Paymen
         String apexName = String.valueOf(this).substring(0, String.valueOf(this).indexOf(':'));
         return AdyenPaymentHelper.handleAsyncNotificationCallback(gatewayNotificationContext, apexName);
     }
-   
+
+    public class GatewayException extends Exception {}
+
 }
