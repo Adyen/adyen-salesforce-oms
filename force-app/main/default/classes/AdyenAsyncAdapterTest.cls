@@ -139,7 +139,7 @@ global class AdyenAsyncAdapterTest {
 
         Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
         Test.startTest();
-		AdyenOMSConstants.skipMerchantAccount = true;
+		AdyenPaymentUtility.skipMerchantAccount = true;
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TEST_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
@@ -258,7 +258,7 @@ global class AdyenAsyncAdapterTest {
 
         Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
         Test.startTest();
-		AdyenOMSConstants.skipMerchantAccount = true;
+		AdyenPaymentUtility.skipMerchantAccount = true;
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TEST_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);

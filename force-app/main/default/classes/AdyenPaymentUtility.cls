@@ -2,6 +2,7 @@ public with sharing class AdyenPaymentUtility {
 
     @TestVisible
     private static final String TEST_ENDPOINT = 'https://test.com';
+    public static Boolean skipMerchantAccount = false;
 
     /**
      * Looks for the Gateway ref number on the Payment record passed in. If not found gets its from
@@ -66,7 +67,7 @@ public with sharing class AdyenPaymentUtility {
     public static Adyen_Adapter__mdt retrieveGatewayMetadata(String metaType) {
         String merchantAccountName = 'TEST_MERCHANT_ACCOUNT';
         if (Test.isRunningTest()) {
-            if (AdyenOMSConstants.skipMerchantAccount) {
+            if (skipMerchantAccount) {
                 merchantAccountName = '';
             }
             return new Adyen_Adapter__mdt(

@@ -13,7 +13,7 @@ public with sharing class AdyenPaymentHelper {
         CommercePayments.PaymentGatewayRequest paymentRequest = paymentGatewayContext.getPaymentRequest();
 
         if(paymentRequestType == CommercePayments.RequestType.Authorize){
-            return AdyenAuthorisationHelper.authoriseFunds((CommercePayments.AuthorizationRequest)paymentRequest);
+            return AdyenAuthorisationHelper.authorise((CommercePayments.AuthorizationRequest)paymentRequest);
         } else if (paymentRequestType == CommercePayments.RequestType.Capture) {
             return AdyenCaptureHelper.capture((CommercePayments.CaptureRequest)paymentRequest);
         } else if (paymentRequestType == CommercePayments.RequestType.ReferencedRefund) {
