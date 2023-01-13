@@ -12,7 +12,9 @@ public with sharing class AdyenPaymentHelper {
         CommercePayments.RequestType paymentRequestType = paymentGatewayContext.getPaymentRequestType();
         CommercePayments.PaymentGatewayRequest paymentRequest = paymentGatewayContext.getPaymentRequest();
 
-        if (paymentRequestType == CommercePayments.RequestType.Capture) {
+        if(paymentRequestType == CommercePayments.RequestType.Authorize){
+            return AdyenAuthorisationHelper.authorise((CommercePayments.AuthorizationRequest)paymentRequest);
+        } else if (paymentRequestType == CommercePayments.RequestType.Capture) {
             return AdyenCaptureHelper.capture((CommercePayments.CaptureRequest)paymentRequest);
         } else if (paymentRequestType == CommercePayments.RequestType.ReferencedRefund) {
             return AdyenRefundHelper.refund((CommercePayments.ReferencedRefundRequest)paymentRequest);

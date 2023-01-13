@@ -3,6 +3,10 @@
     <label>Gateway Setting</label>
     <protected>false</protected>
     <values>
+        <field>Authorize_Endpoint__c</field>
+        <value xsi:type="xsd:string">/payments</value>
+    </values>
+    <values>
         <field>Capture_Endpoint__c</field>
         <value xsi:type="xsd:string">/capture</value>
     </values>

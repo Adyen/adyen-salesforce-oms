@@ -1,14 +1,8 @@
 public with sharing class AdyenPaymentUtility {
 
-    public static final Set<String> threeDecimalCurrencies              = new Set<String> {'BHD','IQD','JOD','KWD','LWD','OMR','TND'};
-    public static final Set<String> zeroDecimalCurrencies               = new Set<String>{
-            'CVE', 'DJF', 'GNF', 'IDR', 'JPY', 'KMF', 'KRW',
-            'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'
-    };
-    public static Boolean skipMerchantAccount = false;
-
     @TestVisible
     private static final String TEST_ENDPOINT = 'https://test.com';
+    public static Boolean skipMerchantAccount = false;
 
     /**
      * Looks for the Gateway ref number on the Payment record passed in. If not found gets its from
@@ -81,6 +75,7 @@ public with sharing class AdyenPaymentUtility {
                     Single_Currency_Code__c = 'USD',
                     System_Integrator_Name__c = 'Test integrator',
                     Endpoint_Method__c = 'POST',
+                    Authorize_Endpoint__c = '/payments',
                     Refund_Endpoint__c = '/{paymentPspReference}/refund',
                     Capture_Endpoint__c = '/{paymentPspReference}/capture',
                     Endpoint_Api_Version__c = '/v1',
@@ -96,13 +91,13 @@ public with sharing class AdyenPaymentUtility {
                 Schema.sObjectType.Adyen_Adapter__mdt.fields.Endpoint_Path__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Merchant_Account__c.isAccessible() &&
                 Schema.sObjectType.Adyen_Adapter__mdt.fields.System_Integrator_Name__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Refund_Endpoint__c.isAccessible() &&
                 Schema.sObjectType.Adyen_Adapter__mdt.fields.Single_Currency_Code__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Username__c.isAccessible() && 
-                Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Password__c.isAccessible())  {
+                Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Password__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Authorize_Endpoint__c.isAccessible())  {
 
                     adyenAdapterMdt = [
                         SELECT
                         Developername, NamespacePrefix, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
                         System_Integrator_Name__c, Endpoint_Method__c, Endpoint_Path__c, Merchant_Account__c,
-                        Refund_Endpoint__c, Single_Currency_Code__c, Service_Username__c, Service_Password__c
+                        Refund_Endpoint__c, Single_Currency_Code__c, Service_Username__c, Service_Password__c, Authorize_Endpoint__c
                         FROM
                         Adyen_Adapter__mdt
                         WHERE
@@ -240,9 +235,9 @@ public with sharing class AdyenPaymentUtility {
     }
 
     public static Integer getAmountMultiplier(String currencyCode) {
-        if(threeDecimalCurrencies.contains(currencyCode))
+        if(AdyenOMSConstants.threeDecimalCurrencies.contains(currencyCode))
             return 1000;
-        else if (zeroDecimalCurrencies.contains(currencyCode))
+        else if (AdyenOMSConstants.zeroDecimalCurrencies.contains(currencyCode))
             return 1;
         else
             return 100;
@@ -341,6 +336,40 @@ public with sharing class AdyenPaymentUtility {
     }
 
     /**
+	* Round an amount to a normalized value for consistency
+	*/
+    public static Double normalizeAmount(Double amount) {
+        return Double.valueOf(Decimal.valueOf(amount).setScale(2, System.RoundingMode.HALF_EVEN));
+    }
+
+    /**
+    * Add application information to the webservice request
+    *
+    * @return application information map for the request.
+    */
+    public static ApplicationInfo getApplicationInfo(String integratorName) {
+
+        ApplicationInfo info = new ApplicationInfo();
+
+     	ExternalPlatform exPlatform = new ExternalPlatform();
+        exPlatform.name = AdyenOMSConstants.EXTERNAL_PLATFORM_NAME_FOR_APPINFO;
+        exPlatform.integrator = integratorName;
+        info.externalPlatform = exPlatform;
+
+        CommonField merchantApplication = new CommonField();
+        merchantApplication.name = AdyenOMSConstants.MERCHANT_APP_NAME_FOR_APPINFO;
+        merchantApplication.version = AdyenOMSConstants.MERCHANT_APP_VERSION_FOR_APPINFO;
+        info.merchantApplication = merchantApplication;
+
+     	CommonField adyenLibrary = new CommonField();
+     	adyenLibrary.name = AdyenOMSConstants.ADYEN_LIBRARY_NAME_FOR_APPINFO;
+     	adyenLibrary.version = AdyenOMSConstants.ADYEN_LIBRARY_VERSION_FOR_APPINFO;
+	    info.adyenLibrary = adyenLibrary;
+
+        return info;
+    }
+
+    /**
     * Create a modification request by populating required properties (capture/refund)
     *
     * @return CheckoutModificationRequest to send to Adyen.
@@ -374,4 +403,94 @@ public with sharing class AdyenPaymentUtility {
         HttpResponse response = client.request(client.config, body);
         return response;
     }
+
+    /**
+    * Create an AUTH request by populating required properties
+    *
+    * @return AuthorisationRequest to send to Adyen.
+    */
+    public static AuthorisationRequest createAuthorisationRequest(CommercePayments.AuthorizationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt){
+
+        AuthorisationRequest adyenAuthorisationRequest = new AuthorisationRequest();
+        try{
+            CommercePayments.AuthApiPaymentMethodRequest paymentMethod = authRequest.paymentMethod;
+            String currencyCode = authRequest.currencyIsoCode.toUppercase();
+
+            Double authAmount = AdyenPaymentUtility.normalizeAmount(authRequest.amount);
+            adyenAuthorisationRequest.amount = new Amount();
+            adyenAuthorisationRequest.amount.currency_x = currencyCode;
+            adyenAuthorisationRequest.amount.value = (authAmount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
+
+            //Use existing token to create auth request
+            if(paymentMethod.id != null){
+                //paymentMethod.id would be a string that represents the Salesforce record id of CardPaymentMethod or AlternativePaymentMethod object
+                String adyenToken;
+                Id recordId = paymentMethod.id;
+                String sObjName = recordId.getSObjectType().getDescribe().getName(); //determine object name
+
+                if(sObjName == AdyenOMSConstants.CARD_PAYMENTMETHOD_OBJECT) {
+                    //for CardPaymentMethod : Use GatewayTokenEncrypted field to retrieve token
+                    CardPaymentMethod cpmRecord = [Select Id, GatewayTokenEncrypted from CardPaymentMethod where Id = :recordId Limit 1];
+                    adyenToken = cpmRecord.GatewayTokenEncrypted;
+                } else if(sObjName == AdyenOMSConstants.ALTERNATIVE_PAYMENTMETHOD_OBJECT) {
+                    //for AlternativePaymentMethod : Use GatewayToken field to retrieve token
+                    AlternativePaymentMethod apmRecord = [Select Id, GatewayToken from AlternativePaymentMethod where Id = :recordId Limit 1];
+                    adyenToken = apmRecord.GatewayToken;
+                }
+
+                CardDetails cardDetails = new CardDetails();
+                cardDetails.storedPaymentMethodId = adyenToken;
+                adyenAuthorisationRequest.paymentMethod = cardDetails;
+                adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.shopperInteractionEnum.ContAuth;
+                adyenAuthorisationRequest.recurringProcessingModel = AuthorisationRequest.RecurringProcessingModelEnum.CardOnFile;
+
+            } else if(paymentMethod.cardPaymentMethod != null) {
+                //use new card details to create auth request
+                CommercePayments.CardPaymentMethodRequest cpmRequest = paymentMethod.cardPaymentMethod;
+                CardDetails cardDetails = new CardDetails();
+                cardDetails.number_x = cpmRequest.cardNumber;
+                cardDetails.expiryMonth = String.valueOf(cpmRequest.expiryMonth);
+                cardDetails.expiryYear = String.valueOf(cpmRequest.expiryYear);
+                cardDetails.holderName = cpmRequest.cardHolderName;
+                cardDetails.cvc = cpmRequest.cvv;
+                adyenAuthorisationRequest.paymentMethod = cardDetails;
+                adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.shopperInteractionEnum.Ecommerce;
+            }
+
+            adyenAuthorisationRequest.reference = AdyenPaymentUtility.getRandomNumber(16);
+            adyenAuthorisationRequest.merchantAccount = adyenAdapterMdt.Merchant_Account__c;
+            adyenAuthorisationRequest.shopperReference = UserInfo.getUserId();
+            adyenAuthorisationRequest.applicationInfo = AdyenPaymentUtility.getApplicationInfo(adyenAdapterMdt.System_Integrator_Name__c);
+        } catch(Exception ex) {
+            System.debug('Exception message : ' + ex.getMessage());
+            System.debug('Exception type : ' + ex.getTypeName());
+            System.debug('Exception line : ' + ex.getLineNumber());
+            System.debug('Stacktrace : ' + ex.getStackTraceString());
+        }
+        return adyenAuthorisationRequest;
+    }
+
+    /**
+    * Send authorisation request to Adyen platform
+    *
+    * @return response from adyen platform.
+    */
+    public static HttpResponse sendAuthorisationRequest(AuthorisationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt){
+        HttpResponse response;
+        String endpoint;
+        try{
+            String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(authRequest, true));
+            String apiKey = AdyenService.MERCHANT_API_KEY;
+            endpoint = Test.isRunningTest() ? TEST_ENDPOINT + adyenAdapterMdt.Authorize_Endpoint__c : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + adyenAdapterMdt.Authorize_Endpoint__c;
+            AdyenClient client = new AdyenClient(apiKey, endpoint);
+            response = client.request(client.config, body);
+        } catch(Exception ex) {
+            System.debug('Exception message : ' + ex.getMessage());
+            System.debug('Exception type : ' + ex.getTypeName());
+            System.debug('Exception line : ' + ex.getLineNumber());
+            System.debug('Stacktrace : ' + ex.getStackTraceString());
+        }
+        return response;
+    }
+
 }
