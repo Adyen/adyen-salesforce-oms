@@ -2,6 +2,7 @@ public with sharing class AdyenPaymentUtility {
 
     @TestVisible
     private static final String TEST_ENDPOINT = 'https://test.com';
+    public static final String MERCHANT_API_KEY = '{!$Credential.Password}';
     public static Boolean skipMerchantAccount = false;
 
     /**
@@ -28,25 +29,25 @@ public with sharing class AdyenPaymentUtility {
         Payment payment;
 
         if (
-            Schema.sObjectType.Payment.fields.Id.isAccessible() && 
-            Schema.sObjectType.Payment.fields.GatewayRefNumber.isAccessible() && 
+            Schema.sObjectType.Payment.fields.Id.isAccessible() &&
+            Schema.sObjectType.Payment.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.Payment.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-            Schema.sObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() && 
+            Schema.sObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-            Schema.sObjectType.Payment.fields.CurrencyIsoCode.isAccessible() && 
-            Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() && 
+            Schema.sObjectType.Payment.fields.CurrencyIsoCode.isAccessible() &&
+            Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
             Schema.sObjectType.SalesChannel.fields.AdyenMerchantID__c.isAccessible()
         ) {
             List<Payment> payments = [
-                SELECT  
+                SELECT
                 Id,
                 GatewayRefNumber, PaymentAuthorization.GatewayRefNumber,
                 adyenOverrideMerchantConfig__c, PaymentAuthorization.adyenOverrideMerchantConfig__c,
                 CurrencyIsoCode,
                 OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
-                FROM    
+                FROM
                 Payment
-                WHERE   
+                WHERE
                 Id = :paymentId
             ];
 
@@ -90,7 +91,7 @@ public with sharing class AdyenPaymentUtility {
                 Schema.sObjectType.Adyen_Adapter__mdt.fields.Endpoint_Api_Version__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Endpoint_Method__c.isAccessible() &&
                 Schema.sObjectType.Adyen_Adapter__mdt.fields.Endpoint_Path__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Merchant_Account__c.isAccessible() &&
                 Schema.sObjectType.Adyen_Adapter__mdt.fields.System_Integrator_Name__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Refund_Endpoint__c.isAccessible() &&
-                Schema.sObjectType.Adyen_Adapter__mdt.fields.Single_Currency_Code__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Username__c.isAccessible() && 
+                Schema.sObjectType.Adyen_Adapter__mdt.fields.Single_Currency_Code__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Username__c.isAccessible() &&
                 Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Password__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Authorize_Endpoint__c.isAccessible())  {
 
                     adyenAdapterMdt = [
@@ -124,18 +125,18 @@ public with sharing class AdyenPaymentUtility {
             Schema.sObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.CurrencyIsoCode.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
+            Schema.sObjectType.PaymentAuthorization.fields.adyenPaymentMethod__c.isAccessible() &&
 			Schema.sObjectType.PaymentGatewayLog.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.OrderPaymentSummary.fields.Id.isAccessible() &&
-            Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() && 
+            Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
             Schema.sObjectType.SalesChannel.fields.ADYENMERCHANTID__C.isAccessible()) {
                 List<PaymentAuthorization> paymentAuthorizations = [
                     SELECT
-                    Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c,
+                    Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c, adyenPaymentMethod__c,
                     OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber,
                     OrderPaymentSummary.Id,
                     OrderPaymentSummary.FullName, CurrencyIsoCode,
                     OrderPaymentSummary.OrderSummary.Id,
-                    OrderPaymentSummary.OrderSummary.Adyen_paymentMethod__c,
                     OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C
                     FROM
                     PaymentAuthorization
@@ -163,8 +164,8 @@ public with sharing class AdyenPaymentUtility {
         String adyenPaymentMethod;
         Boolean isKlarnaOrder = false;
 
-        if (pa != null && pa.OrderPaymentSummary != null && pa.OrderPaymentSummary.OrderSummary.Adyen_paymentMethod__c != null) {
-            isKlarnaOrder = pa.OrderPaymentSummary.OrderSummary.Adyen_paymentMethod__c.containsIgnoreCase('klarna');
+        if (pa != null && pa.adyenPaymentMethod__c != null) {
+            isKlarnaOrder = pa.adyenPaymentMethod__c.containsIgnoreCase('klarna');
         }
         return isKlarnaOrder;
     }
@@ -177,14 +178,14 @@ public with sharing class AdyenPaymentUtility {
      */
     public static String retrieveApexAdapterId(String gatewayRefNumber) {
         String apexAdapterId = null;
-        
+
                 // Prioritize the payment authorization record if it exists
                 for (PaymentAuthorization paymentAuthorization : [
-                    SELECT 
+                    SELECT
                     PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
-                    FROM 
+                    FROM
                     PaymentAuthorization
-                    WHERE 
+                    WHERE
                     GatewayRefNumber = :gatewayRefNumber
                 ]) {
                     if(null!=paymentAuthorization.PaymentGateway && null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider && null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
@@ -397,7 +398,7 @@ public with sharing class AdyenPaymentUtility {
     */
     public static HttpResponse sendModificationRequest(CheckoutModificationRequest modRequest, Adyen_Adapter__mdt adyenAdapterMdt, String endpoint) {
         String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(modRequest, true));
-        String apiKey = AdyenService.MERCHANT_API_KEY;
+        String apiKey = MERCHANT_API_KEY;
         endpoint = Test.isRunningTest() ? TEST_ENDPOINT + endpoint : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + endpoint;
         AdyenClient client = new AdyenClient(apiKey, endpoint);
         HttpResponse response = client.request(client.config, body);
@@ -480,7 +481,7 @@ public with sharing class AdyenPaymentUtility {
         String endpoint;
         try{
             String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(authRequest, true));
-            String apiKey = AdyenService.MERCHANT_API_KEY;
+            String apiKey = MERCHANT_API_KEY;
             endpoint = Test.isRunningTest() ? TEST_ENDPOINT + adyenAdapterMdt.Authorize_Endpoint__c : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + adyenAdapterMdt.Authorize_Endpoint__c;
             AdyenClient client = new AdyenClient(apiKey, endpoint);
             response = client.request(client.config, body);

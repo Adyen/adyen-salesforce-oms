@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Adyen_paymentMethod__c</fullName>
+    <fullName>adyenPaymentMethod__c</fullName>
     <externalId>false</externalId>
-    <label>Adyen_paymentMethod</label>
-    <length>50</length>
+    <label>Adyen Payment Method</label>
+    <length>40</length>
     <required>false</required>
     <type>Text</type>
     <unique>false</unique>
