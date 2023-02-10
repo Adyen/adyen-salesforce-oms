@@ -8,7 +8,7 @@ public with sharing class AdyenRefundHelper {
      * @param refundRequest   The CommercePayments.ReferencedRefundRequest Object.
      * @return refundResponse  The CommercePayments.ReferencedRefundResponse Object.
      *
-     * @see AdyenService
+     * @see AdyenClient
     */
     public static CommercePayments.GatewayResponse refund(CommercePayments.ReferencedRefundRequest refundRequest) {
 
