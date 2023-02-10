@@ -125,14 +125,14 @@ public with sharing class AdyenPaymentUtility {
             Schema.sObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.CurrencyIsoCode.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-            Schema.sObjectType.PaymentAuthorization.fields.adyenPaymentMethod__c.isAccessible() &&
+            Schema.sObjectType.PaymentAuthorization.fields.Adyen_Payment_Method__c.isAccessible() &&
 			Schema.sObjectType.PaymentGatewayLog.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.OrderPaymentSummary.fields.Id.isAccessible() &&
             Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
             Schema.sObjectType.SalesChannel.fields.ADYENMERCHANTID__C.isAccessible()) {
                 List<PaymentAuthorization> paymentAuthorizations = [
                     SELECT
-                    Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c, adyenPaymentMethod__c,
+                    Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c, Adyen_Payment_Method__c,
                     OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber,
                     OrderPaymentSummary.Id,
                     OrderPaymentSummary.FullName, CurrencyIsoCode,
@@ -164,8 +164,8 @@ public with sharing class AdyenPaymentUtility {
         String adyenPaymentMethod;
         Boolean isKlarnaOrder = false;
 
-        if (pa != null && pa.adyenPaymentMethod__c != null) {
-            isKlarnaOrder = pa.adyenPaymentMethod__c.containsIgnoreCase('klarna');
+        if (pa != null && pa.Adyen_Payment_Method__c != null) {
+            isKlarnaOrder = pa.Adyen_Payment_Method__c.containsIgnoreCase('klarna');
         }
         return isKlarnaOrder;
     }
