@@ -33,9 +33,7 @@ public with sharing class AdyenPaymentHelper {
         CommercePayments.GatewayNotificationResponse gatewayNotificationResponse = new CommercePayments.GatewayNotificationResponse();
 
         CommercePayments.NotificationSaveResult notificationSaveResult;
-        NotificationRequestItem notificationRequestItem;
-
-        notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
+        NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
         String apexAdapterId;
         if (notificationRequestItem.originalReference != null) {
             apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
