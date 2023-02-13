@@ -183,8 +183,8 @@ global class AdyenAsyncAdapterTest {
 
     @IsTest
     static void testCapture_Inbound_Success() {
-        AdyenService.AdyenNotification mockNotification = new AdyenService.AdyenNotification();
-        AdyenService.NotificationRequestItem nri = new AdyenService.NotificationRequestItem();
+        AdyenNotification mockNotification = new AdyenNotification();
+        NotificationRequestItem nri = new NotificationRequestItem();
         Amount a = new Amount();
         a.currency_x = 'USD';
         a.value = (Long)Integer.valueOf(TEST_AMOUNT*10);
@@ -196,11 +196,11 @@ global class AdyenAsyncAdapterTest {
         nri.success = 'true';
         nri.merchantAccountCode = 'merchant_account_code';
 
-        AdyenService.NotificationItems notificationItems = new AdyenService.NotificationItems();
+        NotificationItems notificationItems = new NotificationItems();
         notificationItems.NotificationRequestItem = nri;
         Map<String, Object> requestBody = new Map<String, Object>{
             'live' => false,
-            'notificationItems' => new List<AdyenService.NotificationItems>{notificationItems}
+            'notificationItems' => new List<NotificationItems>{notificationItems}
         };
         AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = JSON.serialize(requestBody);
         Test.startTest();
@@ -212,8 +212,8 @@ global class AdyenAsyncAdapterTest {
 
     @IsTest
     static void testRefund_Inbound_Success() {
-        AdyenService.AdyenNotification mockNotification = new AdyenService.AdyenNotification();
-        AdyenService.NotificationRequestItem nri = new AdyenService.NotificationRequestItem();
+        AdyenNotification mockNotification = new AdyenNotification();
+        NotificationRequestItem nri = new NotificationRequestItem();
         Amount a = new Amount();
         a.currency_x = 'USD';
         a.value = (Long)Integer.valueOf(TEST_AMOUNT*10);
@@ -225,11 +225,11 @@ global class AdyenAsyncAdapterTest {
         nri.success = 'true';
         nri.merchantAccountCode = 'merchant_account_code';
 
-        AdyenService.NotificationItems notificationItems = new AdyenService.NotificationItems();
+        NotificationItems notificationItems = new NotificationItems();
         notificationItems.NotificationRequestItem = nri;
         Map<String, Object> requestBody = new Map<String, Object>{
             'live' => false,
-            'notificationItems' => new List<AdyenService.NotificationItems>{notificationItems}
+            'notificationItems' => new List<NotificationItems>{notificationItems}
         };
         AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = JSON.serialize(requestBody);
         Test.startTest();

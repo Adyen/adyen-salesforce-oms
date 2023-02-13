@@ -5,7 +5,7 @@
  *  This will process a CAPTURE and a REFUND Request as well as the corresponding Async callbacks.
  *
  *  @see AdyenPaymentHelper
- *  @see AdyenService
+ *  @see AdyenClient
  *  @see https://quip.com/z6RVAJzUKYaf
  */
 global with sharing class AdyenAsyncAdapter implements   CommercePayments.PaymentGatewayAdapter,

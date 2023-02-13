@@ -33,7 +33,7 @@ public with sharing class AdyenPaymentHelper {
         CommercePayments.GatewayNotificationResponse gatewayNotificationResponse = new CommercePayments.GatewayNotificationResponse();
 
         CommercePayments.NotificationSaveResult notificationSaveResult;
-        AdyenService.NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
+        NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
         String apexAdapterId;
         if (notificationRequestItem.originalReference != null) {
             apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
@@ -94,19 +94,19 @@ public with sharing class AdyenPaymentHelper {
     }
 
     /**
-     * Take the http request from the async notification callback and deserializes it into AdyenNotificationResponse.
-     *
-     * @param adyenNotificationRequestPayload   The body of the Adyen notification request.
-    * @return AdyenService.AdyenNotificationRequest         The deserialized version of the Adyen nodification request.
+    * Take the http request from the async notification callback and deserializes it into AdyenNotificationResponse.
+    *
+    * @param adyenNotificationRequestPayload   The body of the Adyen notification request.
+    * @return AdyenNotificationRequest         The deserialized version of the Adyen nodification request.
     *
     * @see https://docs.adyen.com/development-resources/webhooks/understand-notifications
     */
-    public static AdyenService.NotificationRequestItem parseAdyenNotificationRequest(CommercePayments.PaymentGatewayNotificationRequest notificationRequest) {
+    public static NotificationRequestItem parseAdyenNotificationRequest(CommercePayments.PaymentGatewayNotificationRequest notificationRequest) {
         String adyenNotificationRequestPayload = Test.isRunningTest() ? TEST_NOTIFICATION_REQUEST_BODY : AdyenPaymentUtility.makeSalesforceCompatible(notificationRequest.getRequestBody().toString());
-        AdyenService.AdyenNotification adyenNotification  = (AdyenService.AdyenNotification) JSON.deserialize(adyenNotificationRequestPayload, AdyenService.AdyenNotification.class);
-        AdyenService.NotificationRequestItem notificationRequestItem = new AdyenService.NotificationRequestItem();
+        AdyenNotification adyenNotification  = (AdyenNotification) JSON.deserialize(adyenNotificationRequestPayload, AdyenNotification.class);
+        NotificationRequestItem notificationRequestItem = new NotificationRequestItem();
         if(adyenNotification != null) {
-            for(AdyenService.NotificationItems notificationItem : adyenNotification.notificationItems) {
+            for(NotificationItems notificationItem : adyenNotification.notificationItems) {
                 if(notificationItem.NotificationRequestItem != null) {
                     notificationRequestItem = notificationItem.NotificationRequestItem;
                 }
@@ -122,7 +122,7 @@ public with sharing class AdyenPaymentHelper {
     * @param adyenNotificationResponse
     * @return CommercePayments.NotificationSaveResult.
     */
-    private static CommercePayments.NotificationSaveResult createNotificationSaveResult( AdyenService.NotificationRequestItem notificationRequestItem ) {
+    private static CommercePayments.NotificationSaveResult createNotificationSaveResult( NotificationRequestItem notificationRequestItem ) {
 
         Boolean unsupportedNotificationType = false;
         CommercePayments.BaseNotification notification = null;
