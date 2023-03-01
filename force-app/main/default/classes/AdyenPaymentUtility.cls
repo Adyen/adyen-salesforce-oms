@@ -43,10 +43,11 @@ public with sharing class AdyenPaymentUtility {
         ) {
             List<Payment> payments = [
                 SELECT
-                Id,
-                GatewayRefNumber, GatewayRefDetails, PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
-                PaymentAuthorization.Adyen_Payment_Method__c, adyenOverrideMerchantConfig__c, PaymentAuthorization.adyenOverrideMerchantConfig__c,
-                CurrencyIsoCode, OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
+                Id, GatewayRefNumber, GatewayRefDetails,
+                PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
+                PaymentAuthorization.Adyen_Payment_Method__c, adyenOverrideMerchantConfig__c,
+                PaymentAuthorization.adyenOverrideMerchantConfig__c,CurrencyIsoCode,
+                OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
                 FROM
                 Payment
                 WHERE
