@@ -31,19 +31,22 @@ public with sharing class AdyenPaymentUtility {
         if (
             Schema.sObjectType.Payment.fields.Id.isAccessible() &&
             Schema.sObjectType.Payment.fields.GatewayRefNumber.isAccessible() &&
+            Schema.sObjectType.Payment.fields.GatewayRefDetails.isAccessible() &&
             Schema.sObjectType.Payment.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
             Schema.sObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
+            Schema.sObjectType.PaymentAuthorization.fields.Adyen_Payment_Method_Variant__c.isAccessible() &&
+            Schema.sObjectType.PaymentAuthorization.fields.Adyen_Payment_Method__c.isAccessible() &&
             Schema.sObjectType.Payment.fields.CurrencyIsoCode.isAccessible() &&
             Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
             Schema.sObjectType.SalesChannel.fields.AdyenMerchantID__c.isAccessible()
         ) {
             List<Payment> payments = [
                 SELECT
-                Id,
-                GatewayRefNumber, PaymentAuthorization.GatewayRefNumber,
-                adyenOverrideMerchantConfig__c, PaymentAuthorization.adyenOverrideMerchantConfig__c,
-                CurrencyIsoCode,
+                Id, GatewayRefNumber, GatewayRefDetails,
+                PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
+                PaymentAuthorization.Adyen_Payment_Method__c, adyenOverrideMerchantConfig__c,
+                PaymentAuthorization.adyenOverrideMerchantConfig__c,CurrencyIsoCode,
                 OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
                 FROM
                 Payment
