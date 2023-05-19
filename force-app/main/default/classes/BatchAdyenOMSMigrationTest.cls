@@ -144,6 +144,33 @@ public with sharing class BatchAdyenOMSMigrationTest {
         Database.executeBatch(new BatchAdyenOMSMigration(''));
         Test.stopTest();
 
-        System.Assert.areEqual('RefArch', orderPaymentSummaryQuery.OrderSummary.SalesChannel.AdyenMerchantID__c);
+        OrderPaymentSummary orderPaymentSummaryResult = [
+            SELECT OrderSummary.SalesChannel.adyensompackage__AdyenMerchantID__c, OrderSummary.adyensompackage__Adyen_paymentMethod__c, OrderSummary.SalesChannel.AdyenMerchantID__c
+            FROM OrderPaymentSummary 
+            WHERE Id = :orderPaymentSummary.Id
+            LIMIT 1
+        ];
+
+        PaymentAuthorization paymentAuthorizationResult = [
+            SELECT Adyen_Payment_Method__c, Adyen_Payment_Method_Variant__c
+            FROM PaymentAuthorization
+            WHERE Id = :paymentAuthorization.Id
+            LIMIT 1
+        ];
+
+        Payment paymentResult = [
+            SELECT Adyen_Payment_Method__c, Adyen_Payment_Method_Variant__c
+            FROM Payment
+            WHERE Id = :payment.Id
+            LIMIT 1
+        ];
+
+        System.Assert.areEqual('RefArch', orderPaymentSummaryResult.OrderSummary.SalesChannel.AdyenMerchantID__c);
+
+        System.Assert.areEqual('Card', paymentAuthorizationResult.Adyen_Payment_Method__c);
+        System.Assert.areEqual('Card', paymentAuthorizationResult.Adyen_Payment_Method_Variant__c);
+
+        System.Assert.areEqual('Card', paymentResult.Adyen_Payment_Method__c);
+        System.Assert.areEqual('Card', paymentResult.Adyen_Payment_Method_Variant__c);
     }
 }
