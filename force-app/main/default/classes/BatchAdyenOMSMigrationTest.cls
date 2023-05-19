@@ -141,7 +141,7 @@ public with sharing class BatchAdyenOMSMigrationTest {
         update  orderPaymentSummaryQuery.OrderSummary;
 
         Test.startTest();
-        Database.executeBatch(new BatchAdyenOMSMigration(''));
+        Database.executeBatch(new BatchAdyenOMSMigration());
         Test.stopTest();
 
         OrderPaymentSummary orderPaymentSummaryResult = [
