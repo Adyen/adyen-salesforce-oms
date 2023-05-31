@@ -8,11 +8,11 @@
     </values>
     <values>
         <field>Capture_Endpoint__c</field>
-        <value xsi:type="xsd:string">/capture</value>
+        <value xsi:type="xsd:string">/{paymentPspReference}/captures</value>
     </values>
     <values>
         <field>Endpoint_Api_Version__c</field>
-        <value xsi:type="xsd:string">v52</value>
+        <value xsi:type="xsd:string">/v70</value>
     </values>
     <values>
         <field>Endpoint_Method__c</field>
@@ -20,15 +20,15 @@
     </values>
     <values>
         <field>Endpoint_Path__c</field>
-        <value xsi:type="xsd:string">/pal/servlet/Payment/</value>
+        <value xsi:type="xsd:string">/payments</value>
     </values>
     <values>
         <field>Merchant_Account__c</field>
-        <value xsi:type="xsd:string">SalesForceMFRA</value>
+        <value xsi:type="xsd:string">PluginDemo_Danilo_TEST</value>
     </values>
     <values>
         <field>Refund_Endpoint__c</field>
-        <value xsi:type="xsd:string">/refund</value>
+        <value xsi:type="xsd:string">/{paymentPspReference}/refunds</value>
     </values>
     <values>
         <field>Service_Password__c</field>
