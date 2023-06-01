@@ -3,7 +3,7 @@ public without sharing class BatchAdyenOMSMigration implements Database.Batchabl
 
 
     public BatchAdyenOMSMigration() {
-        namespaceFor2GP = 'adyen_payment__';
+        namespaceFor2GP = AdyenOMSConstants.NAME_SPACE_2GP;
     }
 
     public BatchAdyenOMSMigration(String namespace2GP) {
