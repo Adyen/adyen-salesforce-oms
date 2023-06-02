@@ -24,7 +24,7 @@
     </values>
     <values>
         <field>Merchant_Account__c</field>
-        <value xsi:type="xsd:string">PluginDemo_Danilo_TEST</value>
+        <value xsi:type="xsd:string">MerchantAccountName</value>
     </values>
     <values>
         <field>Refund_Endpoint__c</field>
