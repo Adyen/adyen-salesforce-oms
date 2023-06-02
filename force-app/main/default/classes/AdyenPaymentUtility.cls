@@ -402,7 +402,7 @@ public with sharing class AdyenPaymentUtility {
     public static HttpResponse sendModificationRequest(CheckoutModificationRequest modRequest, Adyen_Adapter__mdt adyenAdapterMdt, String endpoint) {
         String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(modRequest, true));
         String apiKey = MERCHANT_API_KEY;
-        endpoint = Test.isRunningTest() ? TEST_ENDPOINT + endpoint : adyenAdapterMdt.Endpoint_Api_Version__c + adyenAdapterMdt.Endpoint_Path__c + endpoint;
+        endpoint = Test.isRunningTest() ? TEST_ENDPOINT + endpoint : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + endpoint;
         AdyenClient client = new AdyenClient(apiKey, endpoint);
         HttpResponse response = client.request(client.config, body);
         return response;
