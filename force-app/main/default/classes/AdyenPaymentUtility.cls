@@ -1,4 +1,4 @@
-public with sharing class AdyenPaymentUtility {
+public without sharing class AdyenPaymentUtility {
 
     @TestVisible
     private static final String TEST_ENDPOINT = 'https://test.com';
@@ -174,47 +174,37 @@ public with sharing class AdyenPaymentUtility {
     }
 
     /**
-     * Retrieve apex adapter id from the gateway reference number.
+     * Retrieve apex adapter name from the gateway reference number.
      *
      * @param gatewayRefNumber original payment gatewayrefnumber as recieved in the notification
-     * @return apexclass id for the payment gateway adapter.
+     * @return apexclass name for the payment gateway adapter.
      */
-    public static String retrieveApexAdapterId(String gatewayRefNumber) {
-        String apexAdapterId = null;
-
-                // Prioritize the payment authorization record if it exists
-                for (PaymentAuthorization paymentAuthorization : [
-                    SELECT
-                    PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
-                    FROM
-                    PaymentAuthorization
-                    WHERE
-                    GatewayRefNumber = :gatewayRefNumber
-                ]) {
-                    if(null!=paymentAuthorization.PaymentGateway && null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider && null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
-                    {
-                        apexAdapterId = paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
-                    }
-                }
-
-            // Fall back to a payment record for pre-captured transactions
-            if (null==apexAdapterId) {
-                for (Payment payment : [
-                    SELECT
-                    PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
-                    FROM
-                    Payment
-                    WHERE
-                    GatewayRefNumber = :gatewayRefNumber
-                ]) {
-                    if (null!=payment.PaymentGateway && null!=payment.PaymentGateway.PaymentGatewayProvider && null!=payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
-                    {
-                        apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
-                    }
+    public static String retrieveApexAdapterName(String gatewayRefNumber) {
+        String apexAdapterName;
+        // Prioritize the payment authorization record if it exists
+        for (PaymentAuthorization paymentAuthorization : [
+            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Name
+            FROM PaymentAuthorization
+            WHERE GatewayRefNumber = :gatewayRefNumber
+        ]) {
+            if (null != paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Name) {
+                apexAdapterName = paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Name;
+            }
+        }
+        // Fall back to a payment record for pre-captured transactions
+        if (String.isBlank(apexAdapterName)) {
+            for (Payment payment : [
+                SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Name
+                FROM Payment
+                WHERE GatewayRefNumber = :gatewayRefNumber
+            ]) {
+                if (null != payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Name) {
+                    apexAdapterName = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Name;
                 }
             }
+        }
 
-        return apexAdapterId;
+        return apexAdapterName;
     }
 
     /**
