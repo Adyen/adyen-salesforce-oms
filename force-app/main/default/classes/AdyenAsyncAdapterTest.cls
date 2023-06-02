@@ -1,18 +1,6 @@
 @isTest
 global class AdyenAsyncAdapterTest {
 
-    private static final String TEST_PSP_REFERENCE = '853587067740652G';
-    private static final String TEST_PSP_REFERENCE_FAIL = '853587067740652F';
-    private static final String TEST_MERCHANT_ACCOUNT = 'TEST_MERCHANT_ACCOUNT';
-    private static final String TEST_MERCHANT_REFERENCE = 'TEST_MERCHANT_REFERENCE';
-    private static final String TEST_SHOPPER_REFERENCE = 'TEST_SHOPPER_REFERENCE';
-    private static final String TEST_CARD_SUCCESS = '4242424242424242';
-    private static final String TEST_PAYMENT_TOKEN = 'TEST_PAYMENT_TOKEN';
-    private static final String TEST_AUTH_CODE = 'TEST_AUTH_CODE';
-    private static final String RESULT_CODE_SUCCESS = 'Authorised';
-    private static final String RESULT_CODE_FAIL = 'Failure';
-    private static final Double TEST_AMOUNT = 19.99;
-
     private static final AdyenAsyncAdapter adyenAdapter = new AdyenAsyncAdapter();
 
     global class EchoHttpMock implements HttpCalloutMock {
@@ -22,7 +10,7 @@ global class AdyenAsyncAdapterTest {
             res.setHeader('Content-Type', 'application/json');
             res.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
             Map<String, Object> responseBody = new Map<String, Object> {
-                'pspReference' => TEST_PSP_REFERENCE,
+                'pspReference' => TestDataFactory.TEST_PSP_REFERENCE,
                 'status' => AdyenConstants.NOTIFICATION_RECEIVED_CHECKOUT
             };
             Map<String, Object> additionalData = new Map<String, Object>();
@@ -37,30 +25,30 @@ global class AdyenAsyncAdapterTest {
             if(endpoint.containsIgnoreCase('payment')) {
                 Map<String, Object> paymentMethod = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize((requestBody.get('paymentMethod'))));
                 Object spm = requestBody.get('storePaymentMethod');
-                responseBody.put('resultCode', RESULT_CODE_SUCCESS);
+                responseBody.put('resultCode', TestDataFactory.RESULT_CODE_SUCCESS);
                     // Authorize
-                    if(TEST_PAYMENT_TOKEN.equals(paymentMethod.get('storedPaymentMethodId'))) { // Successful Auth
-                        additionalData.put('authCode', TEST_AUTH_CODE);
-                        amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
+                    if(TestDataFactory.TEST_PAYMENT_TOKEN.equals(paymentMethod.get('storedPaymentMethodId'))) { // Successful Auth
+                        additionalData.put('authCode', TestDataFactory.TEST_AUTH_CODE);
+                        amount.put('value', Integer.valueOf(TestDataFactory.TEST_AMOUNT*10));
                     } else { // Failed Auth
-                        responseBody.put('resultCode', RESULT_CODE_FAIL);
+                        responseBody.put('resultCode', TestDataFactory.RESULT_CODE_FAIL);
                         res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
                     }
 
                 responseBody.put('additionalData', additionalData);
             } else if(endpoint.containsIgnoreCase('capture')) {
                 // Capture
-                responseBody.put('reference', TEST_SHOPPER_REFERENCE);
+                responseBody.put('reference', TestDataFactory.TEST_SHOPPER_REFERENCE);
                 if(requestBody.get('merchantAccount') != '' && requestBody.get('amount') != null) { // Successful Capture
-                    amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
+                    amount.put('value', Integer.valueOf(TestDataFactory.TEST_AMOUNT*10));
                 } else { // Failed Capture
                     res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
                 }
             } else if(endpoint.containsIgnoreCase('refund')) {
                 // Refund
-                responseBody.put('reference', TEST_SHOPPER_REFERENCE);
+                responseBody.put('reference', TestDataFactory.TEST_SHOPPER_REFERENCE);
                 if(requestBody.get('merchantAccount') != '' && requestBody.get('amount') != null) { // Successful Refund
-                    amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
+                    amount.put('value', Integer.valueOf(TestDataFactory.TEST_AMOUNT*10));
                 } else { // Failed Refund
                     res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
                 }
@@ -76,7 +64,7 @@ global class AdyenAsyncAdapterTest {
         insert a;
 
         CardPaymentMethod cpm = new CardPaymentMethod(
-            GatewayToken = TEST_PAYMENT_TOKEN,
+            GatewayToken = TestDataFactory.TEST_PAYMENT_TOKEN,
             CardHolderName = 'Test Cardholder',
             Email = 'test@asdf.com',
             Status = 'Active',
@@ -96,8 +84,8 @@ global class AdyenAsyncAdapterTest {
         PaymentAuthorization pa = new PaymentAuthorization(
             AccountId = a.Id,
             PaymentMethodId = cpm.Id,
-            Amount = TEST_AMOUNT,
-            GatewayRefNumber = TEST_PSP_REFERENCE,
+            Amount = TestDataFactory.TEST_AMOUNT,
+            GatewayRefNumber = TestDataFactory.TEST_PSP_REFERENCE,
             Status = 'Processed',
             ProcessingMode = 'External',
             PaymentGatewayId = pg.Id,
@@ -108,8 +96,8 @@ global class AdyenAsyncAdapterTest {
         Payment p = new Payment(
             AccountId = a.Id,
             PaymentMethodId = cpm.Id,
-            Amount = TEST_AMOUNT,
-            GatewayRefNumber = TEST_PSP_REFERENCE,
+            Amount = TestDataFactory.TEST_AMOUNT,
+            GatewayRefNumber = TestDataFactory.TEST_PSP_REFERENCE,
             Status = 'Processed',
             ProcessingMode = 'External',
             Type = 'Capture',
@@ -126,12 +114,12 @@ global class AdyenAsyncAdapterTest {
         Test.startTest();
 
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
-        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TEST_AMOUNT, authId);
+        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
         CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
         Test.stopTest();
         System.Assert(captureResponse.toString().contains('[capture-received]'));
-		System.Assert(captureResponse.toString().contains(TEST_PSP_REFERENCE));
+		System.Assert(captureResponse.toString().contains(TestDataFactory.TEST_PSP_REFERENCE));
     }
 
     @IsTest
@@ -141,7 +129,7 @@ global class AdyenAsyncAdapterTest {
         Test.startTest();
 		AdyenPaymentUtility.skipMerchantAccount = true;
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
-        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TEST_AMOUNT, authId);
+        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
         CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
         Test.stopTest();
@@ -154,7 +142,7 @@ global class AdyenAsyncAdapterTest {
         Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
         Test.startTest();
         try {
-            CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TEST_AMOUNT, null);
+            CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, null);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
             CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
             Test.stopTest();
@@ -187,7 +175,7 @@ global class AdyenAsyncAdapterTest {
         NotificationRequestItem nri = new NotificationRequestItem();
         Amount a = new Amount();
         a.currency_x = 'USD';
-        a.value = (Long)Integer.valueOf(TEST_AMOUNT*10);
+        a.value = (Long)Integer.valueOf(TestDataFactory.TEST_AMOUNT*10);
         nri.amount = a;
         nri.eventCode = 'CAPTURE';
         nri.pspReference = 'pspref';
@@ -216,7 +204,7 @@ global class AdyenAsyncAdapterTest {
         NotificationRequestItem nri = new NotificationRequestItem();
         Amount a = new Amount();
         a.currency_x = 'USD';
-        a.value = (Long)Integer.valueOf(TEST_AMOUNT*10);
+        a.value = (Long)Integer.valueOf(TestDataFactory.TEST_AMOUNT*10);
         nri.amount = a;
         nri.eventCode = 'REFUND';
         nri.pspReference = 'pspref';
@@ -246,11 +234,11 @@ global class AdyenAsyncAdapterTest {
         Test.startTest();
 
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
-        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TEST_AMOUNT, paymentId);
+        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
         CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
         Test.stopTest();
-        System.Assert(refundResponse.toString().contains(TEST_SHOPPER_REFERENCE));
+        System.Assert(refundResponse.toString().contains(TestDataFactory.TEST_SHOPPER_REFERENCE));
     }
 
     @IsTest
@@ -260,7 +248,7 @@ global class AdyenAsyncAdapterTest {
         Test.startTest();
 		AdyenPaymentUtility.skipMerchantAccount = true;
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
-        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TEST_AMOUNT, paymentId);
+        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
         CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
         Test.stopTest();
@@ -273,7 +261,7 @@ global class AdyenAsyncAdapterTest {
         Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
         Test.startTest();
         try {
-            CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TEST_AMOUNT, null);
+            CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, null);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
             CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
             Test.stopTest();
