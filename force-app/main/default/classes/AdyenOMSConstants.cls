@@ -14,4 +14,6 @@ public with sharing class AdyenOMSConstants {
 
     public static final String CARD_PAYMENTMETHOD_OBJECT = 'CardPaymentMethod';
     public static final String ALTERNATIVE_PAYMENTMETHOD_OBJECT = 'AlternativePaymentMethod';
+
+    public static final String NAME_SPACE_2GP = 'adyen_payment__';
 }
