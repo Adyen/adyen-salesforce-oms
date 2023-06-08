@@ -41,15 +41,9 @@ public with sharing class AdyenPaymentHelper {
 
         System.debug('----> apexAdapterId = ' + apexAdapterId);
 
-        String nameSpacePrefix = '';
-        List<ApexClass> adyenApexClass = [SELECT NamespacePrefix from ApexClass WHERE Name = :apexName];
-        if (adyenApexClass.size() > 0) {
-            nameSpacePrefix = adyenApexClass[0].NamespacePrefix;
-        }
-        String apexClassId = AdyenPaymentUtility.retrieveApexClassId(apexName, nameSpacePrefix);
-        System.debug('----> apexClassId = ' + apexClassId);
+        ApexClass adyenApexClass = [Select Id from ApexClass WHERE Name = :apexName and (NamespacePrefix = :AdyenOMSConstants.Adyen_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1];
 
-        if(apexAdapterId == apexClassId || Test.isRunningTest()){
+        if(apexAdapterId == String.valueOf(adyenApexClass.Id) || Test.isRunningTest()){
 
         notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
 
@@ -69,10 +63,9 @@ public with sharing class AdyenPaymentHelper {
                 return gatewayNotificationResponse;
             }
         } else {
-                String msg = '';
-                msg += '[accepted] But unsupported notification type: ' + notificationRequestItem.eventCode;
-                    gatewayNotificationResponse.setResponseBody(Blob.valueOf( msg ));
-                    gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
+                String msg = '[accepted] But unsupported notification type: ' + notificationRequestItem.eventCode;
+                gatewayNotificationResponse.setResponseBody(Blob.valueOf( msg ));
+                gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
                 return gatewayNotificationResponse;
         }
 

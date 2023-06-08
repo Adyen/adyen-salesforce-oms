@@ -191,7 +191,7 @@ public with sharing class AdyenPaymentUtility {
                     WHERE
                     GatewayRefNumber = :gatewayRefNumber
                 ]) {
-                    if(null!=paymentAuthorization.PaymentGateway && null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider && null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
+                    if(null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
                     {
                         apexAdapterId = paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
                     }
@@ -207,34 +207,13 @@ public with sharing class AdyenPaymentUtility {
                     WHERE
                     GatewayRefNumber = :gatewayRefNumber
                 ]) {
-                    if (null!=payment.PaymentGateway && null!=payment.PaymentGateway.PaymentGatewayProvider && null!=payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
+                    if (null!=payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
                     {
                         apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
                     }
                 }
             }
 
-        return apexAdapterId;
-    }
-
-    /**
-     * Retrieve apex id from the class name and namespaceprefix.
-     *
-     * @param className The Class Name
-     * @param namespace Namespace of the current class
-     * @return apexclass id.
-     */
-    public static String retrieveApexClassId(String className, String namespace) {
-        ApexClass apexClass = null;
-        String apexAdapterId = null;
-        String soql = 'SELECT Id FROM ApexClass WHERE Name = :className AND NamespacePrefix = :namespace';
-        List<ApexClass> apexClasses = Database.query(soql);
-        if(!apexClasses.isEmpty()) {
-            apexClass = apexClasses[0];
-            if(null!=apexClass){
-                apexAdapterId = apexClass.Id;
-            }
-        }
         return apexAdapterId;
     }
 
