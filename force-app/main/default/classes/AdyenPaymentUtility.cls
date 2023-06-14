@@ -191,14 +191,14 @@ public with sharing class AdyenPaymentUtility {
                     WHERE
                     GatewayRefNumber = :gatewayRefNumber
                 ]) {
-                    if(null!=paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
+                    if(paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null)
                     {
                         apexAdapterId = paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
                     }
                 }
 
             // Fall back to a payment record for pre-captured transactions
-            if (null==apexAdapterId) {
+            if (apexAdapterId==null) {
                 for (Payment payment : [
                     SELECT
                     PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
@@ -207,7 +207,7 @@ public with sharing class AdyenPaymentUtility {
                     WHERE
                     GatewayRefNumber = :gatewayRefNumber
                 ]) {
-                    if (null!=payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter)
+                    if (payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null)
                     {
                         apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
                     }

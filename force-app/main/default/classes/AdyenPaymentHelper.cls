@@ -34,16 +34,14 @@ public with sharing class AdyenPaymentHelper {
 
         CommercePayments.NotificationSaveResult notificationSaveResult;
         NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
-        String apexAdapterId;
+        String adapterIdFromNotificationData;
         if (notificationRequestItem.originalReference != null) {
-            apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
+            adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
         }
 
-        System.debug('----> apexAdapterId = ' + apexAdapterId);
+        Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1].Id;
 
-        ApexClass adyenApexClass = [Select Id from ApexClass WHERE Name = :apexName and (NamespacePrefix = :AdyenOMSConstants.Adyen_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1];
-
-        if(apexAdapterId == String.valueOf(adyenApexClass.Id) || Test.isRunningTest()){
+        if(adapterIdFromNotificationData == adyenAdapterId || Test.isRunningTest()){
 
         notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
 
