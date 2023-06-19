@@ -34,22 +34,14 @@ public with sharing class AdyenPaymentHelper {
 
         CommercePayments.NotificationSaveResult notificationSaveResult;
         NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
-        String apexAdapterId;
+        String adapterIdFromNotificationData;
         if (notificationRequestItem.originalReference != null) {
-            apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
+            adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
         }
 
-        System.debug('----> apexAdapterId = ' + apexAdapterId);
+        Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1].Id;
 
-        String nameSpacePrefix = '';
-        List<ApexClass> adyenApexClass = [SELECT NamespacePrefix from ApexClass WHERE Name = :apexName];
-        if (adyenApexClass.size() > 0) {
-            nameSpacePrefix = adyenApexClass[0].NamespacePrefix;
-        }
-        String apexClassId = AdyenPaymentUtility.retrieveApexClassId(apexName, nameSpacePrefix);
-        System.debug('----> apexClassId = ' + apexClassId);
-
-        if(apexAdapterId == apexClassId || Test.isRunningTest()){
+        if(adapterIdFromNotificationData == adyenAdapterId || Test.isRunningTest()){
 
         notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
 
@@ -69,10 +61,9 @@ public with sharing class AdyenPaymentHelper {
                 return gatewayNotificationResponse;
             }
         } else {
-                String msg = '';
-                msg += '[accepted] But unsupported notification type: ' + notificationRequestItem.eventCode;
-                    gatewayNotificationResponse.setResponseBody(Blob.valueOf( msg ));
-                    gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
+                String msg = '[accepted] But unsupported notification type: ' + notificationRequestItem.eventCode;
+                gatewayNotificationResponse.setResponseBody(Blob.valueOf( msg ));
+                gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
                 return gatewayNotificationResponse;
         }
 

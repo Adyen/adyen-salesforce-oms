@@ -676,10 +676,6 @@
     </userPermissions>
     <userPermissions>
         <enabled>true</enabled>
-        <name>UseAddOrderItemSummaryAPIs</name>
-    </userPermissions>
-    <userPermissions>
-        <enabled>true</enabled>
         <name>UseFulfillmentAPIs</name>
     </userPermissions>
     <userPermissions>
