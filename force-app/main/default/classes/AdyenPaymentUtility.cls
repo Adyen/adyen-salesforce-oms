@@ -240,11 +240,11 @@ public with sharing class AdyenPaymentUtility {
     public static Map<String, Object> addInvoiceData(Id invoiceId, PaymentAuthorization pa) {
         Map<String, Object> additionalData = new Map<String, Object>();
         Integer invoiceLineCount = 0;
-        for (InvoiceLine invoiceLine :  [
-        SELECT Id, Product2.Name, Quantity, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount, ChargeAmountWithTax, Type
-        FROM InvoiceLine
-        WHERE Type = 'Charge' AND InvoiceId = :invoiceId]) {
-            
+        for (InvoiceLine invoiceLine : [
+            SELECT Id, Product2.Name, Quantity, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount
+            FROM InvoiceLine
+            WHERE Type = 'Charge' AND InvoiceId = :invoiceId
+        ]) {
             Decimal itemAmount = Integer.valueOf(invoiceLine.ChargeAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
             Decimal itemVatAmount = Integer.valueOf(invoiceLine.ChargeTaxAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
             Decimal itemVatPercentage = invoiceLine.ChargeAmount / invoiceLine.ChargeTaxAmount;
