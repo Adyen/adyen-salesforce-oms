@@ -2,7 +2,9 @@
 private class AdyenAsyncAdapterTest {
     @TestSetup
     static void makeData() {
-        TestDataFactory.insertBasicPaymentRecords();
+        Account acct = TestDataFactory.createAccount();
+        insert acct;
+        TestDataFactory.insertBasicPaymentRecords(acct.Id, null);
     }
     
     @IsTest

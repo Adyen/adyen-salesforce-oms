@@ -42,15 +42,15 @@ public class TestDataFactory {
 
     public static PaymentGateway createPaymentGateway() {
         return new PaymentGateway(
-            PaymentGatewayName = 'Adyen',
+            PaymentGatewayName = 'Adyen_Test',
             Status = 'Active',
-            ExternalReference = 'Adyen_Component',
+            ExternalReference = 'Adyen_Component_Test',
             MerchantCredentialId = [SELECT Id FROM NamedCredential LIMIT 1]?.Id,
             PaymentGatewayProviderId = [SELECT Id FROM PaymentGatewayProvider LIMIT 1]?.Id
         );
     }
 
-    public static PaymentAuthorization createPaymentAuthorization(Id acctId, Id cardPayMetId, Id payGatId) {
+    public static PaymentAuthorization createPaymentAuthorization(Id acctId, Id cardPayMetId, Id payGatId, Id orderPaySummaryId) {
         return new PaymentAuthorization(
             AccountId = acctId,
             PaymentMethodId = cardPayMetId,
@@ -59,11 +59,12 @@ public class TestDataFactory {
             Status = 'Processed',
             ProcessingMode = 'External',
             PaymentGatewayId = payGatId,
-            CurrencyIsoCode = ACTIVE_CURRENCY
+            CurrencyIsoCode = ACTIVE_CURRENCY,
+            OrderPaymentSummaryId = orderPaySummaryId
         );
     }
 
-    public static Payment createPayment(Id acctId, Id cardPayMetId, Id payGatId, Id payAuthId) {
+    public static Payment createPayment(Id acctId, Id cardPayMetId, Id payGatId, Id payAuthId, Id orderPaySummaryId) {
         return new Payment(
             AccountId = acctId,
             PaymentMethodId = cardPayMetId,
@@ -73,24 +74,22 @@ public class TestDataFactory {
             ProcessingMode = 'External',
             Type = 'Capture',
             PaymentGatewayId = payGatId,
-            PaymentAuthorizationId = payAuthId
+            PaymentAuthorizationId = payAuthId,
+            OrderPaymentSummaryId = orderPaySummaryId
         );
     }
 
-    public static void insertBasicPaymentRecords() {
-        Account acct = createAccount();
-        insert acct;
-        
+    public static void insertBasicPaymentRecords(Id accId, Id orderPaySummaryId) {
         CardPaymentMethod cardPayMeth = createCardPaymentMethod();
         insert cardPayMeth;
         
         PaymentGateway payGat = createPaymentGateway();
         insert payGat;
         
-        PaymentAuthorization payAuth = createPaymentAuthorization(acct.Id, cardPayMeth.Id, payGat.Id);
+        PaymentAuthorization payAuth = createPaymentAuthorization(accId, cardPayMeth.Id, payGat.Id, orderPaySummaryId);
         insert payAuth;
         
-        Payment payment = createPayment(acct.Id, cardPayMeth.Id, payGat.Id, payAuth.Id);
+        Payment payment = createPayment(accId, cardPayMeth.Id, payGat.Id, payAuth.Id, orderPaySummaryId);
         insert payment;
     }
 
@@ -126,6 +125,135 @@ public class TestDataFactory {
         CommercePayments.PaymentGatewayContext payGatecontext = new CommercePayments.PaymentGatewayContext(authRequest, CommercePayments.RequestType.Authorize);
         CommercePayments.PaymentGatewayRequest paymentRequest = payGatecontext.getPaymentRequest();
         return (CommercePayments.AuthorizationRequest)paymentRequest;
+    }
+
+    public static Order insertOrderAndRelatedRecords(Id acctId, Decimal productUnitPrice, Decimal prodTaxAmount) {        
+        Product2 product = new Product2(
+            Name = 'Test Product',
+            Description = 'Test Description'
+        );
+        insert(product);
+        
+        PricebookEntry pricebookEntry = new PricebookEntry(
+            Pricebook2Id = Test.getStandardPricebookId(),
+            Product2Id = product.Id,
+            UnitPrice = productUnitPrice,
+            IsActive = true,
+            UseStandardPrice = false
+        );
+        insert pricebookEntry;
+        
+        Order order = new Order(
+            AccountId = acctId,
+            EffectiveDate = Date.newInstance(2023, 1, 1),
+            OrderedDate = Date.newInstance(2023, 1, 1),
+            Status = 'Draft',
+            Pricebook2Id = pricebookEntry.Pricebook2Id
+        );
+        insert(order);
+        
+        OrderDeliveryMethod orderDeliveryMethod = new OrderDeliveryMethod(
+            Name = 'Order Delivery Method',
+            ProductId = product.Id
+        );
+        insert orderDeliveryMethod;
+        
+        OrderDeliveryGroup orderDeliveryGroup = new OrderDeliveryGroup(
+            DeliverToName = 'Buyer User',
+            DeliverToStreet = 'test Street',
+            DeliverToCity = 'Minneapolis',
+            DeliverToState = 'MN',
+            DeliverToPostalCode = '55402',
+            DeliverToCountry = 'US',
+            OrderDeliveryMethodId = orderDeliveryMethod.Id,
+            OrderId = order.Id
+        );
+        insert orderDeliveryGroup;
+        
+        OrderItem orderItem = new OrderItem(
+            Description = 'Test Product',
+            OrderId = order.Id,
+            Product2Id = product.Id,
+            PricebookEntryId = pricebookEntry.Id,
+            UnitPrice = productUnitPrice,
+            Quantity = 1,
+            TotalLineAmount = productUnitPrice,
+            Type = 'Order Product',
+            OrderDeliveryGroupId = orderDeliveryGroup.Id
+        );
+        insert orderItem;
+
+        OrderItemTaxLineItem tax = new OrderItemTaxLineItem(
+            OrderItemId = OrderItem.Id,
+            Amount = prodTaxAmount,
+            Name = 'Tax for product',
+            Type = 'Estimated',
+            TaxEffectiveDate = System.today()
+        );
+        insert tax;
+        
+        order.Status = 'Activated';
+        update order;
+
+        return order;
+    }
+
+    public static OrderPaymentSummary createOrderSummaryRecords(Id accId, Id orderId) {
+        ConnectApi.OrderSummaryInputRepresentation osir = new ConnectApi.OrderSummaryInputRepresentation();
+        osir.orderId = orderId;
+        osir.orderLifeCycleType = 'MANAGED';
+        ConnectApi.OrderSummaryOutputRepresentation osor = ConnectApi.OrderSummaryCreation.createOrderSummary(osir);
+        
+        OrderPaymentSummary orderPaymentSummary = new OrderPaymentSummary(
+            OrderSummaryId = osor.orderSummaryId,
+            Method = 'Visa',
+            Type = 'Unknown'
+        );
+        insert orderPaymentSummary;
+        
+        return orderPaymentSummary;
+    }
+
+    public static List<Id> createFulfillmentOrder(Id orderSummaryId) {
+        String fulfillmentType = 'warehouse';
+        
+        Schema.Location warehouse = new Schema.Location(Name = 'New York', LocationType = 'Warehouse');
+        insert warehouse;
+        
+        ConnectApi.FulfillmentOrderInputRepresentation fulfillmentOrderInput = new ConnectApi.FulfillmentOrderInputRepresentation();
+        fulfillmentOrderInput.orderSummaryId = orderSummaryId;
+        
+        List<OrderDeliveryGroupSummary> orderDeliveryGroupSummaryList = [SELECT Id FROM OrderDeliveryGroupSummary WHERE OrderSummaryId =: orderSummaryId];
+        for (OrderDeliveryGroupSummary orderDeliveryGroupSummary: orderDeliveryGroupSummaryList) {
+            fulfillmentOrderInput.orderDeliveryGroupSummaryId = orderDeliveryGroupSummary.Id;
+            List<ConnectApi.FulfillmentGroupInputRepresentation> fulfillmentGroups = new List<ConnectApi.FulfillmentGroupInputRepresentation>();
+            ConnectApi.FulfillmentGroupInputRepresentation fulfillmentGroup = new ConnectApi.FulfillmentGroupInputRepresentation();
+            fulfillmentGroup.fulfilledFromLocationId = warehouse.Id;
+            fulfillmentGroup.fulfillmentType = fulfillmentType;
+            
+            List<ConnectApi.OrderItemSummaryInputRepresentation> orderItemSummaries = new List<ConnectApi.OrderItemSummaryInputRepresentation>();
+            List<OrderItemSummary> orderItemSummaryList = [SELECT Id, quantity FROM OrderItemSummary WHERE OrderSummaryId =: orderSummaryId AND OrderDeliveryGroupSummaryId =: orderDeliveryGroupSummary.Id];
+            
+            for(OrderItemSummary orderItemSummary : orderItemSummaryList){
+                ConnectApi.OrderItemSummaryInputRepresentation oisInputRepresentation = new ConnectApi.OrderItemSummaryInputRepresentation();
+                oisInputRepresentation.orderItemSummaryId = orderItemSummary.Id;
+                oisInputRepresentation.quantity = orderItemSummary.Quantity;
+                orderItemSummaries.add(oisInputRepresentation);
+            }
+            
+            fulfillmentGroup.orderItemSummaries = orderItemSummaries;
+            fulfillmentGroups.add(fulfillmentGroup);      
+            fulfillmentOrderInput.fulfillmentGroups = fulfillmentGroups;
+        }
+        
+        ConnectApi.FulfillmentOrderOutputRepresentation result = ConnectAPI.FulfillmentOrder.createFulfillmentOrders(fulfillmentOrderInput);
+        return result.fulfillmentOrderIds;
+    }
+
+    public static Id createInvoiceAndLineItems(Id fulfillmentOrderId) {
+        ConnectApi.FulfillmentOrderInvoiceInputRepresentation invoiceInput = new ConnectApi.FulfillmentOrderInvoiceInputRepresentation();
+        ConnectAPI.FulfillmentOrderInvoiceOutputRepresentation result = ConnectApi.FulfillmentOrder.createInvoice(fulfillmentOrderId, invoiceInput);
+        return result.invoiceId;
     }
 
     public class EchoHttpMock implements HttpCalloutMock {
