@@ -36,17 +36,16 @@ private class AdyenPaymentUtilityTest {
 
     @isTest
     static void retrieveApexAdapterIdTest() {
-        String gatewayRefNum = 'REF_NUMBER';
         PaymentGatewayProvider payGatProvider = [SELECT ApexAdapterId FROM PaymentGatewayProvider WHERE ApexAdapterId != NULL LIMIT 1];
         PaymentGateway payGateway = TestDataFactory.createPaymentGateway();
         payGateway.PaymentGatewayProviderId = payGatProvider.Id;
         insert payGateway;
         PaymentAuthorization payAuth = TestDataFactory.createPaymentAuthorization(null, null, payGateway.Id, null);
-        payAuth.GatewayRefNumber = gatewayRefNum;
+        payAuth.GatewayRefNumber = TestDataFactory.GATEWAY_REF;
         insert payAuth;
 
         Test.startTest();
-        Id apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(gatewayRefNum);
+        Id apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(TestDataFactory.GATEWAY_REF);
         Test.stopTest();
 
         Assert.areEqual(payGatProvider.ApexAdapterId, apexAdapterId);
@@ -54,17 +53,16 @@ private class AdyenPaymentUtilityTest {
 
     @isTest
     static void retrieveApexAdapterIdFallbackTest() {
-        String gatewayRefNum = 'REF_NUMBER';
         PaymentGatewayProvider payGatProvider = [SELECT ApexAdapterId FROM PaymentGatewayProvider WHERE ApexAdapterId != NULL LIMIT 1];
         PaymentGateway payGateway = TestDataFactory.createPaymentGateway();
         payGateway.PaymentGatewayProviderId = payGatProvider.Id;
         insert payGateway;
         Payment payment = TestDataFactory.createPayment(null, null, payGateway.Id, null, null);
-        payment.GatewayRefNumber = gatewayRefNum;
+        payment.GatewayRefNumber = TestDataFactory.GATEWAY_REF;
         insert payment;
 
         Test.startTest();
-        Id apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(gatewayRefNum);
+        Id apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(TestDataFactory.GATEWAY_REF);
         Test.stopTest();
 
         Assert.areEqual(payGatProvider.ApexAdapterId, apexAdapterId);

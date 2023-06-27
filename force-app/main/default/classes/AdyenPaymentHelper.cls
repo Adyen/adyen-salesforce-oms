@@ -24,10 +24,7 @@ public with sharing class AdyenPaymentHelper {
         }
     }
     
-    public static CommercePayments.GatewayNotificationResponse handleAsyncNotificationCallback(
-    CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext,
-    String apexName
-    ) {
+    public static CommercePayments.GatewayNotificationResponse handleAsyncNotificationCallback(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext, String apexName) {
         System.debug('----> Entering AdyenPaymentHelper.handleAsyncNotificationCallback PaymentGatewayNotificationContext= ' + gatewayNotificationContext);
         CommercePayments.PaymentGatewayNotificationRequest paymentGatewayNotificationRequest = Test.isRunningTest() ? null : gatewayNotificationContext.getPaymentGatewayNotificationRequest();
         CommercePayments.GatewayNotificationResponse gatewayNotificationResponse = new CommercePayments.GatewayNotificationResponse();
@@ -41,7 +38,7 @@ public with sharing class AdyenPaymentHelper {
         
         Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1].Id;
         
-        if(adapterIdFromNotificationData == adyenAdapterId || Test.isRunningTest()){
+        if(adapterIdFromNotificationData == adyenAdapterId) {
             
             notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
             
@@ -114,7 +111,6 @@ public with sharing class AdyenPaymentHelper {
     * @return CommercePayments.NotificationSaveResult.
     */
     private static CommercePayments.NotificationSaveResult createNotificationSaveResult( NotificationRequestItem notificationRequestItem ) {
-        
         Boolean unsupportedNotificationType = false;
         CommercePayments.BaseNotification notification = null;
         CommercePayments.NotificationStatus notificationStatus = null;
@@ -162,6 +158,7 @@ public with sharing class AdyenPaymentHelper {
             Double dValue = value;
             notification.setAmount(dValue);
             notificationSaveResult = CommercePayments.NotificationClient.record(notification);
+            System.debug(JSON.serialize(notificationSaveResult));
             return notificationSaveResult;
         } else {
             notificationSaveResult = null;

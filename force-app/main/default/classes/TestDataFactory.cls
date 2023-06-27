@@ -11,6 +11,7 @@ public class TestDataFactory {
     public static final String TEST_AUTH_CODE = 'TEST_AUTH_CODE';
     public static final String RESULT_CODE_SUCCESS = 'Authorised';
     public static final String RESULT_CODE_FAIL = 'Failure';
+    public static final String GATEWAY_REF = 'gatewayReference';
     public static final Double TEST_AMOUNT = 19.99;
     public static final String ACTIVE_CURRENCY = [SELECT IsoCode FROM CurrencyType WHERE IsActive = true LIMIT 1].IsoCode;
 
@@ -93,18 +94,19 @@ public class TestDataFactory {
         insert payment;
     }
 
-    public static String createNotificationRequestBody(String eventCode) {
+    public static String createNotificationRequestBody(String eventCode, String originalRef) {
         NotificationRequestItem nri = new NotificationRequestItem();
         Amount a = new Amount();
         a.currency_x = ACTIVE_CURRENCY;
         a.value = (Long)Integer.valueOf(TEST_AMOUNT*10);
         nri.amount = a;
         nri.eventCode = eventCode;
-        nri.pspReference = 'pspref';
+        nri.pspReference = GATEWAY_REF;
         nri.eventDate = String.valueOf(System.TODAY());
         nri.paymentpspReference = 'paymentpspref';
         nri.success = 'true';
         nri.merchantAccountCode = 'merchant_account_code';
+        nri.originalReference = originalRef;
         
         NotificationItems notificationItems = new NotificationItems();
         notificationItems.NotificationRequestItem = nri;

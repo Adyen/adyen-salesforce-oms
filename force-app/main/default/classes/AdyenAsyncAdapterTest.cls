@@ -70,7 +70,7 @@ private class AdyenAsyncAdapterTest {
     
     @IsTest
     static void testCaptureInboundSuccess() {
-        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('CAPTURE');
+        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('CAPTURE', TestDataFactory.GATEWAY_REF);
 
         Test.startTest();
         CommercePayments.GatewayNotificationResponse captureResponse = TestDataFactory.adyenAdapter.processNotification(null);
@@ -81,7 +81,7 @@ private class AdyenAsyncAdapterTest {
     
     @IsTest
     static void testRefundInboundSuccess() {
-        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('REFUND');
+        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('REFUND', TestDataFactory.GATEWAY_REF);
 
         Test.startTest();
         CommercePayments.GatewayNotificationResponse captureResponse = TestDataFactory.adyenAdapter.processNotification(null);
