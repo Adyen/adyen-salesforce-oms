@@ -1,291 +1,152 @@
 @isTest
-global class AdyenAsyncAdapterTest {
-
-    private static final AdyenAsyncAdapter adyenAdapter = new AdyenAsyncAdapter();
-
-    global class EchoHttpMock implements HttpCalloutMock {
-        global HttpResponse respond(HttpRequest req) {
-
-            HttpResponse res = new HttpResponse();
-            res.setHeader('Content-Type', 'application/json');
-            res.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
-            Map<String, Object> responseBody = new Map<String, Object> {
-                'pspReference' => TestDataFactory.TEST_PSP_REFERENCE,
-                'status' => AdyenConstants.NOTIFICATION_RECEIVED_CHECKOUT
-            };
-            Map<String, Object> additionalData = new Map<String, Object>();
-            Map<String, Object> amount = new Map<String, Object> {
-                'currency' => 'USD',
-                'value' => 0
-            };
-
-            String endpoint = req.getEndpoint();
-            Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
-
-            if(endpoint.containsIgnoreCase('payment')) {
-                Map<String, Object> paymentMethod = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize((requestBody.get('paymentMethod'))));
-                Object spm = requestBody.get('storePaymentMethod');
-                responseBody.put('resultCode', TestDataFactory.RESULT_CODE_SUCCESS);
-                    // Authorize
-                    if(TestDataFactory.TEST_PAYMENT_TOKEN.equals(paymentMethod.get('storedPaymentMethodId'))) { // Successful Auth
-                        additionalData.put('authCode', TestDataFactory.TEST_AUTH_CODE);
-                        amount.put('value', Integer.valueOf(TestDataFactory.TEST_AMOUNT*10));
-                    } else { // Failed Auth
-                        responseBody.put('resultCode', TestDataFactory.RESULT_CODE_FAIL);
-                        res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
-                    }
-
-                responseBody.put('additionalData', additionalData);
-            } else if(endpoint.containsIgnoreCase('capture')) {
-                // Capture
-                responseBody.put('reference', TestDataFactory.TEST_SHOPPER_REFERENCE);
-                if(requestBody.get('merchantAccount') != '' && requestBody.get('amount') != null) { // Successful Capture
-                    amount.put('value', Integer.valueOf(TestDataFactory.TEST_AMOUNT*10));
-                } else { // Failed Capture
-                    res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
-                }
-            } else if(endpoint.containsIgnoreCase('refund')) {
-                // Refund
-                responseBody.put('reference', TestDataFactory.TEST_SHOPPER_REFERENCE);
-                if(requestBody.get('merchantAccount') != '' && requestBody.get('amount') != null) { // Successful Refund
-                    amount.put('value', Integer.valueOf(TestDataFactory.TEST_AMOUNT*10));
-                } else { // Failed Refund
-                    res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
-                }
-            }
-            res.setBody(JSON.serialize(responseBody));
-            return res;
-        }
-    }
-
+private class AdyenAsyncAdapterTest {
     @TestSetup
     static void makeData() {
-        Account a = new Account(Name = 'Test Account');
-        insert a;
-
-        CardPaymentMethod cpm = new CardPaymentMethod(
-            GatewayToken = TestDataFactory.TEST_PAYMENT_TOKEN,
-            CardHolderName = 'Test Cardholder',
-            Email = 'test@asdf.com',
-            Status = 'Active',
-            ProcessingMode = 'External'
-        );
-        insert cpm;
-
-        PaymentGateway pg = new PaymentGateway(
-            PaymentGatewayName = 'Adyen',
-            Status = 'Active',
-            ExternalReference = 'Adyen_Component',
-            MerchantCredentialId = [SELECT Id FROM NamedCredential LIMIT 1]?.Id,
-            PaymentGatewayProviderId = [SELECT Id FROM PaymentGatewayProvider LIMIT 1]?.Id
-        );
-        insert pg;
-
-        PaymentAuthorization pa = new PaymentAuthorization(
-            AccountId = a.Id,
-            PaymentMethodId = cpm.Id,
-            Amount = TestDataFactory.TEST_AMOUNT,
-            GatewayRefNumber = TestDataFactory.TEST_PSP_REFERENCE,
-            Status = 'Processed',
-            ProcessingMode = 'External',
-            PaymentGatewayId = pg.Id,
-            CurrencyIsoCode = 'USD'
-        );
-        insert pa;
-
-        Payment p = new Payment(
-            AccountId = a.Id,
-            PaymentMethodId = cpm.Id,
-            Amount = TestDataFactory.TEST_AMOUNT,
-            GatewayRefNumber = TestDataFactory.TEST_PSP_REFERENCE,
-            Status = 'Processed',
-            ProcessingMode = 'External',
-            Type = 'Capture',
-            PaymentGatewayId = pg.Id,
-            PaymentAuthorizationId = pa.Id
-        );
-        insert p;
+        Account acct = TestDataFactory.createAccount();
+        insert acct;
+        TestDataFactory.insertBasicPaymentRecords(acct.Id, null);
     }
-
+    
     @IsTest
-    static void testCapture_Outbound_Success() {
+    static void testCaptureOutboundSuccess() {
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
 
-        Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
         Test.startTest();
-
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-        CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
+        CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
-        System.Assert(captureResponse.toString().contains('[capture-received]'));
-		System.Assert(captureResponse.toString().contains(TestDataFactory.TEST_PSP_REFERENCE));
+
+        Assert.isTrue(captureResponse.toString().contains('[capture-received]'));
+        Assert.isTrue(captureResponse.toString().contains(TestDataFactory.TEST_PSP_REFERENCE));
     }
-
+    
     @IsTest
-    static void testCapture_Outbound_Failure() {
+    static void testCaptureOutboundFailure() {
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
 
-        Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
         Test.startTest();
-		AdyenPaymentUtility.skipMerchantAccount = true;
+        AdyenPaymentUtility.skipMerchantAccount = true;
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-        CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
+        CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
-        System.Assert(captureResponse.toString().contains('SYSTEMERROR'));
+
+        Assert.isTrue(captureResponse.toString().contains('SYSTEMERROR'));
     }
-
+    
     @IsTest
-    static void testCapture_Outbound_MissingPaymentAuthorization() {
-
-        Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
-        Test.startTest();
+    static void testCaptureOutboundMissingPaymentAuthorization() {
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
         try {
+            Test.startTest();
             CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, null);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-            CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
+            CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
-        }
-        catch(Exception ex) {
-            System.AssertEquals('Payment Authorization Missing', ex.getMessage(), 'Payment Authorization is available.');
+            Assert.fail('Exception expected');
+        } catch(Exception ex) {
+            Assert.areEqual('Payment Authorization Missing', ex.getMessage(), 'Payment Authorization is available');
         }
     }
-
+    
     @IsTest
-    static void testCapture_Outbound_MissingAmount() {
-
-        Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
-        Test.startTest();
+    static void testCaptureOutboundMissingAmount() {
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
         try {
+            Test.startTest();
             CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(null, authId);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-            CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
+            CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
+            Assert.fail('Exception expected');
+        } catch(Exception ex) {
+            Assert.areEqual('Payment Amount Missing', ex.getMessage(), 'Payment Amount is available.');
         }
-        catch(Exception ex) {
-            System.AssertEquals('Payment Amount Missing', ex.getMessage(), 'Payment Amount is available.');
-        }
     }
-
+    
     @IsTest
-    static void testCapture_Inbound_Success() {
-        AdyenNotification mockNotification = new AdyenNotification();
-        NotificationRequestItem nri = new NotificationRequestItem();
-        Amount a = new Amount();
-        a.currency_x = 'USD';
-        a.value = (Long)Integer.valueOf(TestDataFactory.TEST_AMOUNT*10);
-        nri.amount = a;
-        nri.eventCode = 'CAPTURE';
-        nri.pspReference = 'pspref';
-        nri.eventDate = String.valueOf(System.TODAY());
-        nri.paymentpspReference = 'paymentpspref';
-        nri.success = 'true';
-        nri.merchantAccountCode = 'merchant_account_code';
+    static void testCaptureInboundSuccess() {
+        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('CAPTURE', TestDataFactory.GATEWAY_REF);
 
-        NotificationItems notificationItems = new NotificationItems();
-        notificationItems.NotificationRequestItem = nri;
-        Map<String, Object> requestBody = new Map<String, Object>{
-            'live' => false,
-            'notificationItems' => new List<NotificationItems>{notificationItems}
-        };
-        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = JSON.serialize(requestBody);
         Test.startTest();
-        CommercePayments.GatewayNotificationResponse captureResponse = adyenAdapter.processNotification(null);
+        CommercePayments.GatewayNotificationResponse captureResponse = TestDataFactory.adyenAdapter.processNotification(null);
         Test.stopTest();
-
-        System.Assert(!captureResponse.toString().containsIgnoreCase('error'));
+        
+        Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
     }
-
+    
     @IsTest
-    static void testRefund_Inbound_Success() {
-        AdyenNotification mockNotification = new AdyenNotification();
-        NotificationRequestItem nri = new NotificationRequestItem();
-        Amount a = new Amount();
-        a.currency_x = 'USD';
-        a.value = (Long)Integer.valueOf(TestDataFactory.TEST_AMOUNT*10);
-        nri.amount = a;
-        nri.eventCode = 'REFUND';
-        nri.pspReference = 'pspref';
-        nri.eventDate = String.valueOf(System.TODAY());
-        nri.paymentpspReference = 'paymentpspref';
-        nri.success = 'true';
-        nri.merchantAccountCode = 'merchant_account_code';
+    static void testRefundInboundSuccess() {
+        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('REFUND', TestDataFactory.GATEWAY_REF);
 
-        NotificationItems notificationItems = new NotificationItems();
-        notificationItems.NotificationRequestItem = nri;
-        Map<String, Object> requestBody = new Map<String, Object>{
-            'live' => false,
-            'notificationItems' => new List<NotificationItems>{notificationItems}
-        };
-        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = JSON.serialize(requestBody);
         Test.startTest();
-        CommercePayments.GatewayNotificationResponse captureResponse = adyenAdapter.processNotification(null);
+        CommercePayments.GatewayNotificationResponse captureResponse = TestDataFactory.adyenAdapter.processNotification(null);
         Test.stopTest();
-
-        System.Assert(!captureResponse.toString().containsIgnoreCase('error'));
+        
+        Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
     }
-
+    
     @IsTest
-    static void testRefund_Outbound_Success() {
+    static void testRefundOutboundSuccess() {
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
 
-        Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
         Test.startTest();
-
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-        CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
+        CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
-        System.Assert(refundResponse.toString().contains(TestDataFactory.TEST_SHOPPER_REFERENCE));
+
+        Assert.isTrue(refundResponse.toString().contains(TestDataFactory.TEST_SHOPPER_REFERENCE));
     }
-
+    
     @IsTest
-    static void testRefund_Outbound_Failure() {
+    static void testRefundOutboundFailure() {
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
 
-        Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
         Test.startTest();
-		AdyenPaymentUtility.skipMerchantAccount = true;
+        AdyenPaymentUtility.skipMerchantAccount = true;
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-        CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
+        CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
-        System.Assert(refundResponse.toString().contains('SYSTEMERROR'));
+
+        Assert.isTrue(refundResponse.toString().contains('SYSTEMERROR'));
     }
-
+    
     @IsTest
-    static void testRefund_Outbound_MissingPayment() {
-
-        Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
-        Test.startTest();
+    static void testRefundOutboundMissingPayment() {
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
         try {
+            Test.startTest();
             CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, null);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-            CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
+            CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
-        }
-        catch(Exception ex) {
-            System.AssertEquals('Payment Info Missing', ex.getMessage(), 'Payment Info is available.');
+            Assert.fail('Exception expected');
+        } catch(Exception ex) {
+            Assert.areEqual('Payment Info Missing', ex.getMessage(), 'Payment Info is available.');
         }
     }
-
+    
     @IsTest
-    static void testRefund_Outbound_MissingAmount() {
-
-        Test.setMock(HttpCalloutMock.class, new EchoHttpMock());
-        Test.startTest();
+    static void testRefundOutboundMissingAmount() {
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
         try {
+            Test.startTest();
             CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(null, paymentId);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-            CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) adyenAdapter.processRequest(context);
+            CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
-        }
-        catch(Exception ex) {
-            System.AssertEquals('Payment Amount Missing', ex.getMessage(), 'Payment Amount is available.');
+            Assert.fail('Exception expected');
+        } catch(Exception ex) {
+            Assert.areEqual('Payment Amount Missing', ex.getMessage(), 'Payment Amount is available.');
         }
     }
-    public class MyException extends Exception{}
 }
