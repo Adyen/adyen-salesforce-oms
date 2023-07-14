@@ -7,13 +7,10 @@ public with sharing class BatchAdyenOMSMigrationTest {
     private static void batchTest() {
         OrderPaymentSummary orderPaymentSummary = insertOrderPaymentSummary();
         orderPaymentSummary.OrderSummary = [
-            SELECT SalesChannel.adyensompackage__AdyenMerchantID__c, adyensompackage__Adyen_paymentMethod__c
+            SELECT adyensompackage__Adyen_paymentMethod__c
             FROM OrderSummary
             WHERE Id = :orderPaymentSummary.OrderSummaryId
         ];
-
-        orderPaymentSummary.OrderSummary.SalesChannel.adyensompackage__AdyenMerchantID__c = 'MyMerchantId';
-        update orderPaymentSummary.OrderSummary.SalesChannel;
         
         orderPaymentSummary.OrderSummary.adyensompackage__Adyen_paymentMethod__c = 'Card';
         update orderPaymentSummary.OrderSummary;
@@ -22,34 +19,25 @@ public with sharing class BatchAdyenOMSMigrationTest {
         Database.executeBatch(new BatchAdyenOMSMigration());
         Test.stopTest();
 
-        orderPaymentSummary = [
-            SELECT OrderSummary.SalesChannel.adyensompackage__AdyenMerchantID__c, OrderSummary.adyensompackage__Adyen_paymentMethod__c, OrderSummary.SalesChannel.AdyenMerchantID__c
-            FROM OrderPaymentSummary 
-            WHERE Id = :orderPaymentSummary.Id
-            LIMIT 1
-        ];
-
         PaymentAuthorization paymentAuthorization = [
-            SELECT Adyen_Payment_Method__c, Adyen_Payment_Method_Variant__c
+            SELECT Adyen_Payment_Method__c, adyen_payment__Adyen_Payment_Method_Variant__c
             FROM PaymentAuthorization
             WHERE OrderPaymentSummaryId = :orderPaymentSummary.Id
             LIMIT 1
         ];
 
         Payment payment = [
-            SELECT Adyen_Payment_Method__c, Adyen_Payment_Method_Variant__c
+            SELECT Adyen_Payment_Method__c, adyen_payment__Adyen_Payment_Method_Variant__c
             FROM Payment
             WHERE OrderPaymentSummaryId = :orderPaymentSummary.Id
             LIMIT 1
         ];
 
-        System.Assert.areEqual('MyMerchantId', orderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c);
+        System.Assert.areEqual('Card', paymentAuthorization.adyen_payment__Adyen_Payment_Method__c);
+        System.Assert.areEqual('Card', paymentAuthorization.adyen_payment__Adyen_Payment_Method_Variant__c);
 
-        System.Assert.areEqual('Card', paymentAuthorization.Adyen_Payment_Method__c);
-        System.Assert.areEqual('Card', paymentAuthorization.Adyen_Payment_Method_Variant__c);
-
-        System.Assert.areEqual('Card', payment.Adyen_Payment_Method__c);
-        System.Assert.areEqual('Card', payment.Adyen_Payment_Method_Variant__c);
+        System.Assert.areEqual('Card', payment.adyen_payment__Adyen_Payment_Method__c);
+        System.Assert.areEqual('Card', payment.adyen_payment__Adyen_Payment_Method_Variant__c);
     }
 
     private static OrderPaymentSummary insertOrderPaymentSummary() {

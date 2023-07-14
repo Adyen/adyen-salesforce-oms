@@ -1,9 +1,10 @@
 public without sharing class BatchAdyenOMSMigration implements Database.Batchable<sObject> {
     public final String namespaceFor2GP;
+    public static final String ADYEN_2GP_NAMESPACE = 'adyen_payment';
 
 
     public BatchAdyenOMSMigration() {
-        namespaceFor2GP = AdyenOMSConstants.NAME_SPACE_2GP;
+        namespaceFor2GP = ADYEN_2GP_NAMESPACE + '__';
     }
 
     public BatchAdyenOMSMigration(String namespace2GP) {
@@ -12,29 +13,26 @@ public without sharing class BatchAdyenOMSMigration implements Database.Batchabl
 
     public Database.QueryLocator start(Database.BatchableContext bc) {
         String orderSummaryQuery = 
-            'SELECT OrderSummary.adyensompackage__Adyen_paymentMethod__c, OrderSummary.SalesChannel.adyensompackage__AdyenMerchantID__c, OrderSummary.SalesChannel.' +  namespaceFor2GP + 'AdyenMerchantID__c, ' +
+            'SELECT OrderSummary.adyensompackage__Adyen_paymentMethod__c, ' +
                 '(SELECT ' + namespaceFor2GP + 'Adyen_Payment_Method__c, ' + namespaceFor2GP + 'Adyen_Payment_Method_Variant__c FROM PaymentAuthorizations), ' +
                 '(SELECT ' + namespaceFor2GP + 'Adyen_Payment_Method__c, ' + namespaceFor2GP + 'Adyen_Payment_Method_Variant__c FROM Payments) ' +
             'FROM OrderPaymentSummary ' +
-            'WHERE OrderSummary.adyensompackage__Adyen_paymentMethod__c != null AND OrderSummary.SalesChannel.adyensompackage__AdyenMerchantID__c != null ' +
+            'WHERE OrderSummary.adyensompackage__Adyen_paymentMethod__c != null ' +
             'ORDER BY CreatedDate';
         return Database.getQueryLocator(orderSummaryQuery);
     }
     
     public void execute(Database.BatchableContext bc, List<OrderPaymentSummary> orderPaySummaries) {
-        List<String> destinationFields = new List<String>{namespaceFor2GP + 'AdyenMerchantID__c', namespaceFor2GP + 'Adyen_Payment_Method__c', namespaceFor2GP + 'Adyen_Payment_Method_Variant__c'};
+        List<String> destinationFields = new List<String>{namespaceFor2GP + 'Adyen_Payment_Method__c', namespaceFor2GP + 'Adyen_Payment_Method_Variant__c'};
         List<SObject> recordsToUpdate = new List<SObject>();
 
         for (OrderPaymentSummary orderPaySummary : orderPaySummaries) {
-            orderPaySummary.OrderSummary.SalesChannel.put(destinationFields[0], orderPaySummary.OrderSummary.SalesChannel.adyensompackage__AdyenMerchantID__c);
-            recordsToUpdate.add(orderPaySummary.OrderSummary.SalesChannel);
-
             List<SObject> relatedPayments = new List<SObject>();
             relatedPayments.addAll(orderPaySummary.PaymentAuthorizations);
             relatedPayments.addAll(orderPaySummary.Payments);
             for (SObject relatedPay : relatedPayments) {
+                relatedPay.put(destinationFields[0], orderPaySummary.OrderSummary.adyensompackage__Adyen_paymentMethod__c);
                 relatedPay.put(destinationFields[1], orderPaySummary.OrderSummary.adyensompackage__Adyen_paymentMethod__c);
-                relatedPay.put(destinationFields[2], orderPaySummary.OrderSummary.adyensompackage__Adyen_paymentMethod__c);
                 recordsToUpdate.add(relatedPay);
             }
         }
