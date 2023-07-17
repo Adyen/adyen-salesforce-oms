@@ -15,7 +15,7 @@ private class AdyenPaymentHelperTest {
         Test.startTest();
         CommercePayments.GatewayNotificationResponse captureResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null, 'AdyenAsyncAdapter');
         Test.stopTest();
-        
+
         Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
     }
 
@@ -26,7 +26,7 @@ private class AdyenPaymentHelperTest {
         Test.startTest();
         CommercePayments.GatewayNotificationResponse captureResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null, 'AdyenAsyncAdapter');
         Test.stopTest();
-        
+
         Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
     }
 
@@ -37,7 +37,7 @@ private class AdyenPaymentHelperTest {
         Test.startTest();
         CommercePayments.GatewayNotificationResponse captureResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null, 'AdyenAsyncAdapter');
         Test.stopTest();
-        
+
         Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
     }
 }

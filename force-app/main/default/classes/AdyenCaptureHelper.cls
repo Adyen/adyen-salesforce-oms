@@ -6,7 +6,6 @@ public with sharing class AdyenCaptureHelper {
      * @return `CommercePayments.GatewayResponse`
      */
     public static CommercePayments.GatewayResponse capture(CommercePayments.CaptureRequest captureRequest) {
-
         // Retrieve the PaymentAuthorization
         PaymentAuthorization pa = AdyenPaymentUtility.retrievePaymentAuthorization(captureRequest.paymentAuthorizationId);
 
@@ -40,7 +39,7 @@ public with sharing class AdyenCaptureHelper {
         String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : pa.CurrencyIsoCode;
         CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.Capture, currencyCode, captureRequest.amount, pspReference, adyenAdapterMdt.Merchant_Account__c);
 
-       // For payment methods requiring Open Invoice data (e.g., Klarna), append it
+        // For payment methods requiring Open Invoice data (e.g., Klarna), append it
         if (AdyenPaymentUtility.checkIfKlarnaOrderFromAuthorization(pa)) {
             // Get invoice id
             String invoiceId = 'INVALID';
@@ -48,7 +47,7 @@ public with sharing class AdyenCaptureHelper {
                 invoiceId = captureRequest.additionalData.get('invoiceId');
             }
             System.debug('--------> paymentRequest InvoiceId: ' + invoiceId);
-            modRequest.setAdditionalData(AdyenPaymentUtility.addInvoiceData(invoiceId, pa));
+            modRequest.setLineItems(AdyenPaymentUtility.addInvoiceData(invoiceId));
         }
 
         String captureEndpointURL = adyenAdapterMdt.Capture_Endpoint__c;
@@ -62,7 +61,7 @@ public with sharing class AdyenCaptureHelper {
      * @return CommercePayments.GatewayResponse with populated properties.
      */
     public static CommercePayments.GatewayResponse processCaptureResponse(HttpResponse adyenHttpResponse, Double amount) {
-        CheckoutCaptureResponse adyenResponse = (CheckoutCaptureResponse)JSON.deserializeStrict(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutCaptureResponse.class);
+        CheckoutCaptureResponse adyenResponse = (CheckoutCaptureResponse)JSON.deserialize(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutCaptureResponse.class);
         CommercePayments.CaptureResponse salesforceResponse = new CommercePayments.CaptureResponse();
         salesforceResponse.setAsync(true);
         salesforceResponse.setAmount(amount);

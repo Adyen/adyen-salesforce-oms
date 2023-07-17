@@ -2,7 +2,7 @@ public with sharing class AdyenPaymentUtility {
     
     @TestVisible
     private static final String TEST_ENDPOINT = 'https://test.com';
-    public static final String MERCHANT_API_KEY = '{!$Credential.Password}';
+    public static final String MERCHANT_API_KEY = '{!$Credential.Adyen_Basic_Auth.ApiKey}';
     public static Boolean skipMerchantAccount = false;
     
     /**
@@ -42,19 +42,22 @@ public with sharing class AdyenPaymentUtility {
         Schema.sObjectType.SalesChannel.fields.AdyenMerchantID__c.isAccessible()
         ) ) {
             List<Payment> payments = [
-                SELECT
-                    Id, GatewayRefNumber, GatewayRefDetails,
-                    PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
-                    PaymentAuthorization.Adyen_Payment_Method__c, adyenOverrideMerchantConfig__c,
-                    PaymentAuthorization.adyenOverrideMerchantConfig__c,CurrencyIsoCode,
-                    OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
-                FROM Payment
-                WHERE Id = :paymentId
+            SELECT
+            Id, GatewayRefNumber, GatewayRefDetails,
+            PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
+            PaymentAuthorization.Adyen_Payment_Method__c, adyenOverrideMerchantConfig__c,
+            PaymentAuthorization.adyenOverrideMerchantConfig__c,CurrencyIsoCode,
+            OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
+            FROM
+            Payment
+            WHERE
+            Id = :paymentId
             ];
             
             if (!payments.isEmpty()) {
                 payment = payments[0];
-            } 
+            }
+            
         }
         return payment;
     }
@@ -94,8 +97,10 @@ public with sharing class AdyenPaymentUtility {
                         Developername, NamespacePrefix, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
                         System_Integrator_Name__c, Endpoint_Method__c, Endpoint_Path__c, Merchant_Account__c,
                         Refund_Endpoint__c, Single_Currency_Code__c, Service_Username__c, Service_Password__c, Authorize_Endpoint__c
-                    FROM Adyen_Adapter__mdt
-                    WHERE Developername = :metaType
+                    FROM
+                        Adyen_Adapter__mdt
+                    WHERE
+                        Developername = :metaType
                 ];
             }
             return adyenAdapterMdt;
@@ -132,9 +137,12 @@ public with sharing class AdyenPaymentUtility {
                     OrderPaymentSummary.FullName, CurrencyIsoCode,
                     OrderPaymentSummary.OrderSummary.Id,
                     OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C
-                FROM PaymentAuthorization
-                WHERE Id = :paymentAuthId
-                ORDER BY CreatedDate DESC
+                FROM
+                    PaymentAuthorization
+                WHERE
+                    Id = :paymentAuthId
+                ORDER BY
+                    CreatedDate DESC
             ];
             if(!paymentAuthorizations.isEmpty()) {
                 pa = paymentAuthorizations[0];
@@ -151,13 +159,12 @@ public with sharing class AdyenPaymentUtility {
     * @return Boolean denoting if the Authorization Id belongs to a Klarna Order.
     */
     public static Boolean checkIfKlarnaOrderFromAuthorization(PaymentAuthorization pa) {
-        OrderItemSummary ois;
-        String adyenPaymentMethod;
         Boolean isKlarnaOrder = false;
         
         if (pa != null && pa.Adyen_Payment_Method__c != null) {
             isKlarnaOrder = pa.Adyen_Payment_Method__c.containsIgnoreCase('klarna');
         }
+
         return isKlarnaOrder;
     }
     
@@ -172,11 +179,15 @@ public with sharing class AdyenPaymentUtility {
         
         // Prioritize the payment authorization record if it exists
         for (PaymentAuthorization paymentAuthorization : [
-            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
-            FROM PaymentAuthorization
-            WHERE GatewayRefNumber = :gatewayRefNumber
+        SELECT
+        PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+        FROM
+        PaymentAuthorization
+        WHERE
+        GatewayRefNumber = :gatewayRefNumber
         ]) {
-            if(paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null) {
+            if(paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null)
+            {
                 apexAdapterId = paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
             }
         }
@@ -184,11 +195,15 @@ public with sharing class AdyenPaymentUtility {
         // Fall back to a payment record for pre-captured transactions
         if (apexAdapterId==null) {
             for (Payment payment : [
-                SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
-                FROM Payment
-                WHERE GatewayRefNumber = :gatewayRefNumber
+            SELECT
+            PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+            FROM
+            Payment
+            WHERE
+            GatewayRefNumber = :gatewayRefNumber
             ]) {
-                if (payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null) {
+                if (payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null)
+                {
                     apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
                 }
             }
@@ -199,11 +214,11 @@ public with sharing class AdyenPaymentUtility {
     
     public static Integer getAmountMultiplier(String currencyCode) {
         if(AdyenOMSConstants.threeDecimalCurrencies.contains(currencyCode))
-            return 1000;
+        return 1000;
         else if (AdyenOMSConstants.zeroDecimalCurrencies.contains(currencyCode))
-            return 1;
+        return 1;
         else
-            return 100;
+        return 100;
     }
     
     /**
@@ -221,29 +236,46 @@ public with sharing class AdyenPaymentUtility {
         return pa.GatewayRefNumber != null ? pa.GatewayRefNumber : pa.OrderPaymentSummary?.LastPaymentGatewayLog?.GatewayRefNumber;
     }
     
-    public static Map<String, Object> addInvoiceData(Id invoiceId, PaymentAuthorization pa) {
-        Map<String, Object> additionalData = new Map<String, Object>();
-        Integer invoiceLineCount = 0;
-        for (InvoiceLine invoiceLine : [
-            SELECT Id, Product2.Name, Quantity, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount
+    public static List<LineItem> addInvoiceData(Id invoiceId) {
+        List<InvoiceLine> invoiceLines = [
+            SELECT Id, Product2.Name, Quantity, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount, ChargeAmountWithTax, Type
             FROM InvoiceLine
             WHERE Type = 'Charge' AND InvoiceId = :invoiceId
-        ]) {
-            Decimal itemAmount = Integer.valueOf(invoiceLine.ChargeAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
-            Decimal itemVatAmount = Integer.valueOf(invoiceLine.ChargeTaxAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
-            Decimal itemVatPercentage = invoiceLine.ChargeAmount / invoiceLine.ChargeTaxAmount;
-            invoiceLineCount++;
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.currencyCode',          invoiceLine.CurrencyIsoCode);
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.description',           invoiceLine.Product2.Name);
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemAmount',            String.valueOf(itemAmount));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatAmount',         String.valueOf(itemVatAmount));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatPercentage',     String.valueOf(itemVatPercentage));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.numberOfItems',         String.valueOf(Integer.valueOf(invoiceLine.Quantity)));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.productUrl',            '');
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.imageUrl',              '');
+        ];
+        return parseLineItemsData(invoiceLines);
+    }
+
+    public static List<LineItem> addCreditMemoData(Id orderSummaryId) {
+        List<CreditMemoLine> creditMemoLines = [
+            SELECT Product2.Name, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount, ChargeAmountWithTax
+            FROM CreditMemoLine
+            WHERE Type = 'Charge' AND CreditMemo.ReferenceEntityId = :orderSummaryId
+        ];
+        return parseLineItemsData(creditMemoLines);
+    }
+
+    private static List<LineItem> parseLineItemsData(List<SObject> lineItemRecords) {
+        List<LineItem> lineItems = new List<LineItem>();
+        LineItem lineItem;
+        for (SObject lineItemRecord : lineItemRecords) {
+            String currencyIsoCode = (String)lineItemRecord.get('CurrencyIsoCode');
+            Decimal amountExcludingTax = (Decimal)lineItemRecord.get('ChargeAmount');
+            Decimal amountIncludingTax = (Decimal)lineItemRecord.get('ChargeAmountWithTax');
+            Decimal taxAmount = (Decimal)lineItemRecord.get('ChargeTaxAmount');
+            lineItem = new LineItem();
+            lineItem.amountExcludingTax = Integer.valueOf(amountExcludingTax * getAmountMultiplier(currencyIsoCode));
+            lineItem.amountIncludingTax = Integer.valueOf(amountIncludingTax * getAmountMultiplier(currencyIsoCode));
+            lineItem.taxAmount = Integer.valueOf(taxAmount * getAmountMultiplier(currencyIsoCode));
+            lineItem.taxPercentage = amountExcludingTax != 0 ?
+                Integer.valueOf((taxAmount/amountExcludingTax).setScale(4, RoundingMode.HALF_EVEN) * 10000) :
+                0;
+            lineItem.description = ((Product2)lineItemRecord.getSObject('Product2')).Name;
+            if (lineItemRecord.getSObjectType() == Schema.InvoiceLine.getSObjectType()) { // credit memo line does not have quantity
+                lineItem.quantity = Integer.valueOf((Decimal)lineItemRecord.get('Quantity'));
+            }
+            lineItems.add(lineItem);
         }
-        additionalData.put('openinvoicedata.numberOfLines', invoiceLineCount);
-        return additionalData;
+        return lineItems;
     }
     
     /**
@@ -311,6 +343,7 @@ public with sharing class AdyenPaymentUtility {
     * @return application information map for the request.
     */
     public static ApplicationInfo getApplicationInfo(String integratorName) {
+        
         ApplicationInfo info = new ApplicationInfo();
         
         ExternalPlatform exPlatform = new ExternalPlatform();
@@ -372,6 +405,7 @@ public with sharing class AdyenPaymentUtility {
     * @return AuthorisationRequest to send to Adyen.
     */
     public static AuthorisationRequest createAuthorisationRequest(CommercePayments.AuthorizationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt){
+        
         AuthorisationRequest adyenAuthorisationRequest = new AuthorisationRequest();
         try{
             CommercePayments.AuthApiPaymentMethodRequest paymentMethod = authRequest.paymentMethod;

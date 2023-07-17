@@ -273,7 +273,7 @@ public class TestDataFactory {
                 'value' => 0
             };
             
-            String endpoint = req.getEndpoint();
+            String endpoint = req.getEndpoint();System.debug('endpoint : ' + endpoint);
             Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
             
             if(endpoint.containsIgnoreCase('payment')) {

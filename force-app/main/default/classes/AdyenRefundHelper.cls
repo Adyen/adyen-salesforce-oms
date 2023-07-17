@@ -11,7 +11,6 @@ public with sharing class AdyenRefundHelper {
      * @see AdyenClient
     */
     public static CommercePayments.GatewayResponse refund(CommercePayments.ReferencedRefundRequest refundRequest) {
-
         // Retrieve the Payment
         Payment payment = AdyenPaymentUtility.retrievePayment(refundRequest.PaymentId);
 
@@ -49,6 +48,11 @@ public with sharing class AdyenRefundHelper {
                 modRequest.setReference(refundReference);
             }
         }
+        // For refund requiring line items (e.g., Klarna)
+        if (AdyenPaymentUtility.checkIfKlarnaOrderFromAuthorization(payment.PaymentAuthorization)) {
+            modRequest.setLineItems(AdyenPaymentUtility.addCreditMemoData(payment.OrderPaymentSummary.OrderSummaryId));
+        }
+
         String refundEndpointURL = adyenAdapterMdt.Refund_Endpoint__c;
         refundEndpointURL = refundEndpointURL.replace('{paymentPspReference}', pspReference);
         HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, refundEndpointURL);
@@ -61,7 +65,7 @@ public with sharing class AdyenRefundHelper {
     */
     public static CommercePayments.GatewayResponse processRefundResponse(HttpResponse adyenHttpResponse, Double amount) {
         CommercePayments.ReferencedRefundResponse salesforceResponse = new CommercePayments.ReferencedRefundResponse();
-        CheckoutRefundResponse adyenResponse = (CheckoutRefundResponse)JSON.deserializeStrict(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutRefundResponse.class);
+        CheckoutRefundResponse adyenResponse = (CheckoutRefundResponse)JSON.deserialize(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutRefundResponse.class);
         salesforceResponse.setAsync(true);
         salesforceResponse.setAmount(amount);
         salesforceResponse.setGatewayDate(System.now());
