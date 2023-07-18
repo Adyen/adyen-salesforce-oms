@@ -258,6 +258,25 @@ public class TestDataFactory {
         return result.invoiceId;
     }
 
+    public static Id submitReturn(Id orderSummaryId) {
+        ConnectApi.ChangeItemInputRepresentation changeItemInputRep = new ConnectApi.ChangeItemInputRepresentation();
+        changeItemInputRep.shippingReductionFlag = true;
+        changeItemInputRep.quantity = 1;
+        changeItemInputRep.orderItemSummaryId = [SELECT Id FROM OrderItemSummary WHERE OrderSummaryId = :orderSummaryId].Id;
+        changeItemInputRep.reason = 'Unknown';
+        ConnectApi.ChangeInputRepresentation changeInputRep = new ConnectApi.ChangeInputRepresentation();
+        changeInputRep.changeItems = new List<ConnectApi.ChangeItemInputRepresentation>{changeItemInputRep};
+        ConnectApi.SubmitReturnOutputRepresentation submitReturnOutRep = ConnectApi.OrderSummary.submitReturn(orderSummaryId, changeInputRep);
+        return submitReturnOutRep.changeOrderId;
+    }
+
+    public static Id createCreditMemo(Id orderSummaryId, Id changeOrderId) {
+        ConnectApi.CreateCreditMemoInputRepresentation creditMemoInput = new ConnectApi.CreateCreditMemoInputRepresentation();
+        creditMemoInput.changeOrderIds = new List<Id>{changeOrderId};
+        ConnectApi.CreateCreditMemoOutputRepresentation creditMemoOutput = ConnectApi.OrderSummary.createCreditMemo(orderSummaryId, creditMemoInput);
+        return creditMemoOutput.creditMemoId;
+    }
+
     public class EchoHttpMock implements HttpCalloutMock {
         public HttpResponse respond(HttpRequest req) {
             HttpResponse res = new HttpResponse();
@@ -273,7 +292,7 @@ public class TestDataFactory {
                 'value' => 0
             };
             
-            String endpoint = req.getEndpoint();System.debug('endpoint : ' + endpoint);
+            String endpoint = req.getEndpoint();
             Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
             
             if(endpoint.containsIgnoreCase('payment')) {

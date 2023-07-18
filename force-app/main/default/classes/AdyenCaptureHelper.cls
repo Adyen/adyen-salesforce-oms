@@ -25,7 +25,7 @@ public with sharing class AdyenCaptureHelper {
         }
 
         // By Default, retrieve the metadata key from the order's sales channel
-        String adapterName = pa?.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C;
+        String adapterName = pa?.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
 
         // Override config for this specific PaymentAuthorization
         if (String.isNotBlank(pa?.adyenOverrideMerchantConfig__c)) {
@@ -37,7 +37,7 @@ public with sharing class AdyenCaptureHelper {
 
         Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
         String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : pa.CurrencyIsoCode;
-        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.Capture, currencyCode, captureRequest.amount, pspReference, adyenAdapterMdt.Merchant_Account__c);
+        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.Capture, currencyCode, captureRequest.amount, adyenAdapterMdt.Merchant_Account__c);
 
         // For payment methods requiring Open Invoice data (e.g., Klarna), append it
         if (AdyenPaymentUtility.checkIfKlarnaOrderFromAuthorization(pa)) {
@@ -57,7 +57,8 @@ public with sharing class AdyenCaptureHelper {
     }
 
      /**
-     * @param adyenResponse: Response from Adyen's api after requesting a capture/refund
+     * @param adyenHttpResponse: Response from Adyen's api after requesting a capture/refund
+     * @param amount capture amount
      * @return CommercePayments.GatewayResponse with populated properties.
      */
     public static CommercePayments.GatewayResponse processCaptureResponse(HttpResponse adyenHttpResponse, Double amount) {
