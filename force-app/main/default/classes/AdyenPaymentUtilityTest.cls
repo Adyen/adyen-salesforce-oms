@@ -84,6 +84,64 @@ private class AdyenPaymentUtilityTest {
 
         Assert.areEqual(payGatProvider.ApexAdapterId, apexAdapterId);
     }
+
+    @IsTest(SeeAllData=true) // for ConnectApi use only
+    static void getFulfillmentOrderTest() {
+        OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(100, 5);
+        Test.startTest();
+        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(orderPaySum.OrderSummaryId);
+        Test.stopTest();
+        Assert.isNotNull(fulfillmentOrder);
+    }
+
+    @IsTest
+    static void getFulfillmentOrderFailTest() {
+        Test.startTest();
+        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(null);
+        Test.stopTest();
+        Assert.isNull(fulfillmentOrder);
+    }
+
+    @IsTest(SeeAllData=true) // for ConnectApi use only
+    static void getReferenceTest() {
+        OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(100, 5);
+        PaymentAuthorization payAuth = [
+            SELECT OrderPaymentSummary.OrderSummaryId
+            FROM PaymentAuthorization
+            WHERE OrderPaymentSummaryId = :orderPaySum.Id
+        ];
+        Payment payment = [
+            SELECT OrderPaymentSummary.OrderSummaryId
+            FROM Payment
+            WHERE OrderPaymentSummaryId = :orderPaySum.Id
+        ];
+        FulfillmentOrder fulfillmentOrder = [
+            SELECT FulfillmentOrderNumber
+            FROM FulfillmentOrder
+            WHERE OrderSummaryId = :orderPaySum.OrderSummaryId
+        ];
+
+        Test.startTest();
+        String referencePayAuth = AdyenPaymentUtility.getReference(payAuth);
+        String referencePayment = AdyenPaymentUtility.getReference(payment);
+        Test.stopTest();
+
+        Assert.areEqual(fulfillmentOrder.FulfillmentOrderNumber, referencePayAuth);
+        Assert.areEqual(fulfillmentOrder.FulfillmentOrderNumber, referencePayment);
+    }
+
+    @IsTest
+    static void getReferenceRandomTest() {
+        OrderPaymentSummary  orderPaymentSummary = new OrderPaymentSummary(Id = '0bM7Q000000QP0uUAG', OrderSummaryId = '1Os7Q000000Uh77SAC');
+        PaymentAuthorization payAuth = new PaymentAuthorization(OrderPaymentSummary = orderPaymentSummary);
+
+        Test.startTest();
+        String reference = AdyenPaymentUtility.getReference(payAuth);
+        Test.stopTest();
+
+        Assert.isNotNull(reference);
+        Assert.areEqual(16, reference.length());
+    }
     
     private static OrderPaymentSummary createInvoiceAndRelatedRecords(Decimal price, Decimal taxValue) {
         Account acct = TestDataFactory.createAccount();
