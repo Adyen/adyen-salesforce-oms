@@ -11,9 +11,8 @@ public with sharing class AdyenRefundHelper {
      * @see AdyenClient
     */
     public static CommercePayments.GatewayResponse refund(CommercePayments.ReferencedRefundRequest refundRequest) {
-
         // Retrieve the Payment
-        Payment payment = AdyenPaymentUtility.retrievePayment(refundRequest.PaymentId);
+        Payment payment = AdyenPaymentUtility.retrievePayment(refundRequest.paymentId);
 
         String errorMessage = null;
         if(payment == null) {
@@ -26,7 +25,7 @@ public with sharing class AdyenRefundHelper {
             throw new AdyenAsyncAdapter.GatewayException(errorMessage);
         }
         // By Default, retrieve the metadata key from the order's sales channel
-        String adapterName = payment?.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C;
+        String adapterName = payment?.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
         // Override config for this specific Payment (i.e., a pre-capture) or inherit override from the original PaymentAuthorization
         if (String.isNotBlank(payment?.adyenOverrideMerchantConfig__c)) {
             adapterName = payment.adyenOverrideMerchantConfig__c;
@@ -38,9 +37,9 @@ public with sharing class AdyenRefundHelper {
             adapterName = AdyenConstants.DEFAULT_ADAPTER_NAME;
         }
         Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
-        String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : payment.CurrencyIsoCode.toUppercase();
+        String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : payment.CurrencyIsoCode.toUpperCase();
         String pspReference = (payment.OrderPaymentSummary.FullName == 'DeclineRefund' ? 'dummytransaction' : AdyenPaymentUtility.getRefundGatewayRefNumber(payment));
-        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.ReferencedRefund, currencyCode, refundRequest.amount, pspReference, adyenAdapterMdt.Merchant_Account__c);
+        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.ReferencedRefund, currencyCode, refundRequest.amount, adyenAdapterMdt.Merchant_Account__c);
         //Only for Paypal Refunds - Capture reference must be a substring of refund reference
         if (String.isNotBlank(payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c)) {
             if (payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c.equalsIgnoreCase('Paypal') && String.isNotBlank(payment.GatewayRefDetails)) {
@@ -49,6 +48,11 @@ public with sharing class AdyenRefundHelper {
                 modRequest.setReference(refundReference);
             }
         }
+        // For refund requiring line items (e.g., Klarna)
+        if (AdyenPaymentUtility.checkIfKlarnaOrderFromAuthorization(payment.PaymentAuthorization)) {
+            modRequest.setLineItems(AdyenPaymentUtility.addCreditMemoData(payment.OrderPaymentSummary.OrderSummaryId));
+        }
+
         String refundEndpointURL = adyenAdapterMdt.Refund_Endpoint__c;
         refundEndpointURL = refundEndpointURL.replace('{paymentPspReference}', pspReference);
         HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, refundEndpointURL);
@@ -56,12 +60,13 @@ public with sharing class AdyenRefundHelper {
     }
 
     /**
-     * @param adyenResponse: Response from Adyen's api after requesting a refund
+     * @param adyenHttpResponse: Response from Adyen's api after requesting a refund
+     * @param amount to be refunded
      * @return CommercePayments.GatewayResponse with populated properties.
     */
     public static CommercePayments.GatewayResponse processRefundResponse(HttpResponse adyenHttpResponse, Double amount) {
         CommercePayments.ReferencedRefundResponse salesforceResponse = new CommercePayments.ReferencedRefundResponse();
-        CheckoutRefundResponse adyenResponse = (CheckoutRefundResponse)JSON.deserializeStrict(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutRefundResponse.class);
+        CheckoutRefundResponse adyenResponse = (CheckoutRefundResponse)JSON.deserialize(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutRefundResponse.class);
         salesforceResponse.setAsync(true);
         salesforceResponse.setAmount(amount);
         salesforceResponse.setGatewayDate(System.now());

@@ -598,11 +598,6 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>OrderAdjustmentGroup.AdjustmentCauseId</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
         <field>OrderAdjustmentGroup.Description</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -869,11 +864,6 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>OrderItemAdjustmentLineItem.AdjustmentBasisReferenceId</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>OrderItemAdjustmentLineItem.AdjustmentCauseId</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

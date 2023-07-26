@@ -29,32 +29,35 @@ public with sharing class AdyenPaymentUtility {
         Payment payment;
         
         if ( Test.isRunningTest() || (
-        Schema.sObjectType.Payment.fields.Id.isAccessible() &&
-        Schema.sObjectType.Payment.fields.GatewayRefNumber.isAccessible() &&
-        Schema.sObjectType.Payment.fields.GatewayRefDetails.isAccessible() &&
-        Schema.sObjectType.Payment.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-        Schema.sObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
-        Schema.sObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-        Schema.sObjectType.PaymentAuthorization.fields.Adyen_Payment_Method_Variant__c.isAccessible() &&
-        Schema.sObjectType.PaymentAuthorization.fields.Adyen_Payment_Method__c.isAccessible() &&
-        Schema.sObjectType.Payment.fields.CurrencyIsoCode.isAccessible() &&
-        Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
-        Schema.sObjectType.SalesChannel.fields.AdyenMerchantID__c.isAccessible()
+        Schema.SObjectType.Payment.fields.Id.isAccessible() &&
+        Schema.SObjectType.Payment.fields.GatewayRefNumber.isAccessible() &&
+        Schema.SObjectType.Payment.fields.GatewayRefDetails.isAccessible() &&
+        Schema.SObjectType.Payment.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.Adyen_Payment_Method_Variant__c.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.Adyen_Payment_Method__c.isAccessible() &&
+        Schema.SObjectType.Payment.fields.CurrencyIsoCode.isAccessible() &&
+        Schema.SObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
+        Schema.SObjectType.SalesChannel.fields.AdyenMerchantID__c.isAccessible()
         ) ) {
             List<Payment> payments = [
-                SELECT
-                    Id, GatewayRefNumber, GatewayRefDetails,
-                    PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
-                    PaymentAuthorization.Adyen_Payment_Method__c, adyenOverrideMerchantConfig__c,
-                    PaymentAuthorization.adyenOverrideMerchantConfig__c,CurrencyIsoCode,
-                    OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
-                FROM Payment
-                WHERE Id = :paymentId
+            SELECT
+                Id, GatewayRefNumber, GatewayRefDetails,
+                PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
+                PaymentAuthorization.Adyen_Payment_Method__c, adyenOverrideMerchantConfig__c,
+                PaymentAuthorization.adyenOverrideMerchantConfig__c,CurrencyIsoCode,
+                OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
+            FROM
+                Payment
+            WHERE
+                Id = :paymentId
             ];
             
             if (!payments.isEmpty()) {
                 payment = payments[0];
-            } 
+            }
+            
         }
         return payment;
     }
@@ -63,7 +66,7 @@ public with sharing class AdyenPaymentUtility {
     /**
     *  Retrieves custom meta data associated with Adyen (Endpoint info) pulls all fields.
     *
-    *  @returns Adyen_Adapter__mdt for the passed metadata type with all fields.
+    *  @return Adyen_Adapter__mdt for the passed metadata type with all fields.
     */
     public static Adyen_Adapter__mdt retrieveGatewayMetadata(String metaType) {
         if (Test.isRunningTest()) {
@@ -81,21 +84,23 @@ public with sharing class AdyenPaymentUtility {
         } else {
             Adyen_Adapter__mdt adyenAdapterMdt;
             if (
-                Schema.sObjectType.Adyen_Adapter__mdt.fields.Developername.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.NamespacePrefix.isAccessible() &&
-                Schema.sObjectType.Adyen_Adapter__mdt.fields.MasterLabel.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Capture_Endpoint__c.isAccessible() &&
-                Schema.sObjectType.Adyen_Adapter__mdt.fields.Endpoint_Api_Version__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Endpoint_Method__c.isAccessible() &&
-                Schema.sObjectType.Adyen_Adapter__mdt.fields.Endpoint_Path__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Merchant_Account__c.isAccessible() &&
-                Schema.sObjectType.Adyen_Adapter__mdt.fields.System_Integrator_Name__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Refund_Endpoint__c.isAccessible() &&
-                Schema.sObjectType.Adyen_Adapter__mdt.fields.Single_Currency_Code__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Username__c.isAccessible() &&
-                Schema.sObjectType.Adyen_Adapter__mdt.fields.Service_Password__c.isAccessible() && Schema.sObjectType.Adyen_Adapter__mdt.fields.Authorize_Endpoint__c.isAccessible()
+                Schema.SObjectType.Adyen_Adapter__mdt.fields.Developername.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.NamespacePrefix.isAccessible() &&
+                Schema.SObjectType.Adyen_Adapter__mdt.fields.MasterLabel.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Capture_Endpoint__c.isAccessible() &&
+                Schema.SObjectType.Adyen_Adapter__mdt.fields.Endpoint_Api_Version__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Endpoint_Method__c.isAccessible() &&
+                Schema.SObjectType.Adyen_Adapter__mdt.fields.Endpoint_Path__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Merchant_Account__c.isAccessible() &&
+                Schema.SObjectType.Adyen_Adapter__mdt.fields.System_Integrator_Name__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Refund_Endpoint__c.isAccessible() &&
+                Schema.SObjectType.Adyen_Adapter__mdt.fields.Single_Currency_Code__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Service_Username__c.isAccessible() &&
+                Schema.SObjectType.Adyen_Adapter__mdt.fields.Service_Password__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Authorize_Endpoint__c.isAccessible()
             ) {
                 adyenAdapterMdt = [
                     SELECT
-                        Developername, NamespacePrefix, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
+                        DeveloperName, NamespacePrefix, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
                         System_Integrator_Name__c, Endpoint_Method__c, Endpoint_Path__c, Merchant_Account__c,
                         Refund_Endpoint__c, Single_Currency_Code__c, Service_Username__c, Service_Password__c, Authorize_Endpoint__c
-                    FROM Adyen_Adapter__mdt
-                    WHERE Developername = :metaType
+                    FROM
+                        Adyen_Adapter__mdt
+                    WHERE
+                        DeveloperName = :metaType
                 ];
             }
             return adyenAdapterMdt;
@@ -113,16 +118,16 @@ public with sharing class AdyenPaymentUtility {
         PaymentAuthorization pa;
         
         if ( Test.isRunningTest() || (
-        Schema.sObjectType.PaymentAuthorization.fields.Id.isAccessible() &&
-        Schema.sObjectType.PaymentAuthorization.fields.PaymentAuthorizationNumber.isAccessible() &&
-        Schema.sObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
-        Schema.sObjectType.PaymentAuthorization.fields.CurrencyIsoCode.isAccessible() &&
-        Schema.sObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-        Schema.sObjectType.PaymentAuthorization.fields.Adyen_Payment_Method__c.isAccessible() &&
-        Schema.sObjectType.PaymentGatewayLog.fields.GatewayRefNumber.isAccessible() &&
-        Schema.sObjectType.OrderPaymentSummary.fields.Id.isAccessible() &&
-        Schema.sObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
-        Schema.sObjectType.SalesChannel.fields.ADYENMERCHANTID__C.isAccessible()) )
+        Schema.SObjectType.PaymentAuthorization.fields.Id.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.PaymentAuthorizationNumber.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.CurrencyIsoCode.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.Adyen_Payment_Method__c.isAccessible() &&
+        Schema.SObjectType.PaymentGatewayLog.fields.GatewayRefNumber.isAccessible() &&
+        Schema.SObjectType.OrderPaymentSummary.fields.Id.isAccessible() &&
+        Schema.SObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
+        Schema.SObjectType.SalesChannel.fields.AdyenMerchantID__c.isAccessible()) )
         {
             List<PaymentAuthorization> paymentAuthorizations = [
                 SELECT
@@ -131,14 +136,17 @@ public with sharing class AdyenPaymentUtility {
                     OrderPaymentSummary.Id,
                     OrderPaymentSummary.FullName, CurrencyIsoCode,
                     OrderPaymentSummary.OrderSummary.Id,
-                    OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C
-                FROM PaymentAuthorization
-                WHERE Id = :paymentAuthId
-                ORDER BY CreatedDate DESC
+                    OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
+                FROM
+                    PaymentAuthorization
+                WHERE
+                    Id = :paymentAuthId
+                ORDER BY
+                    CreatedDate DESC
             ];
             if(!paymentAuthorizations.isEmpty()) {
                 pa = paymentAuthorizations[0];
-                System.debug(LoggingLevel.INFO, 'SalesChannel Config: ' + pa.OrderPaymentSummary.OrderSummary.SalesChannel.ADYENMERCHANTID__C);
+                System.debug(LoggingLevel.INFO, 'SalesChannel Config: ' + pa.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c);
             }
         }
         return pa;
@@ -147,17 +155,16 @@ public with sharing class AdyenPaymentUtility {
     /**
     * Check if Klarna Order.
     *
-    * @param paymentAuthId The sObject PaymentAuthorizationId
+    * @param pa The sObject PaymentAuthorizationId
     * @return Boolean denoting if the Authorization Id belongs to a Klarna Order.
     */
     public static Boolean checkIfKlarnaOrderFromAuthorization(PaymentAuthorization pa) {
-        OrderItemSummary ois;
-        String adyenPaymentMethod;
         Boolean isKlarnaOrder = false;
         
         if (pa != null && pa.Adyen_Payment_Method__c != null) {
             isKlarnaOrder = pa.Adyen_Payment_Method__c.containsIgnoreCase('klarna');
         }
+
         return isKlarnaOrder;
     }
     
@@ -176,7 +183,7 @@ public with sharing class AdyenPaymentUtility {
             FROM PaymentAuthorization
             WHERE GatewayRefNumber = :gatewayRefNumber
         ]) {
-            if(paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null) {
+            if (paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null) {
                 apexAdapterId = paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
             }
         }
@@ -184,9 +191,9 @@ public with sharing class AdyenPaymentUtility {
         // Fall back to a payment record for pre-captured transactions
         if (apexAdapterId==null) {
             for (Payment payment : [
-                SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
-                FROM Payment
-                WHERE GatewayRefNumber = :gatewayRefNumber
+            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+            FROM Payment
+            WHERE GatewayRefNumber = :gatewayRefNumber
             ]) {
                 if (payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null) {
                     apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
@@ -198,12 +205,13 @@ public with sharing class AdyenPaymentUtility {
     }
     
     public static Integer getAmountMultiplier(String currencyCode) {
-        if(AdyenOMSConstants.threeDecimalCurrencies.contains(currencyCode))
+        if (AdyenOMSConstants.threeDecimalCurrencies.contains(currencyCode)) {
             return 1000;
-        else if (AdyenOMSConstants.zeroDecimalCurrencies.contains(currencyCode))
+        } else if (AdyenOMSConstants.zeroDecimalCurrencies.contains(currencyCode)) {
             return 1;
-        else
+        } else {
             return 100;
+        }
     }
     
     /**
@@ -221,29 +229,46 @@ public with sharing class AdyenPaymentUtility {
         return pa.GatewayRefNumber != null ? pa.GatewayRefNumber : pa.OrderPaymentSummary?.LastPaymentGatewayLog?.GatewayRefNumber;
     }
     
-    public static Map<String, Object> addInvoiceData(Id invoiceId, PaymentAuthorization pa) {
-        Map<String, Object> additionalData = new Map<String, Object>();
-        Integer invoiceLineCount = 0;
-        for (InvoiceLine invoiceLine : [
-            SELECT Id, Product2.Name, Quantity, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount
+    public static List<LineItem> addInvoiceData(Id invoiceId) {
+        List<InvoiceLine> invoiceLines = [
+            SELECT Id, Product2.Name, Quantity, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount, ChargeAmountWithTax, Type
             FROM InvoiceLine
             WHERE Type = 'Charge' AND InvoiceId = :invoiceId
-        ]) {
-            Decimal itemAmount = Integer.valueOf(invoiceLine.ChargeAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
-            Decimal itemVatAmount = Integer.valueOf(invoiceLine.ChargeTaxAmount * AdyenPaymentUtility.getAmountMultiplier(pa.CurrencyIsoCode));
-            Decimal itemVatPercentage = invoiceLine.ChargeAmount / invoiceLine.ChargeTaxAmount;
-            invoiceLineCount++;
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.currencyCode',          invoiceLine.CurrencyIsoCode);
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.description',           invoiceLine.Product2.Name);
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemAmount',            String.valueOf(itemAmount));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatAmount',         String.valueOf(itemVatAmount));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.itemVatPercentage',     String.valueOf(itemVatPercentage));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.numberOfItems',         String.valueOf(Integer.valueOf(invoiceLine.Quantity)));
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.productUrl',            '');
-            additionalData.put('openinvoicedata.line' + invoiceLineCount + '.imageUrl',              '');
+        ];
+        return parseLineItemsData(invoiceLines);
+    }
+
+    public static List<LineItem> addCreditMemoData(Id orderSummaryId) {
+        List<CreditMemoLine> creditMemoLines = [
+            SELECT Product2.Name, CurrencyIsoCode, ChargeAmount, ChargeTaxAmount, ChargeAmountWithTax
+            FROM CreditMemoLine
+            WHERE Type = 'Charge' AND CreditMemo.ReferenceEntityId = :orderSummaryId
+        ];
+        return parseLineItemsData(creditMemoLines);
+    }
+
+    private static List<LineItem> parseLineItemsData(List<SObject> lineItemRecords) {
+        List<LineItem> lineItems = new List<LineItem>();
+        LineItem lineItem;
+        for (SObject lineItemRecord : lineItemRecords) {
+            String currencyIsoCode = (String)lineItemRecord.get('CurrencyIsoCode');
+            Decimal amountExcludingTax = (Decimal)lineItemRecord.get('ChargeAmount');
+            Decimal amountIncludingTax = (Decimal)lineItemRecord.get('ChargeAmountWithTax');
+            Decimal taxAmount = (Decimal)lineItemRecord.get('ChargeTaxAmount');
+            lineItem = new LineItem();
+            lineItem.amountExcludingTax = Integer.valueOf(amountExcludingTax * getAmountMultiplier(currencyIsoCode));
+            lineItem.amountIncludingTax = Integer.valueOf(amountIncludingTax * getAmountMultiplier(currencyIsoCode));
+            lineItem.taxAmount = Integer.valueOf(taxAmount * getAmountMultiplier(currencyIsoCode));
+            lineItem.taxPercentage = amountExcludingTax != 0 ?
+                Integer.valueOf((taxAmount/amountExcludingTax).setScale(4, RoundingMode.HALF_EVEN) * 10000) :
+                0;
+            lineItem.description = ((Product2)lineItemRecord.getSObject('Product2')).Name;
+            if (lineItemRecord.getSObjectType() == Schema.InvoiceLine.getSObjectType()) { // credit memo line does not have quantity
+                lineItem.quantity = Integer.valueOf((Decimal)lineItemRecord.get('Quantity'));
+            }
+            lineItems.add(lineItem);
         }
-        additionalData.put('openinvoicedata.numberOfLines', invoiceLineCount);
-        return additionalData;
+        return lineItems;
     }
     
     /**
@@ -290,7 +315,7 @@ public with sharing class AdyenPaymentUtility {
     /**
     * For generating payment tokens
     *
-    * @param stringLength
+    * @param stringLength integer containing the number of characters
     * @return a random number with stringLength characters
     */
     public static String getRandomNumber(Integer stringLength) {
@@ -300,6 +325,9 @@ public with sharing class AdyenPaymentUtility {
     
     /**
     * Round an amount to a normalized value for consistency
+    *
+    * @param amount the decimal amount type to be normalized
+    * @return the same amount with 2 decimal points using half even rounding mode
     */
     public static Double normalizeAmount(Double amount) {
         return Double.valueOf(Decimal.valueOf(amount).setScale(2, System.RoundingMode.HALF_EVEN));
@@ -311,6 +339,7 @@ public with sharing class AdyenPaymentUtility {
     * @return application information map for the request.
     */
     public static ApplicationInfo getApplicationInfo(String integratorName) {
+        
         ApplicationInfo info = new ApplicationInfo();
         
         ExternalPlatform exPlatform = new ExternalPlatform();
@@ -336,7 +365,7 @@ public with sharing class AdyenPaymentUtility {
     *
     * @return CheckoutModificationRequest to send to Adyen.
     */
-    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Double amount, String pspReference, String merchantAccount) {
+    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Double amount, String merchantAccount) {
         CheckoutModificationRequest modRequest;
         if (paymentType == CommercePayments.RequestType.Capture) {
             modRequest = new CheckoutCaptureRequest();
@@ -372,10 +401,11 @@ public with sharing class AdyenPaymentUtility {
     * @return AuthorisationRequest to send to Adyen.
     */
     public static AuthorisationRequest createAuthorisationRequest(CommercePayments.AuthorizationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt){
+        
         AuthorisationRequest adyenAuthorisationRequest = new AuthorisationRequest();
         try{
             CommercePayments.AuthApiPaymentMethodRequest paymentMethod = authRequest.paymentMethod;
-            String currencyCode = authRequest.currencyIsoCode.toUppercase();
+            String currencyCode = authRequest.currencyIsoCode.toUpperCase();
             
             Double authAmount = AdyenPaymentUtility.normalizeAmount(authRequest.amount);
             adyenAuthorisationRequest.amount = new Amount();
@@ -387,22 +417,22 @@ public with sharing class AdyenPaymentUtility {
                 //paymentMethod.id would be a string that represents the Salesforce record id of CardPaymentMethod or AlternativePaymentMethod object
                 String adyenToken;
                 Id recordId = paymentMethod.id;
-                String sObjName = recordId.getSObjectType().getDescribe().getName(); //determine object name
+                String sObjName = recordId.getSobjectType().getDescribe().getName(); //determine object name
                 
                 if(sObjName == AdyenOMSConstants.CARD_PAYMENTMETHOD_OBJECT) {
                     //for CardPaymentMethod : Use GatewayTokenEncrypted field to retrieve token
-                    CardPaymentMethod cpmRecord = [Select Id, GatewayTokenEncrypted from CardPaymentMethod where Id = :recordId Limit 1];
+                    CardPaymentMethod cpmRecord = [SELECT Id, GatewayTokenEncrypted FROM CardPaymentMethod WHERE Id = :recordId LIMIT 1];
                     adyenToken = cpmRecord.GatewayTokenEncrypted;
                 } else if(sObjName == AdyenOMSConstants.ALTERNATIVE_PAYMENTMETHOD_OBJECT) {
                     //for AlternativePaymentMethod : Use GatewayToken field to retrieve token
-                    AlternativePaymentMethod apmRecord = [Select Id, GatewayToken from AlternativePaymentMethod where Id = :recordId Limit 1];
+                    AlternativePaymentMethod apmRecord = [SELECT Id, GatewayToken FROM AlternativePaymentMethod WHERE Id = :recordId LIMIT 1];
                     adyenToken = apmRecord.GatewayToken;
                 }
                 
                 CardDetails cardDetails = new CardDetails();
                 cardDetails.storedPaymentMethodId = adyenToken;
                 adyenAuthorisationRequest.paymentMethod = cardDetails;
-                adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.shopperInteractionEnum.ContAuth;
+                adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.ShopperInteractionEnum.ContAuth;
                 adyenAuthorisationRequest.recurringProcessingModel = AuthorisationRequest.RecurringProcessingModelEnum.CardOnFile;
                 
             } else if(paymentMethod.cardPaymentMethod != null) {
@@ -415,7 +445,7 @@ public with sharing class AdyenPaymentUtility {
                 cardDetails.holderName = cpmRequest.cardHolderName;
                 cardDetails.cvc = cpmRequest.cvv;
                 adyenAuthorisationRequest.paymentMethod = cardDetails;
-                adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.shopperInteractionEnum.Ecommerce;
+                adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.ShopperInteractionEnum.Ecommerce;
             }
             
             adyenAuthorisationRequest.reference = AdyenPaymentUtility.getRandomNumber(16);

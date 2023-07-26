@@ -1,40 +1,57 @@
-@isTest
+@IsTest
 private class AdyenPaymentUtilityTest {
-    @isTest(SeeAllData=true) // for ConnectApi use only
+    @IsTest(SeeAllData=true) // for ConnectApi use only
     static void addInvoiceData() {
-        Decimal productPrice = 100;
-        Decimal taxValue = 5;
+        Integer productPrice = 100;
+        Integer taxValue = 5;
+        Decimal percentage = Decimal.valueOf(taxValue)/Decimal.valueOf(productPrice).setScale(4, RoundingMode.HALF_EVEN);
         OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(productPrice, taxValue);
         Id invoiceId = [SELECT Id FROM Invoice WHERE ReferenceEntityId = :orderPaySum.OrderSummaryId].Id;
-        PaymentAuthorization payAuth = [SELECT CurrencyIsoCode FROM PaymentAuthorization WHERE OrderPaymentSummaryId = :orderPaySum.Id];
 
         Test.startTest();
-        Map<String, Object> additionalData = AdyenPaymentUtility.addInvoiceData(invoiceId, payAuth);
+        List<LineItem> lineItems = AdyenPaymentUtility.addInvoiceData(invoiceId);
         Test.stopTest();
-   
-        Assert.areEqual(String.valueOf(taxValue*100), additionalData.get('openinvoicedata.line1.itemVatAmount'));
-        Assert.areEqual(String.valueOf(Integer.valueOf((taxValue/productPrice)*100)), additionalData.get('openinvoicedata.line1.itemVatPercentage'));
-        Assert.areEqual(TestDataFactory.ACTIVE_CURRENCY, additionalData.get('openinvoicedata.line1.currencyCode'));
-        Assert.areEqual(String.valueOf(productPrice*100), additionalData.get('openinvoicedata.line1.itemAmount'));
+
+        Assert.areEqual(1, lineItems.size());
+        Assert.areEqual(taxValue*100, lineItems[0].taxAmount);
+        Assert.areEqual(Integer.valueOf(percentage*10000), lineItems[0].taxPercentage);
+        Assert.areEqual(productPrice*100, lineItems[0].amountExcludingTax);
+        Assert.areEqual((productPrice+taxValue)*100, lineItems[0].amountIncludingTax);
+    }
+    @IsTest(SeeAllData=true) // for ConnectApi use only
+    static void addCreditMemoDataTest() {
+        Integer productPrice = 100;
+        Integer taxValue = 5;
+        Decimal percentage = Decimal.valueOf(taxValue)/Decimal.valueOf(productPrice).setScale(4, RoundingMode.HALF_EVEN);
+        OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(productPrice, taxValue);
+        createCreditMemoAndRelatedRecords(orderPaySum.OrderSummaryId);
+
+        Test.startTest();
+        List<LineItem> lineItems = AdyenPaymentUtility.addCreditMemoData(orderPaySum.OrderSummaryId);
+        Test.stopTest();
+
+        Assert.areEqual(1, lineItems.size());
+        Assert.areEqual(taxValue*100, lineItems[0].taxAmount);
+        Assert.areEqual(Integer.valueOf(percentage*10000), lineItems[0].taxPercentage);
+        Assert.areEqual(productPrice*100, lineItems[0].amountExcludingTax);
+        Assert.areEqual((productPrice+taxValue)*100, lineItems[0].amountIncludingTax);
     }
 
-    @isTest(SeeAllData=true) // for ConnectApi use only
+    @IsTest(SeeAllData=true) // for ConnectApi use only
     static void addInvoiceDataNoTaxTest() {
-        Decimal productPrice = 100;
-        Decimal taxValue = 0;
-        OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(productPrice, taxValue);
+        Integer productPrice = 100;
+        OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(productPrice, 0);
         Id invoiceId = [SELECT Id FROM Invoice WHERE ReferenceEntityId = :orderPaySum.OrderSummaryId].Id;
-        PaymentAuthorization payAuth = [SELECT CurrencyIsoCode FROM PaymentAuthorization WHERE OrderPaymentSummaryId = :orderPaySum.Id];
 
         Test.startTest();
-        Map<String, Object> additionalData = AdyenPaymentUtility.addInvoiceData(invoiceId, payAuth);
+        List<LineItem> lineItems = AdyenPaymentUtility.addInvoiceData(invoiceId);
         Test.stopTest();
-   
-        Assert.areEqual(String.valueOf(taxValue*100), additionalData.get('openinvoicedata.line1.itemVatAmount'));
-        Assert.areEqual(String.valueOf(Integer.valueOf((taxValue/productPrice)*100)), additionalData.get('openinvoicedata.line1.itemVatPercentage'));
+
+        Assert.areEqual(0, lineItems[0].taxAmount);
+        Assert.areEqual(0, lineItems[0].taxPercentage);
     }
 
-    @isTest
+    @IsTest
     static void retrieveApexAdapterIdTest() {
         PaymentGatewayProvider payGatProvider = [SELECT ApexAdapterId FROM PaymentGatewayProvider WHERE ApexAdapterId != NULL LIMIT 1];
         PaymentGateway payGateway = TestDataFactory.createPaymentGateway();
@@ -51,7 +68,7 @@ private class AdyenPaymentUtilityTest {
         Assert.areEqual(payGatProvider.ApexAdapterId, apexAdapterId);
     }
 
-    @isTest
+    @IsTest
     static void retrieveApexAdapterIdFallbackTest() {
         PaymentGatewayProvider payGatProvider = [SELECT ApexAdapterId FROM PaymentGatewayProvider WHERE ApexAdapterId != NULL LIMIT 1];
         PaymentGateway payGateway = TestDataFactory.createPaymentGateway();
@@ -75,7 +92,17 @@ private class AdyenPaymentUtilityTest {
         OrderPaymentSummary orderPaymentSummary = TestDataFactory.createOrderSummaryRecords(order.AccountId, order.Id);
         TestDataFactory.insertBasicPaymentRecords(acct.Id, orderPaymentSummary.Id);
         Id fulfillmentOrderId = TestDataFactory.createFulfillmentOrder(orderPaymentSummary.OrderSummaryId)[0];
-        Id invoiceId = TestDataFactory.createInvoiceAndLineItems(fulfillmentOrderId);
+        TestDataFactory.createInvoiceAndLineItems(fulfillmentOrderId);
         return orderPaymentSummary;
+    }
+
+    private static Id createCreditMemoAndRelatedRecords(Id orderSummaryId) {
+        FulfillmentOrder fulfillmentOrder = [SELECT Status FROM FulfillmentOrder WHERE OrderSummaryId = :orderSummaryId];
+        fulfillmentOrder.Status = 'Fulfilled';
+        update fulfillmentOrder;
+
+        Id changeOrderId = TestDataFactory.submitReturn(orderSummaryId);
+        Id creditMemoId = TestDataFactory.createCreditMemo(orderSummaryId, changeOrderId);
+        return creditMemoId;
     }
 }
