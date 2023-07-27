@@ -322,6 +322,41 @@ public with sharing class AdyenPaymentUtility {
         final Integer MAX = Integer.valueOf(Math.pow(10, stringLength) - 1);
         return String.valueOf(Math.round(Math.random() * MAX)).leftPad(stringLength, '0');
     }
+
+    public static FulfillmentOrder getFulfillmentOrder(Id orderSummaryId, Double amount) {
+        try {
+            List<FulfillmentOrder> fulfillmentOrders = [
+                SELECT FulfillmentOrderNumber, Status, StatusCategory, Type, TypeCategory, GrandTotalAmount
+                FROM FulfillmentOrder
+                WHERE OrderSummaryId = :orderSummaryId
+                ORDER BY CreatedDate DESC
+            ];
+            for (FulfillmentOrder fulfillmentOrder : fulfillmentOrders) {
+                if (fulfillmentOrder.GrandTotalAmount == amount) {
+                    return fulfillmentOrder;
+                }
+            }
+            throw new AdyenAsyncAdapter.GatewayException(
+                'Cannot find any fulfillment order related to order summary Id ' + orderSummaryId + ' with amount ' + amount
+            );
+        } catch (Exception ex) {
+            logException(ex, LoggingLevel.ERROR);
+        }
+        return null;
+    }
+
+    public static String getReference(SObject anyPaymentTypeRecord, Double amount) {
+        Id orderSummaryId = ((OrderPaymentSummary)anyPaymentTypeRecord.getSObject('OrderPaymentSummary')).OrderSummaryId;
+        String reference = getFulfillmentOrder(orderSummaryId, amount)?.FulfillmentOrderNumber;
+        return String.isNotBlank(reference) ? reference : getRandomNumber(16);
+    }
+
+    public static void logException(Exception ex, LoggingLevel loggingLevel) {
+        System.debug(loggingLevel, 'Exception message : ' + ex.getMessage());
+        System.debug(loggingLevel, 'Exception type : ' + ex.getTypeName());
+        System.debug(loggingLevel, 'Exception line : ' + ex.getLineNumber());
+        System.debug(loggingLevel, 'Stacktrace : ' + ex.getStackTraceString());
+    }
     
     /**
     * Round an amount to a normalized value for consistency
@@ -365,14 +400,14 @@ public with sharing class AdyenPaymentUtility {
     *
     * @return CheckoutModificationRequest to send to Adyen.
     */
-    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Double amount, String merchantAccount) {
+    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Double amount, String merchantAccount, String reference) {
         CheckoutModificationRequest modRequest;
         if (paymentType == CommercePayments.RequestType.Capture) {
             modRequest = new CheckoutCaptureRequest();
         } else if (paymentType == CommercePayments.RequestType.ReferencedRefund) {
             modRequest = new CheckoutRefundRequest();
         }
-        modRequest.setReference(AdyenPaymentUtility.getRandomNumber(16));
+        modRequest.setReference(reference);
         modRequest.setMerchantAccount(merchantAccount);
         Amount requestAmount = new Amount();
         requestAmount.value = (amount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
@@ -453,10 +488,7 @@ public with sharing class AdyenPaymentUtility {
             adyenAuthorisationRequest.shopperReference = UserInfo.getUserId();
             adyenAuthorisationRequest.applicationInfo = AdyenPaymentUtility.getApplicationInfo(adyenAdapterMdt.System_Integrator_Name__c);
         } catch(Exception ex) {
-            System.debug('Exception message : ' + ex.getMessage());
-            System.debug('Exception type : ' + ex.getTypeName());
-            System.debug('Exception line : ' + ex.getLineNumber());
-            System.debug('Stacktrace : ' + ex.getStackTraceString());
+            logException(ex, LoggingLevel.ERROR);
         }
         return adyenAuthorisationRequest;
     }
@@ -476,10 +508,7 @@ public with sharing class AdyenPaymentUtility {
             AdyenClient client = new AdyenClient(apiKey, endpoint);
             response = client.request(client.config, body);
         } catch(Exception ex) {
-            System.debug('Exception message : ' + ex.getMessage());
-            System.debug('Exception type : ' + ex.getTypeName());
-            System.debug('Exception line : ' + ex.getLineNumber());
-            System.debug('Stacktrace : ' + ex.getStackTraceString());
+            logException(ex, LoggingLevel.ERROR);
         }
         return response;
     }

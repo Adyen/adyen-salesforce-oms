@@ -39,7 +39,12 @@ public with sharing class AdyenRefundHelper {
         Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
         String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : payment.CurrencyIsoCode.toUpperCase();
         String pspReference = (payment.OrderPaymentSummary.FullName == 'DeclineRefund' ? 'dummytransaction' : AdyenPaymentUtility.getRefundGatewayRefNumber(payment));
-        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.ReferencedRefund, currencyCode, refundRequest.amount, adyenAdapterMdt.Merchant_Account__c);
+        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(
+            CommercePayments.RequestType.ReferencedRefund,
+            currencyCode, refundRequest.amount,
+            adyenAdapterMdt.Merchant_Account__c,
+            AdyenPaymentUtility.getRandomNumber(16)
+        );
         //Only for Paypal Refunds - Capture reference must be a substring of refund reference
         if (String.isNotBlank(payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c)) {
             if (payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c.equalsIgnoreCase('Paypal') && String.isNotBlank(payment.GatewayRefDetails)) {

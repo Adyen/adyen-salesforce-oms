@@ -25,10 +25,10 @@ public with sharing class AdyenCaptureHelper {
         }
 
         // By Default, retrieve the metadata key from the order's sales channel
-        String adapterName = pa?.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
+        String adapterName = pa.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
 
         // Override config for this specific PaymentAuthorization
-        if (String.isNotBlank(pa?.adyenOverrideMerchantConfig__c)) {
+        if (String.isNotBlank(pa.adyenOverrideMerchantConfig__c)) {
             adapterName = pa.adyenOverrideMerchantConfig__c;
         }
         if (String.isBlank(adapterName)) {
@@ -37,7 +37,13 @@ public with sharing class AdyenCaptureHelper {
 
         Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
         String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : pa.CurrencyIsoCode;
-        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(CommercePayments.RequestType.Capture, currencyCode, captureRequest.amount, adyenAdapterMdt.Merchant_Account__c);
+        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(
+            CommercePayments.RequestType.Capture,
+            currencyCode,
+            captureRequest.amount,
+            adyenAdapterMdt.Merchant_Account__c,
+            AdyenPaymentUtility.getReference(pa, captureRequest.amount)
+        );
 
         // For payment methods requiring Open Invoice data (e.g., Klarna), append it
         if (AdyenPaymentUtility.checkIfKlarnaOrderFromAuthorization(pa)) {
