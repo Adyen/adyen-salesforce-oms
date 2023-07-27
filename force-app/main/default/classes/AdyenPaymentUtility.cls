@@ -323,23 +323,31 @@ public with sharing class AdyenPaymentUtility {
         return String.valueOf(Math.round(Math.random() * MAX)).leftPad(stringLength, '0');
     }
 
-    public static FulfillmentOrder getFulfillmentOrder(Id orderSummaryId) {
-        FulfillmentOrder fulfillmentOrder;
+    public static FulfillmentOrder getFulfillmentOrder(Id orderSummaryId, Double amount) {
         try {
-            fulfillmentOrder = [
-                SELECT FulfillmentOrderNumber, Status, StatusCategory, Type, TypeCategory
+            List<FulfillmentOrder> fulfillmentOrders = [
+                SELECT FulfillmentOrderNumber, Status, StatusCategory, Type, TypeCategory, GrandTotalAmount
                 FROM FulfillmentOrder
                 WHERE OrderSummaryId = :orderSummaryId
+                ORDER BY CreatedDate DESC
             ];
+            for (FulfillmentOrder fulfillmentOrder : fulfillmentOrders) {
+                if (fulfillmentOrder.GrandTotalAmount == amount) {
+                    return fulfillmentOrder;
+                }
+            }
+            throw new AdyenAsyncAdapter.GatewayException(
+                'Cannot find any fulfillment order related to order summary Id ' + orderSummaryId + ' with amount ' + amount
+            );
         } catch (Exception ex) {
             logException(ex, LoggingLevel.ERROR);
         }
-        return fulfillmentOrder;
+        return null;
     }
 
-    public static String getReference(SObject anyPaymentTypeRecord) {
+    public static String getReference(SObject anyPaymentTypeRecord, Double amount) {
         Id orderSummaryId = ((OrderPaymentSummary)anyPaymentTypeRecord.getSObject('OrderPaymentSummary')).OrderSummaryId;
-        String reference = getFulfillmentOrder(orderSummaryId)?.FulfillmentOrderNumber;
+        String reference = getFulfillmentOrder(orderSummaryId, amount)?.FulfillmentOrderNumber;
         return String.isNotBlank(reference) ? reference : getRandomNumber(16);
     }
 

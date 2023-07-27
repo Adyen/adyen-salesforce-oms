@@ -42,7 +42,7 @@ public with sharing class AdyenCaptureHelper {
             currencyCode,
             captureRequest.amount,
             adyenAdapterMdt.Merchant_Account__c,
-            AdyenPaymentUtility.getReference(pa)
+            AdyenPaymentUtility.getReference(pa, captureRequest.amount)
         );
 
         // For payment methods requiring Open Invoice data (e.g., Klarna), append it

@@ -43,7 +43,7 @@ public with sharing class AdyenRefundHelper {
             CommercePayments.RequestType.ReferencedRefund,
             currencyCode, refundRequest.amount,
             adyenAdapterMdt.Merchant_Account__c,
-            AdyenPaymentUtility.getReference(payment)
+            AdyenPaymentUtility.getRandomNumber(16)
         );
         //Only for Paypal Refunds - Capture reference must be a substring of refund reference
         if (String.isNotBlank(payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c)) {

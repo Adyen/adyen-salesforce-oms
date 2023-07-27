@@ -89,7 +89,7 @@ private class AdyenPaymentUtilityTest {
     static void getFulfillmentOrderTest() {
         OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(100, 5);
         Test.startTest();
-        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(orderPaySum.OrderSummaryId);
+        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(orderPaySum.OrderSummaryId, 105);
         Test.stopTest();
         Assert.isNotNull(fulfillmentOrder);
     }
@@ -97,7 +97,7 @@ private class AdyenPaymentUtilityTest {
     @IsTest
     static void getFulfillmentOrderFailTest() {
         Test.startTest();
-        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(null);
+        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(null, 0);
         Test.stopTest();
         Assert.isNull(fulfillmentOrder);
     }
@@ -122,8 +122,8 @@ private class AdyenPaymentUtilityTest {
         ];
 
         Test.startTest();
-        String referencePayAuth = AdyenPaymentUtility.getReference(payAuth);
-        String referencePayment = AdyenPaymentUtility.getReference(payment);
+        String referencePayAuth = AdyenPaymentUtility.getReference(payAuth, 105);
+        String referencePayment = AdyenPaymentUtility.getReference(payment, 105);
         Test.stopTest();
 
         Assert.areEqual(fulfillmentOrder.FulfillmentOrderNumber, referencePayAuth);
@@ -136,7 +136,7 @@ private class AdyenPaymentUtilityTest {
         PaymentAuthorization payAuth = new PaymentAuthorization(OrderPaymentSummary = orderPaymentSummary);
 
         Test.startTest();
-        String reference = AdyenPaymentUtility.getReference(payAuth);
+        String reference = AdyenPaymentUtility.getReference(payAuth, 23);
         Test.stopTest();
 
         Assert.isNotNull(reference);
