@@ -16,4 +16,5 @@ public with sharing class AdyenOMSConstants {
     public static final String ALTERNATIVE_PAYMENTMETHOD_OBJECT = 'AlternativePaymentMethod';
 
     public static final String ADYEN_2GP_NAMESPACE = 'adyen_payment';
+    public static final Set<String> openInvoiceMethods = new Set<String> {'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay'};
 }

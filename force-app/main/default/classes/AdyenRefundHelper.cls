@@ -53,8 +53,8 @@ public with sharing class AdyenRefundHelper {
                 modRequest.setReference(refundReference);
             }
         }
-        // For refund requiring line items (e.g., Klarna)
-        if (AdyenPaymentUtility.checkIfKlarnaOrderFromAuthorization(payment.PaymentAuthorization)) {
+        // Line items required for partial refunds for Open Invoice methods
+        if (AdyenPaymentUtility.checkIfOpenInvoiceFromAuthorization(payment.PaymentAuthorization)) {
             modRequest.setLineItems(AdyenPaymentUtility.addCreditMemoData(payment.OrderPaymentSummary.OrderSummaryId));
         }
 

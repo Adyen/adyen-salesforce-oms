@@ -123,7 +123,7 @@ public with sharing class AdyenPaymentUtility {
         Schema.SObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
         Schema.SObjectType.PaymentAuthorization.fields.CurrencyIsoCode.isAccessible() &&
         Schema.SObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.Adyen_Payment_Method__c.isAccessible() &&
+        Schema.SObjectType.PaymentAuthorization.fields.Adyen_Payment_Method_Variant__c.isAccessible() &&
         Schema.SObjectType.PaymentGatewayLog.fields.GatewayRefNumber.isAccessible() &&
         Schema.SObjectType.OrderPaymentSummary.fields.Id.isAccessible() &&
         Schema.SObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
@@ -131,7 +131,7 @@ public with sharing class AdyenPaymentUtility {
         {
             List<PaymentAuthorization> paymentAuthorizations = [
                 SELECT
-                    Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c, Adyen_Payment_Method__c,
+                    Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c, Adyen_Payment_Method_Variant__c,
                     OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber,
                     OrderPaymentSummary.Id,
                     OrderPaymentSummary.FullName, CurrencyIsoCode,
@@ -153,19 +153,20 @@ public with sharing class AdyenPaymentUtility {
     }
     
     /**
-    * Check if Klarna Order.
+    * Check if Open Invoice method.
     *
     * @param pa The sObject PaymentAuthorizationId
-    * @return Boolean denoting if the Authorization Id belongs to a Klarna Order.
+    * @return Boolean denoting if the Authorization Id belongs to an Open Invoice payment method.
     */
-    public static Boolean checkIfKlarnaOrderFromAuthorization(PaymentAuthorization pa) {
-        Boolean isKlarnaOrder = false;
-        
-        if (pa != null && pa.Adyen_Payment_Method__c != null) {
-            isKlarnaOrder = pa.Adyen_Payment_Method__c.containsIgnoreCase('klarna');
+    public static Boolean checkIfOpenInvoiceFromAuthorization(PaymentAuthorization pa) {
+        if (pa != null && pa.Adyen_Payment_Method_Variant__c != null) {
+            for (String openInvoiceMethod : AdyenOMSConstants.openInvoiceMethods) {
+                 if(pa.Adyen_Payment_Method_Variant__c.containsIgnoreCase(openInvoiceMethod)) {
+                     return true;
+                 }
+            }
         }
-
-        return isKlarnaOrder;
+        return false;
     }
     
     /**
