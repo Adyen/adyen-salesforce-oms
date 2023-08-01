@@ -160,7 +160,7 @@ public with sharing class AdyenPaymentUtility {
     */
     public static Boolean checkIfOpenInvoiceFromAuthorization(PaymentAuthorization pa) {
         if (pa != null && pa.Adyen_Payment_Method_Variant__c != null) {
-            for (String openInvoiceMethod : AdyenOMSConstants.openInvoiceMethods) {
+            for (String openInvoiceMethod : AdyenOMSConstants.OPEN_INVOICE_METHODS) {
                  if(pa.Adyen_Payment_Method_Variant__c.containsIgnoreCase(openInvoiceMethod)) {
                      return true;
                  }
@@ -206,9 +206,9 @@ public with sharing class AdyenPaymentUtility {
     }
     
     public static Integer getAmountMultiplier(String currencyCode) {
-        if (AdyenOMSConstants.threeDecimalCurrencies.contains(currencyCode)) {
+        if (AdyenOMSConstants.THREE_DECIMAL_CURRENCIES.contains(currencyCode)) {
             return 1000;
-        } else if (AdyenOMSConstants.zeroDecimalCurrencies.contains(currencyCode)) {
+        } else if (AdyenOMSConstants.ZERO_DECIMAL_CURRENCIES.contains(currencyCode)) {
             return 1;
         } else {
             return 100;
