@@ -45,8 +45,8 @@ public with sharing class AdyenCaptureHelper {
             AdyenPaymentUtility.getReference(pa, captureRequest.amount)
         );
 
-        // For payment methods requiring Open Invoice data (e.g., Klarna), append it
-        if (AdyenPaymentUtility.checkIfKlarnaOrderFromAuthorization(pa)) {
+        // Line items required for partial captures for Open Invoice methods
+        if (AdyenPaymentUtility.checkIfOpenInvoiceFromAuthorization(pa)) {
             // Get invoice id
             String invoiceId = 'INVALID';
             if (captureRequest.additionalData.containsKey('invoiceId')) {

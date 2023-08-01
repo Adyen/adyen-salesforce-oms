@@ -1,7 +1,7 @@
 public with sharing class AdyenOMSConstants {
 
-    public static final Set<String> threeDecimalCurrencies = new Set<String> {'BHD','IQD','JOD','KWD','LWD','OMR','TND'};
-    public static final Set<String> zeroDecimalCurrencies = new Set<String> {
+    public static final Set<String> THREE_DECIMAL_CURRENCIES = new Set<String> {'BHD','IQD','JOD','KWD','LWD','OMR','TND'};
+    public static final Set<String> ZERO_DECIMAL_CURRENCIES = new Set<String> {
             'CVE', 'DJF', 'GNF', 'IDR', 'JPY', 'KMF', 'KRW',
             'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'
     };
@@ -16,4 +16,5 @@ public with sharing class AdyenOMSConstants {
     public static final String ALTERNATIVE_PAYMENTMETHOD_OBJECT = 'AlternativePaymentMethod';
 
     public static final String ADYEN_2GP_NAMESPACE = 'adyen_payment';
+    public static final Set<String> OPEN_INVOICE_METHODS = new Set<String> {'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay'};
 }
