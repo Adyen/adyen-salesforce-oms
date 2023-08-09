@@ -137,10 +137,13 @@ private class AdyenPaymentUtilityTest {
 
         Test.startTest();
         String reference = AdyenPaymentUtility.getReference(payAuth, 23);
+        String referenceNullOrderPaySum = AdyenPaymentUtility.getReference(new PaymentAuthorization(), 23);
         Test.stopTest();
 
         Assert.isNotNull(reference);
+        Assert.isNotNull(referenceNullOrderPaySum);
         Assert.areEqual(16, reference.length());
+        Assert.areEqual(16, referenceNullOrderPaySum.length());
     }
     
     private static OrderPaymentSummary createInvoiceAndRelatedRecords(Decimal price, Decimal taxValue) {

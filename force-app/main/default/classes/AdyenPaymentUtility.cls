@@ -347,9 +347,13 @@ public with sharing class AdyenPaymentUtility {
     }
 
     public static String getReference(SObject anyPaymentTypeRecord, Double amount) {
-        Id orderSummaryId = ((OrderPaymentSummary)anyPaymentTypeRecord.getSObject('OrderPaymentSummary')).OrderSummaryId;
-        String reference = getFulfillmentOrder(orderSummaryId, amount)?.FulfillmentOrderNumber;
-        return String.isNotBlank(reference) ? reference : getRandomNumber(16);
+        String randomNumber = getRandomNumber(16);
+        OrderPaymentSummary orderPaymentSummary = (OrderPaymentSummary)anyPaymentTypeRecord.getSObject('OrderPaymentSummary');
+        if (orderPaymentSummary?.OrderSummaryId == null) {
+            return randomNumber;
+        }
+        String reference = getFulfillmentOrder(orderPaymentSummary.OrderSummaryId, amount)?.FulfillmentOrderNumber;
+        return String.isNotBlank(reference) ? reference : randomNumber;
     }
 
     public static void logException(Exception ex, LoggingLevel loggingLevel) {
