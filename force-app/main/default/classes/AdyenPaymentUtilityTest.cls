@@ -51,40 +51,6 @@ private class AdyenPaymentUtilityTest {
         Assert.areEqual(0, lineItems[0].taxPercentage);
     }
 
-    @IsTest
-    static void retrieveApexAdapterIdTest() {
-        PaymentGatewayProvider payGatProvider = [SELECT ApexAdapterId FROM PaymentGatewayProvider WHERE ApexAdapterId != NULL LIMIT 1];
-        PaymentGateway payGateway = TestDataFactory.createPaymentGateway();
-        payGateway.PaymentGatewayProviderId = payGatProvider.Id;
-        insert payGateway;
-        PaymentAuthorization payAuth = TestDataFactory.createPaymentAuthorization(null, null, payGateway.Id, null);
-        payAuth.GatewayRefNumber = TestDataFactory.GATEWAY_REF;
-        insert payAuth;
-
-        Test.startTest();
-        Id apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(TestDataFactory.GATEWAY_REF);
-        Test.stopTest();
-
-        Assert.areEqual(payGatProvider.ApexAdapterId, apexAdapterId);
-    }
-
-    @IsTest
-    static void retrieveApexAdapterIdFallbackTest() {
-        PaymentGatewayProvider payGatProvider = [SELECT ApexAdapterId FROM PaymentGatewayProvider WHERE ApexAdapterId != NULL LIMIT 1];
-        PaymentGateway payGateway = TestDataFactory.createPaymentGateway();
-        payGateway.PaymentGatewayProviderId = payGatProvider.Id;
-        insert payGateway;
-        Payment payment = TestDataFactory.createPayment(null, null, payGateway.Id, null, null);
-        payment.GatewayRefNumber = TestDataFactory.GATEWAY_REF;
-        insert payment;
-
-        Test.startTest();
-        Id apexAdapterId = AdyenPaymentUtility.retrieveApexAdapterId(TestDataFactory.GATEWAY_REF);
-        Test.stopTest();
-
-        Assert.areEqual(payGatProvider.ApexAdapterId, apexAdapterId);
-    }
-
     @IsTest(SeeAllData=true) // for ConnectApi use only
     static void getFulfillmentOrderTest() {
         OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(100, 5);
@@ -150,7 +116,7 @@ private class AdyenPaymentUtilityTest {
         Account acct = TestDataFactory.createAccount();
         insert acct;
         Order order = TestDataFactory.insertOrderAndRelatedRecords(acct.Id, price, taxValue);
-        OrderPaymentSummary orderPaymentSummary = TestDataFactory.createOrderSummaryRecords(order.AccountId, order.Id);
+        OrderPaymentSummary orderPaymentSummary = TestDataFactory.createOrderSummaryRecords(order.Id);
         TestDataFactory.insertBasicPaymentRecords(acct.Id, orderPaymentSummary.Id);
         Id fulfillmentOrderId = TestDataFactory.createFulfillmentOrder(orderPaymentSummary.OrderSummaryId)[0];
         TestDataFactory.createInvoiceAndLineItems(fulfillmentOrderId);

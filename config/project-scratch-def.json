@@ -1,0 +1,18 @@
+{
+    "orgName": "Adyen_OMS",
+    "edition": "Enterprise",
+    "language": "en_US",
+    "features": ["OrderManagement", "MultiCurrency"],
+    "settings": {
+        "OrderSettings": {
+            "enableOrders": true,
+            "enableNegativeQuantity": true,
+            "enableZeroQuantity": true,
+            "enableEnhancedCommerceOrders": true,
+            "enableOptionalPricebook": true
+        },
+        "OrderManagementSettings": {
+            "enableOrderManagement": true
+        }
+    }
+}

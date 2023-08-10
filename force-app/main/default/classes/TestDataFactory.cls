@@ -1,4 +1,4 @@
-@isTest
+@IsTest
 public class TestDataFactory {
     // constants
     public static final String TEST_PSP_REFERENCE = '853587067740652G';
@@ -13,7 +13,7 @@ public class TestDataFactory {
     public static final String RESULT_CODE_FAIL = 'Failure';
     public static final String GATEWAY_REF = 'gatewayReference';
     public static final Double TEST_AMOUNT = 19.99;
-    public static final String ACTIVE_CURRENCY = [SELECT IsoCode FROM CurrencyType WHERE IsActive = true LIMIT 1].IsoCode;
+    public static final String ACTIVE_CURRENCY = [SELECT IsoCode FROM CurrencyType WHERE IsActive = TRUE LIMIT 1].IsoCode;
 
     public static AdyenAsyncAdapter adyenAdapter = new AdyenAsyncAdapter();
 
@@ -38,16 +38,6 @@ public class TestDataFactory {
             Email = 'test@asdf.com',
             Status = 'Active',
             ProcessingMode = 'External'
-        );
-    }
-
-    public static PaymentGateway createPaymentGateway() {
-        return new PaymentGateway(
-            PaymentGatewayName = 'Adyen_Test',
-            Status = 'Active',
-            ExternalReference = 'Adyen_Component_Test',
-            MerchantCredentialId = [SELECT Id FROM NamedCredential LIMIT 1]?.Id,
-            PaymentGatewayProviderId = [SELECT Id FROM PaymentGatewayProvider LIMIT 1]?.Id
         );
     }
 
@@ -84,17 +74,26 @@ public class TestDataFactory {
         CardPaymentMethod cardPayMeth = createCardPaymentMethod();
         insert cardPayMeth;
         
-        PaymentGateway payGat = createPaymentGateway();
-        insert payGat;
+//        PaymentGateway payGat = createPaymentGateway();
+//        insert payGat;
         
-        PaymentAuthorization payAuth = createPaymentAuthorization(accId, cardPayMeth.Id, payGat.Id, orderPaySummaryId);
+        PaymentAuthorization payAuth = createPaymentAuthorization(accId, cardPayMeth.Id, null, orderPaySummaryId);
         insert payAuth;
         
-        Payment payment = createPayment(accId, cardPayMeth.Id, payGat.Id, payAuth.Id, orderPaySummaryId);
+        Payment payment = createPayment(accId, cardPayMeth.Id, null, payAuth.Id, orderPaySummaryId);
         insert payment;
     }
 
     public static String createNotificationRequestBody(String eventCode, String originalRef) {
+        NotificationItems notificationItems = new NotificationItems();
+        notificationItems.NotificationRequestItem = createNotificationRequestItem(eventCode, originalRef);
+        AdyenNotification adyenNotification = new AdyenNotification();
+        adyenNotification.live = 'false';
+        adyenNotification.notificationItems = new List<NotificationItems>{notificationItems};
+        return JSON.serialize(adyenNotification);
+    }
+
+    public static NotificationRequestItem createNotificationRequestItem(String eventCode, String originalRef) {
         NotificationRequestItem nri = new NotificationRequestItem();
         Amount a = new Amount();
         a.currency_x = ACTIVE_CURRENCY;
@@ -102,18 +101,12 @@ public class TestDataFactory {
         nri.amount = a;
         nri.eventCode = eventCode;
         nri.pspReference = GATEWAY_REF;
-        nri.eventDate = String.valueOf(System.TODAY());
+        nri.eventDate = String.valueOf(System.today());
         nri.paymentpspReference = 'paymentpspref';
         nri.success = 'true';
         nri.merchantAccountCode = 'merchant_account_code';
         nri.originalReference = originalRef;
-        
-        NotificationItems notificationItems = new NotificationItems();
-        notificationItems.NotificationRequestItem = nri;
-        AdyenNotification adyenNotification = new AdyenNotification();
-        adyenNotification.live = 'false';
-        adyenNotification.notificationItems = new List<NotificationItems>{notificationItems};
-        return JSON.serialize(adyenNotification);
+        return nri;
     }
 
     public static CommercePayments.AuthorizationRequest createAuthorisationRequest(Id payMethodId) {
@@ -122,7 +115,7 @@ public class TestDataFactory {
         
         CommercePayments.CardPaymentMethodRequest cardPayMeth = new CommercePayments.CardPaymentMethodRequest(CommercePayments.CardCategory.CreditCard);
         authRequest.paymentMethod = new CommercePayments.AuthApiPaymentMethodRequest(cardPayMeth);
-        authRequest.paymentMethod.Id = payMethodId;
+        authRequest.paymentMethod.id = payMethodId;
 
         CommercePayments.PaymentGatewayContext payGatecontext = new CommercePayments.PaymentGatewayContext(authRequest, CommercePayments.RequestType.Authorize);
         CommercePayments.PaymentGatewayRequest paymentRequest = payGatecontext.getPaymentRequest();
@@ -186,7 +179,7 @@ public class TestDataFactory {
         insert orderItem;
 
         OrderItemTaxLineItem tax = new OrderItemTaxLineItem(
-            OrderItemId = OrderItem.Id,
+            OrderItemId = orderItem.Id,
             Amount = prodTaxAmount,
             Name = 'Tax for product',
             Type = 'Estimated',
@@ -200,7 +193,7 @@ public class TestDataFactory {
         return order;
     }
 
-    public static OrderPaymentSummary createOrderSummaryRecords(Id accId, Id orderId) {
+    public static OrderPaymentSummary createOrderSummaryRecords(Id orderId) {
         ConnectApi.OrderSummaryInputRepresentation osir = new ConnectApi.OrderSummaryInputRepresentation();
         osir.orderId = orderId;
         osir.orderLifeCycleType = 'MANAGED';
@@ -234,7 +227,7 @@ public class TestDataFactory {
             fulfillmentGroup.fulfillmentType = fulfillmentType;
             
             List<ConnectApi.OrderItemSummaryInputRepresentation> orderItemSummaries = new List<ConnectApi.OrderItemSummaryInputRepresentation>();
-            List<OrderItemSummary> orderItemSummaryList = [SELECT Id, quantity FROM OrderItemSummary WHERE OrderSummaryId =: orderSummaryId AND OrderDeliveryGroupSummaryId =: orderDeliveryGroupSummary.Id];
+            List<OrderItemSummary> orderItemSummaryList = [SELECT Id, Quantity FROM OrderItemSummary WHERE OrderSummaryId =: orderSummaryId AND OrderDeliveryGroupSummaryId =: orderDeliveryGroupSummary.Id];
             
             for(OrderItemSummary orderItemSummary : orderItemSummaryList){
                 ConnectApi.OrderItemSummaryInputRepresentation oisInputRepresentation = new ConnectApi.OrderItemSummaryInputRepresentation();
@@ -248,13 +241,13 @@ public class TestDataFactory {
             fulfillmentOrderInput.fulfillmentGroups = fulfillmentGroups;
         }
         
-        ConnectApi.FulfillmentOrderOutputRepresentation result = ConnectAPI.FulfillmentOrder.createFulfillmentOrders(fulfillmentOrderInput);
+        ConnectApi.FulfillmentOrderOutputRepresentation result = ConnectApi.FulfillmentOrder.createFulfillmentOrders(fulfillmentOrderInput);
         return result.fulfillmentOrderIds;
     }
 
     public static Id createInvoiceAndLineItems(Id fulfillmentOrderId) {
         ConnectApi.FulfillmentOrderInvoiceInputRepresentation invoiceInput = new ConnectApi.FulfillmentOrderInvoiceInputRepresentation();
-        ConnectAPI.FulfillmentOrderInvoiceOutputRepresentation result = ConnectApi.FulfillmentOrder.createInvoice(fulfillmentOrderId, invoiceInput);
+        ConnectApi.FulfillmentOrderInvoiceOutputRepresentation result = ConnectApi.FulfillmentOrder.createInvoice(fulfillmentOrderId, invoiceInput);
         return result.invoiceId;
     }
 

@@ -36,7 +36,7 @@ public with sharing class AdyenPaymentHelper {
             adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
         }
         
-        Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = 'danilo_2gp_test') LIMIT 1].Id;
+        Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1].Id;
         
         if(adapterIdFromNotificationData == adyenAdapterId) {
             
@@ -110,6 +110,7 @@ public with sharing class AdyenPaymentHelper {
     * @param notificationRequestItem
     * @return CommercePayments.NotificationSaveResult.
     */
+    @TestVisible
     private static CommercePayments.NotificationSaveResult createNotificationSaveResult( NotificationRequestItem notificationRequestItem ) {
         Boolean unsupportedNotificationType = false;
         CommercePayments.BaseNotification notification = null;

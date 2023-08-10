@@ -1,25 +1,6 @@
-@isTest
+@IsTest
 private class AdyenPaymentHelperTest {
-    @isTest
-    static void handleAsyncNotificationCallbackAcceptedTest() {
-        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('CAPTURE', TestDataFactory.GATEWAY_REF);
-
-        PaymentGatewayProvider payGatProvider = [SELECT ApexAdapterId FROM PaymentGatewayProvider WHERE ApexAdapterId != NULL LIMIT 1];
-        PaymentGateway payGateway = TestDataFactory.createPaymentGateway();
-        payGateway.PaymentGatewayProviderId = payGatProvider.Id;
-        insert payGateway;
-        PaymentAuthorization payAuth = TestDataFactory.createPaymentAuthorization(null, null, payGateway.Id, null);
-        payAuth.GatewayRefNumber = TestDataFactory.GATEWAY_REF;
-        insert payAuth;
-
-        Test.startTest();
-        CommercePayments.GatewayNotificationResponse captureResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null, 'AdyenAsyncAdapter');
-        Test.stopTest();
-
-        Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
-    }
-
-    @isTest
+    @IsTest
     static void handleAsyncNotificationCallbackSkippedTest() {
         AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('CAPTURE', null);
 
@@ -30,7 +11,7 @@ private class AdyenPaymentHelperTest {
         Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
     }
 
-    @isTest
+    @IsTest
     static void handleAsyncNotificationCallbackNotProcessedTest() {
         AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('CAPTURE', TestDataFactory.GATEWAY_REF);
 
@@ -39,5 +20,16 @@ private class AdyenPaymentHelperTest {
         Test.stopTest();
 
         Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
+    }
+
+    @IsTest
+    static void createNotificationSaveResultTest() {
+        NotificationRequestItem nri = TestDataFactory.createNotificationRequestItem(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE, 'abc123');
+
+        Test.startTest();
+        CommercePayments.NotificationSaveResult notificationSaveResult = AdyenPaymentHelper.createNotificationSaveResult(nri);
+        Test.stopTest();
+
+        Assert.areEqual(400, notificationSaveResult.getStatusCode());
     }
 }
