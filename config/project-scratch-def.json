@@ -1,7 +1,6 @@
 {
     "orgName": "Adyen_OMS",
     "edition": "Enterprise",
-    "language": "en_US",
     "features": ["OrderManagement", "MultiCurrency"],
     "settings": {
         "OrderSettings": {
