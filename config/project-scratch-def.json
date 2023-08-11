@@ -1,8 +1,14 @@
 {
     "orgName": "Adyen_OMS",
-    "edition": "Enterprise",
-    "features": ["OrderManagement", "MultiCurrency"],
+    "edition": "Developer",
+    "features": ["EnableSetPasswordInApi", "OrderManagement", "MultiCurrency"],
     "settings": {
+        "lightningExperienceSettings": {
+            "enableS1DesktopEnabled": true
+        },
+        "mobileSettings": {
+            "enableS1EncryptedStoragePref2": false
+        },
         "OrderSettings": {
             "enableOrders": true,
             "enableNegativeQuantity": true,
