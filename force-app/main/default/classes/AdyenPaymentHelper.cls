@@ -6,9 +6,9 @@ public with sharing class AdyenPaymentHelper {
     *  Receives Payment Gateway Context from AdyenAsyncAdapter, looks at the context type and then invokes the appropriate Capture or Refund operation
     * 
     * @param paymentGatewayContext
-    * @returns `CommercePayments.GatewayResponse`
+    * @return `CommercePayments.GatewayResponse`
     */
-    public static CommercePayments.GatewayResponse handleFulfillmentOrderStatusChange(CommercePayments.paymentGatewayContext paymentGatewayContext) {
+    public static CommercePayments.GatewayResponse handleFulfillmentOrderStatusChange(CommercePayments.PaymentGatewayContext paymentGatewayContext) {
         CommercePayments.RequestType paymentRequestType = paymentGatewayContext.getPaymentRequestType();
         CommercePayments.PaymentGatewayRequest paymentRequest = paymentGatewayContext.getPaymentRequest();
         
@@ -49,7 +49,7 @@ public with sharing class AdyenPaymentHelper {
                     System.debug('----> Exiting AdyenPaymentHelper.handleAsyncNotificationCallback after the notification is accepted: ' + gatewayNotificationResponse);
                     return gatewayNotificationResponse;
                 } else { // Notification is not accepted by the platform, generate system event
-                    gatewayNotificationResponse.setStatusCode(integer.valueOf(AdyenConstants.HTTP_SERVER_ERROR_CODE));
+                    gatewayNotificationResponse.setStatusCode(Integer.valueOf(AdyenConstants.HTTP_SERVER_ERROR_CODE));
                     String msg = '[accepted] ';
                     if (notificationSaveResult != null && notificationSaveResult.getErrorMessage() != null) {
                         msg += notificationSaveResult.getErrorMessage();
@@ -84,7 +84,7 @@ public with sharing class AdyenPaymentHelper {
     /**
     * Take the http request from the async notification callback and deserializes it into AdyenNotificationResponse.
     *
-    * @param adyenNotificationRequestPayload   The body of the Adyen notification request.
+    * @param notificationRequest   The body of the Adyen notification request.
     * @return AdyenNotificationRequest         The deserialized version of the Adyen nodification request.
     *
     * @see https://docs.adyen.com/development-resources/webhooks/understand-notifications
@@ -107,9 +107,10 @@ public with sharing class AdyenPaymentHelper {
     /**
     * Creates and records (ie saves) the notificationsaveresult.
     *
-    * @param adyenNotificationResponse
+    * @param notificationRequestItem
     * @return CommercePayments.NotificationSaveResult.
     */
+    @TestVisible
     private static CommercePayments.NotificationSaveResult createNotificationSaveResult( NotificationRequestItem notificationRequestItem ) {
         Boolean unsupportedNotificationType = false;
         CommercePayments.BaseNotification notification = null;
