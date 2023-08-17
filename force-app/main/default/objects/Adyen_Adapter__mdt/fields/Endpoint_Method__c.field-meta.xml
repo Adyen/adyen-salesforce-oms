@@ -5,7 +5,7 @@
     <deprecated>false</deprecated>
     <description>The HTTP Method for the endpoint. ie. POST</description>
     <externalId>false</externalId>
-    <fieldManageability>DeveloperControlled</fieldManageability>
+    <fieldManageability>SubscriberControlled</fieldManageability>
     <inlineHelpText>The HTTP Method for the endpoint. ie. POST</inlineHelpText>
     <label>Endpoint Method</label>
     <length>16</length>

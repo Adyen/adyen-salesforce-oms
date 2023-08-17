@@ -4,7 +4,7 @@
     <defaultValue>&quot;/capture&quot;</defaultValue>
     <deprecated>false</deprecated>
     <externalId>false</externalId>
-    <fieldManageability>DeveloperControlled</fieldManageability>
+    <fieldManageability>SubscriberControlled</fieldManageability>
     <label>Capture Endpoint</label>
     <length>64</length>
     <required>false</required>
