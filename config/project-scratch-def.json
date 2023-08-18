@@ -13,8 +13,7 @@
             "enableOrders": true,
             "enableNegativeQuantity": true,
             "enableZeroQuantity": true,
-            "enableEnhancedCommerceOrders": true,
-            "enableOptionalPricebook": true
+            "enableEnhancedCommerceOrders": true
         },
         "OrderManagementSettings": {
             "enableOrderManagement": true
