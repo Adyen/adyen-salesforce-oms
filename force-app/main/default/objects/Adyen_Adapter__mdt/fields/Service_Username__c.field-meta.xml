@@ -3,7 +3,7 @@
     <fullName>Service_Username__c</fullName>
     <deprecated>false</deprecated>
     <externalId>false</externalId>
-    <fieldManageability>DeveloperControlled</fieldManageability>
+    <fieldManageability>SubscriberControlled</fieldManageability>
     <label>Service Username</label>
     <length>255</length>
     <required>false</required>
