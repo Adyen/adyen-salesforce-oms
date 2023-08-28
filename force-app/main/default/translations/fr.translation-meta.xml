@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Translations xmlns="http://soap.sforce.com/2006/04/metadata">
+    <flowDefinitions>
+        <flows/>
+        <fullName>Create_Order_Summary_Flow_Cloned</fullName>
+    </flowDefinitions>
+    <flowDefinitions>
+        <flows>
+            <screens>
+                <fields>
+                    <inputParameters>
+                        <name>isSubmitStep</name>
+                        <value/>
+                    </inputParameters>
+                    <name>FlowFooter7</name>
+                </fields>
+                <fields>
+                    <name>Header_Confirmation</name>
+                </fields>
+                <fields>
+                    <name>Image_Confirmation</name>
+                </fields>
+                <fields>
+                    <name>OrderSummaryInfo</name>
+                </fields>
+                <name>Confirmation_Screen</name>
+            </screens>
+            <screens>
+                <fields>
+                    <name>Header_enter_shipping_address</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>cartId</name>
+                        <value/>
+                    </inputParameters>
+                    <inputParameters>
+                        <name>isSubmitStep</name>
+                        <value/>
+                    </inputParameters>
+                    <name>ShippingWrapper</name>
+                </fields>
+                <name>Enter_Shipping_Address_Screen</name>
+            </screens>
+            <screens>
+                <fields>
+                    <name>Error_Output_Message</name>
+                </fields>
+                <fields>
+                    <name>Error_Output_Message_Image</name>
+                </fields>
+                <name>Error_Message</name>
+            </screens>
+            <screens>
+                <fields>
+                    <name>Billing_Address</name>
+                </fields>
+                <fields>
+                    <name>Billing_Informat_Title</name>
+                </fields>
+                <fields>
+                    <name>CVV</name>
+                </fields>
+                <fields>
+                    <name>Card_Holder_Name</name>
+                </fields>
+                <fields>
+                    <name>Card_Number</name>
+                </fields>
+                <fields>
+                    <name>Expiry_Month_1</name>
+                </fields>
+                <fields>
+                    <name>Expiry_Year_1</name>
+                </fields>
+                <fields>
+                    <name>Payment_Details_Section1</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>width</name>
+                        <value/>
+                    </inputParameters>
+                    <name>Payment_Details_Section1_Column1</name>
+                </fields>
+                <fields>
+                    <name>Payment_Details_Section2</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>width</name>
+                        <value/>
+                    </inputParameters>
+                    <name>Payment_Details_Section2_Column1</name>
+                </fields>
+                <fields>
+                    <name>Payment_Details_Section3</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>width</name>
+                        <value/>
+                    </inputParameters>
+                    <name>Payment_Details_Section3_Column1</name>
+                </fields>
+                <fields>
+                    <name>Payment_Details_Section4</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>width</name>
+                        <value/>
+                    </inputParameters>
+                    <name>Payment_Details_Section4_Column1</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>width</name>
+                        <value/>
+                    </inputParameters>
+                    <name>Payment_Details_Section4_Column2</name>
+                </fields>
+                <fields>
+                    <name>Payment_Details_footer</name>
+                </fields>
+                <name>Payment_Details</name>
+            </screens>
+            <screens>
+                <fields>
+                    <name>Header_enter_billing_information</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>cartId</name>
+                        <value/>
+                    </inputParameters>
+                    <inputParameters>
+                        <name>isSubmitStep</name>
+                        <value/>
+                    </inputParameters>
+                    <name>paymentWrapper</name>
+                </fields>
+                <fields>
+                    <name>submitOrderHeader</name>
+                </fields>
+                <name>Payment_Screen</name>
+            </screens>
+            <screens>
+                <fields>
+                    <name>FlowFooter5</name>
+                </fields>
+                <fields>
+                    <name>Header_order_preview</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>cartId</name>
+                        <value/>
+                    </inputParameters>
+                    <name>Preview_Wrapper</name>
+                </fields>
+                <name>Preview_Screen</name>
+            </screens>
+            <screens>
+                <fields>
+                    <name>Header_select_delivery_option</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>isSubmitStep</name>
+                        <value/>
+                    </inputParameters>
+                    <name>selectShippingMethod</name>
+                </fields>
+                <name>Select_Delivery_Group</name>
+            </screens>
+            <screens>
+                <fields>
+                    <name>FlowFooter1</name>
+                </fields>
+                <fields>
+                    <name>Header_Both_Webstore_and_Location_Group_Selection</name>
+                </fields>
+                <fields>
+                    <name>Header_Location_Group_Webstore_and_Location_Group_Selection</name>
+                </fields>
+                <fields>
+                    <name>Header_Store_Webstore_and_Location_Group_Selection</name>
+                </fields>
+                <fields>
+                    <name>Select_Location_Group</name>
+                </fields>
+                <fields>
+                    <name>Select_Webstore</name>
+                </fields>
+                <fields>
+                    <name>Select_Webstore_and_Location_Group_Section1</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>width</name>
+                        <value/>
+                    </inputParameters>
+                    <name>Select_Webstore_and_Location_Group_Section1_Column1</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>width</name>
+                        <value/>
+                    </inputParameters>
+                    <name>Select_Webstore_and_Location_Group_Section1_Column2</name>
+                </fields>
+                <fields>
+                    <inputParameters>
+                        <name>width</name>
+                        <value/>
+                    </inputParameters>
+                    <name>Select_Webstore_and_Location_Group_Section1_Column3</name>
+                </fields>
+                <name>Select_Webstore_and_Location_Group</name>
+            </screens>
+            <screens>
+                <fields>
+                    <name>FlowFooter2</name>
+                </fields>
+                <fields>
+                    <name>Header_select_product_and_quantity</name>
+                </fields>
+                <fields>
+                    <name>productSelectWrapper</name>
+                </fields>
+                <name>productSelectionScreen</name>
+            </screens>
+            <stages>
+                <name>Confirmation_Stage</name>
+            </stages>
+            <stages>
+                <name>Enter_Billing_Information_Stage</name>
+            </stages>
+            <stages>
+                <name>Enter_Shipping_Address_Stage</name>
+            </stages>
+            <stages>
+                <name>Order_Preview_Stage</name>
+            </stages>
+            <stages>
+                <name>Payment_Details_Stage</name>
+            </stages>
+            <stages>
+                <name>Select_Delivery_Option_Stage</name>
+            </stages>
+            <stages>
+                <name>Select_Location_Group_Stage</name>
+            </stages>
+            <stages>
+                <name>Select_Product_and_Quantity_Stage</name>
+            </stages>
+            <stages>
+                <name>Select_Webstore_And_Location_Group_Stage</name>
+            </stages>
+            <stages>
+                <name>Select_Webstore_Stage</name>
+            </stages>
+            <stages>
+                <name>Submit_Order_Stage</name>
+            </stages>
+            <textTemplates>
+                <name>Error_Output_Invocable_Action_Message</name>
+            </textTemplates>
+            <textTemplates>
+                <name>Error_Output_No_Account_Found</name>
+            </textTemplates>
+            <textTemplates>
+                <name>Error_Output_No_Account_Found_Fault</name>
+            </textTemplates>
+            <textTemplates>
+                <name>Error_Output_No_Location_Group</name>
+            </textTemplates>
+            <textTemplates>
+                <name>Error_Output_No_Webstore_Fault</name>
+            </textTemplates>
+            <textTemplates>
+                <name>Error_Output_Title_No_Location_Group</name>
+            </textTemplates>
+            <textTemplates>
+                <name>Error_Output_Title_No_Webstore_Fault</name>
+            </textTemplates>
+            <textTemplates>
+                <name>Error_Output_Title_Wrong_Entity</name>
+            </textTemplates>
+            <textTemplates>
+                <name>Error_Output_Wrong_Entity</name>
+            </textTemplates>
+        </flows>
+        <fullName>Order_On_Behalf_Of_External_Payment_242_W_0_SIS</fullName>
+    </flowDefinitions>
+    <prompts>
+        <name>IAGFeatureAdoption</name>
+        <promptVersions>
+            <name>IAG Feature Adoption Step 1</name>
+            <stepNumber>1</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>IAG Feature Adoption Step 2</name>
+            <stepNumber>2</stepNumber>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>UnifiedAnalyticsHomeDashboardsUser</name>
+        <promptVersions>
+            <name>Unified Analytics Home Docked Prompt - Dashboards</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>ManageUsers</name>
+        <promptVersions>
+            <name>Manage Users</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>MFAAutoEnableAwarenessforCompliantOrgs</name>
+        <promptVersions>
+            <name>MFA Auto-Enable Awareness for Compliant Orgs</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>X4StepWalkthroughonContact</name>
+        <promptVersions>
+            <name>4 Step Walkthrough on Contact Step 1</name>
+            <stepNumber>1</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>4 Step Walkthrough on Contact Step 2</name>
+            <stepNumber>2</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>4 Step Walkthrough on Contact Step 3</name>
+            <stepNumber>3</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>4 Step Walkthrough on Contact Step 4</name>
+            <stepNumber>4</stepNumber>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>EinsteinPredictionBuilderSetupPagePrompt</name>
+        <promptVersions>
+            <name>Einstein Prediction Builder Setup Page Prompt</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>EnablementExploreMeasuresEnblAdmin</name>
+        <promptVersions>
+            <name>Explore Measures</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>SalesHVSDialer</name>
+        <promptVersions>
+            <name>Sales HVS Dialer</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>CDPOnboardingInAppGuidance</name>
+        <promptVersions>
+            <name>CDP Onboarding InApp Guidance</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>EnablementSwitchToProgramsEnblAdmin</name>
+        <promptVersions>
+            <name>Switch Between Measures and Programs Easily</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>NPSPLicenseDay20</name>
+        <promptVersions>
+            <name>NPSP License Day 20</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>EnablementExploreProgramsEnblAdmin</name>
+        <promptVersions>
+            <name>Explore Programs</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>ProfilesPermSets</name>
+        <promptVersions>
+            <name>ProfilesPermSets Step 1</name>
+            <stepNumber>1</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>ProfilesPermSets Step 2</name>
+            <stepNumber>2</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>ProfilesPermSets Step 3</name>
+            <stepNumber>3</stepNumber>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>MFAAutoEnableAwarenessforNonCompliantOrgs</name>
+        <promptVersions>
+            <name>MFA Auto-Enable Awareness for Non-Compliant Orgs</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>NPSPLicenseDay25</name>
+        <promptVersions>
+            <name>NPSP License Day 25</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>MeetingDigest</name>
+        <promptVersions>
+            <name>Meeting Digest</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>APIOnly</name>
+        <promptVersions>
+            <name>APIOnly</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>EnablementExploreAnalyticsEnblAdmin</name>
+        <promptVersions>
+            <name>Explore Analytics</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>SalesCoreQuoteAdminCpq</name>
+        <promptVersions>
+            <name>Sales Core Quote Admin to CPQ</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>LEX_CDN_ADOPTION</name>
+        <promptVersions>
+            <name>LEX CDN Adoption</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>EngagementAttributeTips</name>
+        <promptVersions>
+            <name>Engagement Attribute Tips</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>UnifiedAnalyticsHomeReportsUser</name>
+        <promptVersions>
+            <name>Unified Analytics Home Docked Prompt - Reports</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>X2StepWalkthroughonReports</name>
+        <promptVersions>
+            <name>2 Step Walkthrough on Reports Step 2</name>
+            <stepNumber>2</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>2 Step Walkthrough on Reports Step 1</name>
+            <stepNumber>1</stepNumber>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>NPSPLicenseDay1</name>
+        <promptVersions>
+            <name>NPSP License Day 1</name>
+        </promptVersions>
+    </prompts>
+    <prompts>
+        <name>SalesPipelineInspectionWalkthrough</name>
+        <promptVersions>
+            <name>Pipeline Inspection: Sell Smarter Step 1</name>
+            <stepNumber>1</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>Pipeline Inspection: Sell Smarter Step 2</name>
+            <stepNumber>2</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>Pipeline Inspection: Sell Smarter Step 3</name>
+            <stepNumber>3</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>Pipeline Inspection: Sell Smarter Step 4</name>
+            <stepNumber>4</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>Pipeline Inspection: Sell Smarter Step 5</name>
+            <stepNumber>5</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>Pipeline Inspection: Sell Smarter Step 6</name>
+            <stepNumber>6</stepNumber>
+        </promptVersions>
+        <promptVersions>
+            <name>Pipeline Inspection: Sell Smarter Step 7</name>
+            <stepNumber>7</stepNumber>
+        </promptVersions>
+    </prompts>
+    <quickActions>
+        <label><!-- LogACall --></label>
+        <name>LogACall</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewAccount --></label>
+        <name>NewAccount</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewCase --></label>
+        <name>NewCase</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewContact --></label>
+        <name>NewContact</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewEvent --></label>
+        <name>NewEvent</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewGroup --></label>
+        <name>NewGroup</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewLead --></label>
+        <name>NewLead</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewNote --></label>
+        <name>NewNote</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewOpportunity --></label>
+        <name>NewOpportunity</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewTask --></label>
+        <name>NewTask</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- SendEmail --></label>
+        <name>SendEmail</name>
+    </quickActions>
+    <reportTypes>
+        <description><!-- Screen Flows --></description>
+        <label><!-- Screen Flows --></label>
+        <name>screen_flows_prebuilt_crt</name>
+        <sections>
+            <label><!-- Flow Interview Log Entries --></label>
+            <name>Flow Interview Log Entries</name>
+        </sections>
+        <sections>
+            <label><!-- Flow Interview Logs --></label>
+            <name>Flow Interview Logs</name>
+        </sections>
+    </reportTypes>
+</Translations>
