@@ -27,6 +27,14 @@
                 <field>PaymentMethodId</field>
             </layoutItems>
             <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Adyen_Payment_Method__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>adyenOverrideMerchantConfig__c</field>
+            </layoutItems>
+            <layoutItems>
                 <behavior>Required</behavior>
                 <field>ProcessingMode</field>
             </layoutItems>
@@ -41,18 +49,6 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Date</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>Adyen_Payment_Method__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>Adyen_Payment_Method_Variant__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>adyenOverrideMerchantConfig__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
@@ -75,6 +71,10 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>EffectiveDate</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Adyen_Payment_Method_Variant__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
@@ -226,27 +226,11 @@
         <layoutColumns/>
         <style>CustomLinks</style>
     </layoutSections>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>Refund</fields>
-        <fields>Amount</fields>
-        <fields>Type</fields>
-        <fields>Date</fields>
-        <relatedList>RefundLinesPayment</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>Name</fields>
-        <fields>Invoice</fields>
-        <fields>Amount</fields>
-        <fields>Type</fields>
-        <fields>Date</fields>
-        <relatedList>PaymentLinesInvoice</relatedList>
-    </relatedLists>
     <showEmailCheckbox>false</showEmailCheckbox>
     <showRunAssignmentRulesCheckbox>false</showRunAssignmentRulesCheckbox>
     <showSubmitAndAttachButton>false</showSubmitAndAttachButton>
     <summaryLayout>
-        <masterLabel>00h8c00000hPHQ1</masterLabel>
+        <masterLabel>00h04000001ygKo</masterLabel>
         <sizeX>4</sizeX>
         <sizeY>0</sizeY>
         <summaryLayoutStyle>Default</summaryLayoutStyle>
