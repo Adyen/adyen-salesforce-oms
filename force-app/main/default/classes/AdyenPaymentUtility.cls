@@ -192,9 +192,9 @@ public with sharing class AdyenPaymentUtility {
         // Fall back to a payment record for pre-captured transactions
         if (apexAdapterId==null) {
             for (Payment payment : [
-            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
-            FROM Payment
-            WHERE GatewayRefNumber = :gatewayRefNumber
+                SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+                FROM Payment
+                WHERE GatewayRefNumber = :gatewayRefNumber
             ]) {
                 if (payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null) {
                     apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;

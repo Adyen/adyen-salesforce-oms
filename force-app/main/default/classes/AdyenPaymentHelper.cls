@@ -32,18 +32,27 @@ public with sharing class AdyenPaymentHelper {
         CommercePayments.NotificationSaveResult notificationSaveResult;
         NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
         String adapterIdFromNotificationData;
-        if (notificationRequestItem.originalReference != null) {
+        if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_RECURRING_CONTRACT.equalsIgnoreCase(notificationRequestItem.eventCode)) {
+            if (!notificationRequestItem.additionalData.containsKey('recurring_recurringDetailReference')) {
+                throw new AdyenAsyncAdapter.GatewayException('Missing recurringDetailReference attribute');
+            }
+            String token = notificationRequestItem.additionalData.get('recurring_recurringDetailReference');
+            //setTokenAndCreateResponse(notificationRequestItem.pspReference, token);
+            String msg = '[accepted] processed additional data for recurring contract';
+            gatewayNotificationResponse.setResponseBody(Blob.valueOf( msg ));
+            gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
+            return gatewayNotificationResponse;
+        } else if (notificationRequestItem.originalReference != null) {
             adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
         }
         
         Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1].Id;
         
-        if(adapterIdFromNotificationData == adyenAdapterId) {
-            
+        if (adapterIdFromNotificationData == adyenAdapterId) {
             notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
-            
+
             if (notificationSaveResult != null) {
-                if(notificationSaveResult.isSuccess()){ // Notification is accepted by the platform
+                if (notificationSaveResult.isSuccess()) { // Notification is accepted by the platform
                     gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
                     gatewayNotificationResponse.setResponseBody(Blob.valueOf(AdyenConstants.NOTIFICATION_ACCEPTED_RESPONSE ));
                     System.debug('----> Exiting AdyenPaymentHelper.handleAsyncNotificationCallback after the notification is accepted: ' + gatewayNotificationResponse);
@@ -63,7 +72,7 @@ public with sharing class AdyenPaymentHelper {
                 gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
                 return gatewayNotificationResponse;
             }
-            
+
         } else {
             String msg = '[accepted] ';
             if (notificationRequestItem.originalReference == null) {
@@ -80,7 +89,37 @@ public with sharing class AdyenPaymentHelper {
             return gatewayNotificationResponse;
         }
     }
-    
+
+    @future
+    private static void setTokenAndCreateResponse(String pspReference, String token) {
+        Id paymentMethodId;
+        List<PaymentAuthorization> payAuths = [SELECT PaymentMethodId FROM PaymentAuthorization WHERE GatewayRefNumber = :pspReference];
+        if (payAuths.isEmpty()) {
+            paymentMethodId = [SELECT PaymentMethodId FROM Payment WHERE GatewayRefNumber = :pspReference].PaymentMethodId;
+        } else {
+            paymentMethodId = payAuths[0].PaymentMethodId;
+        }
+        if (paymentMethodId.getSobjectType() === CardPaymentMethod.getSObjectType()) {
+            CardPaymentMethod cardPayMeth = [SELECT Status FROM CardPaymentMethod WHERE Id = :paymentMethodId];
+            if (cardPayMeth.Status.equals('Active')) {
+                cardPayMeth.Status = 'InActive';
+                update cardPayMeth;
+                cardPayMeth.Status = 'Active';
+            }
+            cardPayMeth.GatewayTokenEncrypted = token;
+            update cardPayMeth;
+        } else {
+            AlternativePaymentMethod alterPayMeth = [SELECT Status FROM AlternativePaymentMethod WHERE Id = :paymentMethodId];
+            if (alterPayMeth.Status.equals('Active')) {
+                alterPayMeth.Status = 'InActive';
+                update alterPayMeth;
+                alterPayMeth.Status = 'Active';
+            }
+            alterPayMeth.GatewayToken = token;
+            update alterPayMeth;
+        }
+    }
+
     /**
     * Take the http request from the async notification callback and deserializes it into AdyenNotificationResponse.
     *
@@ -102,8 +141,8 @@ public with sharing class AdyenPaymentHelper {
         }
         return notificationRequestItem;
     }
-    
-    
+
+
     /**
     * Creates and records (ie saves) the notificationsaveresult.
     *
@@ -116,7 +155,7 @@ public with sharing class AdyenPaymentHelper {
         CommercePayments.BaseNotification notification = null;
         CommercePayments.NotificationStatus notificationStatus = null;
         CommercePayments.SalesforceResultCode notificationStatusSF = null;
-        
+
         if (!Boolean.valueOf(notificationRequestItem.success)){
             notificationStatus = CommercePayments.NotificationStatus.Failed;
             notificationStatusSF = CommercePayments.SalesforceResultCode.Decline;
@@ -124,47 +163,43 @@ public with sharing class AdyenPaymentHelper {
             notificationStatus = CommercePayments.NotificationStatus.Success;
             notificationStatusSF = CommercePayments.SalesforceResultCode.Success;
         }
-        
+
+        CommercePayments.NotificationSaveResult notificationSaveResult;
+
         if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE.equalsIgnoreCase(notificationRequestItem.eventCode)) {
             notification = new CommercePayments.CaptureNotification();
         } else if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND.equalsIgnoreCase(notificationRequestItem.eventCode)) {
             notification = new CommercePayments.ReferencedRefundNotification();
         } else {
-            unsupportedNotificationType = true;
-        }
-        
-        CommercePayments.NotificationSaveResult notificationSaveResult;
-        if(!unsupportedNotificationType) {
-            notification.setStatus(notificationStatus);
-            notification.setSalesforceResultCodeInfo(new CommercePayments.SalesforceResultCodeInfo(notificationStatusSF));
-            notification.setGatewayReferenceNumber(notificationRequestItem.pspReference);
-            notification.setGatewayResultCode(notificationRequestItem.eventCode);
-            notification.setGatewayResultCodeDescription(notificationRequestItem.reason);
-            if(String.isBlank(notificationRequestItem.reason) && notificationStatus == CommercePayments.NotificationStatus.Success) {
-                if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE.equalsIgnoreCase(notificationRequestItem.eventCode)) {
-                    notification.setGatewayMessage('[capture-complete]');
-                } else if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND.equalsIgnoreCase(notificationRequestItem.eventCode)) {
-                    notification.setGatewayMessage('[refund-complete]');
-                }
-            } else{
-                notification.setGatewayMessage(notificationRequestItem.reason);
-            }
-            
-            Decimal value;
-            if(notificationRequestItem.amount != null) {
-                value = notificationRequestItem.amount.value;
-            }
-            value = value / AdyenPaymentUtility.getAmountMultiplier(notificationRequestItem.amount.currency_x);
-            
-            Double dValue = value;
-            notification.setAmount(dValue);
-            notificationSaveResult = CommercePayments.NotificationClient.record(notification);
-            System.debug(JSON.serialize(notificationSaveResult));
-            return notificationSaveResult;
-        } else {
-            notificationSaveResult = null;
             System.debug('---> Exiting AdyenPaymentHelper.createNotificationSaveResult after ignoring unsupported notification= ' + notificationRequestItem.eventCode);
             return notificationSaveResult;
         }
+
+        notification.setStatus(notificationStatus);
+        notification.setSalesforceResultCodeInfo(new CommercePayments.SalesforceResultCodeInfo(notificationStatusSF));
+        notification.setGatewayReferenceNumber(notificationRequestItem.pspReference);
+        notification.setGatewayResultCode(notificationRequestItem.eventCode);
+        notification.setGatewayResultCodeDescription(notificationRequestItem.reason);
+        if(String.isBlank(notificationRequestItem.reason) && notificationStatus == CommercePayments.NotificationStatus.Success) {
+            if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE.equalsIgnoreCase(notificationRequestItem.eventCode)) {
+                notification.setGatewayMessage('[capture-complete]');
+            } else if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND.equalsIgnoreCase(notificationRequestItem.eventCode)) {
+                notification.setGatewayMessage('[refund-complete]');
+            }
+        } else {
+            notification.setGatewayMessage(notificationRequestItem.reason);
+        }
+
+        Decimal value;
+        if(notificationRequestItem.amount != null) {
+            value = notificationRequestItem.amount.value;
+        }
+        value = value / AdyenPaymentUtility.getAmountMultiplier(notificationRequestItem.amount.currency_x);
+
+        Double dValue = value;
+        notification.setAmount(dValue);
+        notificationSaveResult = CommercePayments.NotificationClient.record(notification);
+        System.debug(JSON.serialize(notificationSaveResult));
+        return notificationSaveResult;
     }
 }
