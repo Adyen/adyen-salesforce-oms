@@ -31,14 +31,6 @@
         <value xsi:type="xsd:string">/payments/{paymentPspReference}/refunds</value>
     </values>
     <values>
-        <field>Service_Password__c</field>
-        <value xsi:nil="true"/>
-    </values>
-    <values>
-        <field>Service_Username__c</field>
-        <value xsi:nil="true"/>
-    </values>
-    <values>
         <field>Single_Currency_Code__c</field>
         <value xsi:nil="true"/>
     </values>
