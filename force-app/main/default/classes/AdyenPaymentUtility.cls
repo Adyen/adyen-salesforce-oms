@@ -89,14 +89,13 @@ public with sharing class AdyenPaymentUtility {
                 Schema.SObjectType.Adyen_Adapter__mdt.fields.Endpoint_Api_Version__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Endpoint_Method__c.isAccessible() &&
                 Schema.SObjectType.Adyen_Adapter__mdt.fields.Endpoint_Path__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Merchant_Account__c.isAccessible() &&
                 Schema.SObjectType.Adyen_Adapter__mdt.fields.System_Integrator_Name__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Refund_Endpoint__c.isAccessible() &&
-                Schema.SObjectType.Adyen_Adapter__mdt.fields.Single_Currency_Code__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Service_Username__c.isAccessible() &&
-                Schema.SObjectType.Adyen_Adapter__mdt.fields.Service_Password__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Authorize_Endpoint__c.isAccessible()
+                Schema.SObjectType.Adyen_Adapter__mdt.fields.Single_Currency_Code__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Authorize_Endpoint__c.isAccessible()
             ) {
                 adyenAdapterMdt = [
                     SELECT
                         DeveloperName, NamespacePrefix, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
                         System_Integrator_Name__c, Endpoint_Method__c, Endpoint_Path__c, Merchant_Account__c,
-                        Refund_Endpoint__c, Single_Currency_Code__c, Service_Username__c, Service_Password__c, Authorize_Endpoint__c
+                        Refund_Endpoint__c, Single_Currency_Code__c, Authorize_Endpoint__c
                     FROM
                         Adyen_Adapter__mdt
                     WHERE
@@ -192,9 +191,9 @@ public with sharing class AdyenPaymentUtility {
         // Fall back to a payment record for pre-captured transactions
         if (apexAdapterId==null) {
             for (Payment payment : [
-            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
-            FROM Payment
-            WHERE GatewayRefNumber = :gatewayRefNumber
+                SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+                FROM Payment
+                WHERE GatewayRefNumber = :gatewayRefNumber
             ]) {
                 if (payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null) {
                     apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
