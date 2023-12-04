@@ -383,7 +383,7 @@ public with sharing class AdyenPaymentUtility {
         
         ExternalPlatform exPlatform = new ExternalPlatform();
         exPlatform.name = AdyenOMSConstants.EXTERNAL_PLATFORM_NAME_FOR_APPINFO;
-        exPlatform.integrator = String.valueOf(integratorName);
+        exPlatform.integrator = integratorName;
         info.externalPlatform = exPlatform;
         
         CommonField merchantApplication = new CommonField();
