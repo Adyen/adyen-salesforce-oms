@@ -42,7 +42,8 @@ public with sharing class AdyenCaptureHelper {
             currencyCode,
             captureRequest.amount,
             adyenAdapterMdt.Merchant_Account__c,
-            AdyenPaymentUtility.getReference(pa, captureRequest.amount)
+            AdyenPaymentUtility.getReference(pa, captureRequest.amount),
+            adyenAdapterMdt.System_Integrator_Name__c
         );
 
         // Line items required for partial captures for Open Invoice methods
