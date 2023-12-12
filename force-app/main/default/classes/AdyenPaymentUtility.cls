@@ -404,7 +404,7 @@ public with sharing class AdyenPaymentUtility {
     *
     * @return CheckoutModificationRequest to send to Adyen.
     */
-    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Double amount, String merchantAccount, String reference) {
+    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Double amount, String merchantAccount, String reference, String systemIntegratorName) {
         CheckoutModificationRequest modRequest;
         if (paymentType == CommercePayments.RequestType.Capture) {
             modRequest = new CheckoutCaptureRequest();
@@ -417,6 +417,7 @@ public with sharing class AdyenPaymentUtility {
         requestAmount.value = (amount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
         requestAmount.currency_x = currencyCode;
         modRequest.setAmount(requestAmount);
+        modRequest.setApplicationInfo(AdyenPaymentUtility.getApplicationInfo(systemIntegratorName));
         return modRequest;
     }
     
