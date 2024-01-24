@@ -323,7 +323,7 @@ public with sharing class AdyenPaymentUtility {
         return String.valueOf(Math.round(Math.random() * MAX)).leftPad(stringLength, '0');
     }
 
-    public static FulfillmentOrder getFulfillmentOrder(Id orderSummaryId, Double amount) {
+    public static FulfillmentOrder getFulfillmentOrder(Id orderSummaryId, Decimal amount) {
         try {
             List<FulfillmentOrder> fulfillmentOrders = [
                 SELECT FulfillmentOrderNumber, Status, StatusCategory, Type, TypeCategory, GrandTotalAmount
@@ -345,7 +345,7 @@ public with sharing class AdyenPaymentUtility {
         return null;
     }
 
-    public static String getReference(SObject anyPaymentTypeRecord, Double amount) {
+    public static String getReference(SObject anyPaymentTypeRecord, Decimal amount) {
         String randomNumber = getRandomNumber(16);
         OrderPaymentSummary orderPaymentSummary = (OrderPaymentSummary)anyPaymentTypeRecord.getSObject('OrderPaymentSummary');
         if (orderPaymentSummary?.OrderSummaryId == null) {
@@ -368,8 +368,8 @@ public with sharing class AdyenPaymentUtility {
     * @param amount the decimal amount type to be normalized
     * @return the same amount with 2 decimal points using half even rounding mode
     */
-    public static Double normalizeAmount(Double amount) {
-        return Double.valueOf(Decimal.valueOf(amount).setScale(2, System.RoundingMode.HALF_EVEN));
+    public static Decimal normalizeAmount(Decimal amount) {
+        return amount.setScale(2, System.RoundingMode.HALF_EVEN);
     }
     
     /**
@@ -404,7 +404,7 @@ public with sharing class AdyenPaymentUtility {
     *
     * @return CheckoutModificationRequest to send to Adyen.
     */
-    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Double amount, String merchantAccount, String reference, String systemIntegratorName) {
+    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Decimal amount, String merchantAccount, String reference, String systemIntegratorName) {
         CheckoutModificationRequest modRequest;
         if (paymentType == CommercePayments.RequestType.Capture) {
             modRequest = new CheckoutCaptureRequest();
@@ -447,7 +447,7 @@ public with sharing class AdyenPaymentUtility {
             CommercePayments.AuthApiPaymentMethodRequest paymentMethod = authRequest.paymentMethod;
             String currencyCode = authRequest.currencyIsoCode.toUpperCase();
             
-            Double authAmount = AdyenPaymentUtility.normalizeAmount(authRequest.amount);
+            Decimal authAmount = AdyenPaymentUtility.normalizeAmount(authRequest.amount);
             adyenAuthorisationRequest.amount = new Amount();
             adyenAuthorisationRequest.amount.currency_x = currencyCode;
             adyenAuthorisationRequest.amount.value = (authAmount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();

@@ -70,11 +70,11 @@ public with sharing class AdyenRefundHelper {
      * @param amount to be refunded
      * @return CommercePayments.GatewayResponse with populated properties.
     */
-    public static CommercePayments.GatewayResponse processRefundResponse(HttpResponse adyenHttpResponse, Double amount) {
+    public static CommercePayments.GatewayResponse processRefundResponse(HttpResponse adyenHttpResponse, Decimal amount) {
         CommercePayments.ReferencedRefundResponse salesforceResponse = new CommercePayments.ReferencedRefundResponse();
         CheckoutRefundResponse adyenResponse = (CheckoutRefundResponse)JSON.deserialize(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutRefundResponse.class);
         salesforceResponse.setAsync(true);
-        salesforceResponse.setAmount(amount);
+        salesforceResponse.setAmount(Double.valueOf(amount));
         salesforceResponse.setGatewayDate(System.now());
         salesforceResponse.setGatewayReferenceDetails(adyenResponse.getReference());
         salesforceResponse.setGatewayResultCode(adyenResponse.getStatus());

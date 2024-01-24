@@ -15,7 +15,7 @@ public with sharing class AdyenAuthorisationHelper {
         return processAuthResponse(adyenHttpResponse, AdyenPaymentUtility.normalizeAmount(authRequest.amount), adyenAdapterMdt.Merchant_Account__c);
     }
 
-    private static CommercePayments.GatewayResponse processAuthResponse(HttpResponse response, Double amount, String merchantAccountName) {
+    private static CommercePayments.GatewayResponse processAuthResponse(HttpResponse response, Decimal amount, String merchantAccountName) {
         Map<String,Object> body = (Map<String,Object>)JSON.deserializeUntyped(response.getBody());
         String resultCode = (String)body.get('resultCode');
         if(resultCode != null) {
@@ -30,7 +30,7 @@ public with sharing class AdyenAuthorisationHelper {
                 salesforceAuthResponse.setSalesforceResultCodeInfo(AdyenConstants.DECLINE_SALESFORCE_RESULT_CODE_INFO);
             }
             salesforceAuthResponse.setGatewayReferenceNumber((String)body.get('pspReference'));
-            salesforceAuthResponse.setAmount(amount);
+            salesforceAuthResponse.setAmount(Double.valueOf(amount));
             salesforceAuthResponse.setGatewayDate(System.now());
             salesforceAuthResponse.setGatewayReferenceDetails(merchantAccountName);
             return salesforceAuthResponse;
