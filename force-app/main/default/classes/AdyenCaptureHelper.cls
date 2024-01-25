@@ -68,11 +68,11 @@ public with sharing class AdyenCaptureHelper {
      * @param amount capture amount
      * @return CommercePayments.GatewayResponse with populated properties.
      */
-    public static CommercePayments.GatewayResponse processCaptureResponse(HttpResponse adyenHttpResponse, Double amount) {
+    public static CommercePayments.GatewayResponse processCaptureResponse(HttpResponse adyenHttpResponse, Decimal amount) {
         CheckoutCaptureResponse adyenResponse = (CheckoutCaptureResponse)JSON.deserialize(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutCaptureResponse.class);
         CommercePayments.CaptureResponse salesforceResponse = new CommercePayments.CaptureResponse();
         salesforceResponse.setAsync(true);
-        salesforceResponse.setAmount(amount);
+        salesforceResponse.setAmount(Double.valueOf(amount));
         salesforceResponse.setGatewayDate(System.now());
         salesforceResponse.setGatewayReferenceDetails(adyenResponse.getReference());
         salesforceResponse.setGatewayResultCode(adyenResponse.getStatus());
