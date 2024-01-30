@@ -1,52 +1,108 @@
 @IsTest
 private class AdyenPaymentUtilityTest {
+    private static String ASSERT_PRICE_MESSAGE = 'For input price of ';
+    @IsTest
+    static void createAuthorisationRequestTest() {
+        // given
+        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(AdyenConstants.DEFAULT_ADAPTER_NAME);
+        AuthorisationRequest adyenAuthRequest;
+        Double price;
+        CommercePayments.AuthorizationRequest authRequest;
+        Long expectedValue;
+        for (Integer i = 0; i < 10; i++) {
+            price = 1008.90 + (0.01 * i);
+            authRequest = new CommercePayments.AuthorizationRequest(price);
+            authRequest.currencyIsoCode = 'USD';
+            // when
+            adyenAuthRequest = AdyenPaymentUtility.createAuthorisationRequest(authRequest, adyenAdapterMdt);
+            // then
+            expectedValue = (Decimal.valueOf(price) * 100).longValue();
+            Assert.areEqual(expectedValue, adyenAuthRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
+        }
+        // given a higher amount of decimals
+        for (Integer i = 0; i < 10; i++) {
+            price = 1008.900 + (i * 0.001);
+            authRequest = new CommercePayments.AuthorizationRequest(price);
+            authRequest.currencyIsoCode = 'USD';
+            // when
+            adyenAuthRequest = AdyenPaymentUtility.createAuthorisationRequest(authRequest, adyenAdapterMdt);
+            // then
+            expectedValue = (Decimal.valueOf(price) * 100).round(RoundingMode.HALF_UP);
+            Assert.areEqual(expectedValue, adyenAuthRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
+        }
+        // given 0 decimals currency
+        for (Integer i = 0; i < 10; i++) {
+            price = 100890 + i;
+            authRequest = new CommercePayments.AuthorizationRequest(price);
+            authRequest.currencyIsoCode = 'JPY';
+            // when
+            adyenAuthRequest = AdyenPaymentUtility.createAuthorisationRequest(authRequest, adyenAdapterMdt);
+            // then
+            expectedValue = Decimal.valueOf(price).longValue();
+            Assert.areEqual(expectedValue, adyenAuthRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
+        }
+        // given 3 decimals currency
+        for (Integer i = 0; i < 10; i++) {
+            price = 100.890 + (i * 0.001);
+            authRequest = new CommercePayments.AuthorizationRequest(price);
+            authRequest.currencyIsoCode = 'JOD';
+            // when
+            adyenAuthRequest = AdyenPaymentUtility.createAuthorisationRequest(authRequest, adyenAdapterMdt);
+            // then
+            expectedValue = (Decimal.valueOf(price) * 1000).longValue();
+            Assert.areEqual(expectedValue, adyenAuthRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
+        }
+    }
+
     @IsTest
     private static void createModificationRequestTest() {
         //given
         CommercePayments.RequestType paymentType = CommercePayments.RequestType.Capture;
         String currencyCode = 'USD';
-        Double amount = 10.00; // request comes as Double value
+        Double price; // request comes as Double value
         String merchantAccount = 'test_merchant';
         String reference = 'test_reference';
         String systemIntegratorName = 'test_integrator';
-
+        Decimal expectedPrice;
         CheckoutCaptureRequest modificationRequest;
         for (Integer i = 0; i < 10; i++) {
+            price = 100.90 + (0.01 * i);
             // when
-            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, amount + (0.01 * i), merchantAccount, reference, systemIntegratorName);
+            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, price, merchantAccount, reference, systemIntegratorName);
             // then
-            Decimal expectedPrice = (100 * Decimal.valueOf(amount)) + i;
-            Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value);
+            expectedPrice = 100 * Decimal.valueOf(price);
+            Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
         }
-
         // given 3 decimals currency
         currencyCode = 'JOD';
         for (Integer i = 0; i < 10; i++) {
+            price = 100.990 + (0.001 * i);
             // when
-            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, amount + (0.001 * i), merchantAccount, reference, systemIntegratorName);
+            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, price, merchantAccount, reference, systemIntegratorName);
             // then
-            Decimal expectedPrice = (1000 * Decimal.valueOf(amount)) + i;
-            Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value);
+            expectedPrice = 1000 * Decimal.valueOf(price);
+            Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
         }
-
         // given no decimals currency
         currencyCode = 'JPY';
         for (Integer i = 0; i < 10; i++) {
+            price = 100990 + i;
             // when
-            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, amount + i, merchantAccount, reference, systemIntegratorName);
+            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, price, merchantAccount, reference, systemIntegratorName);
             // then
-            Decimal expectedPrice = Decimal.valueOf(amount) + i;
-            Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value);
+            expectedPrice = Decimal.valueOf(price);
+            Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
         }
-
         // given more decimals than necessary
         currencyCode = 'EUR';
-        Double price = 10.9999;
-        // when
-        modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, price, merchantAccount, reference, systemIntegratorName);
-        // then
-        Assert.areEqual(1099, modificationRequest.amount.value);
-
+        for (Integer i = 0; i < 10; i++) {
+            price = 10.990 + (0.001 * i);
+            // when
+            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, price, merchantAccount, reference, systemIntegratorName);
+            // then
+            expectedPrice = 100 * Decimal.valueOf(price);
+            Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
+        }
         // checking other properties
         Assert.areEqual(currencyCode, modificationRequest.amount.currency_x);
         Assert.areEqual(reference, modificationRequest.getReference());
@@ -58,7 +114,7 @@ private class AdyenPaymentUtilityTest {
     static void addInvoiceData() {
         Integer productPrice = 100;
         Integer taxValue = 5;
-        Decimal percentage = Decimal.valueOf(taxValue)/Decimal.valueOf(productPrice).setScale(4, RoundingMode.HALF_EVEN);
+        Decimal percentage = Decimal.valueOf(taxValue)/Decimal.valueOf(productPrice).setScale(4, RoundingMode.HALF_UP);
         OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(productPrice, taxValue);
         Id invoiceId = [SELECT Id FROM Invoice WHERE ReferenceEntityId = :orderPaySum.OrderSummaryId].Id;
 
@@ -76,7 +132,7 @@ private class AdyenPaymentUtilityTest {
     static void addCreditMemoDataTest() {
         Integer productPrice = 100;
         Integer taxValue = 5;
-        Decimal percentage = Decimal.valueOf(taxValue)/Decimal.valueOf(productPrice).setScale(4, RoundingMode.HALF_EVEN);
+        Decimal percentage = Decimal.valueOf(taxValue)/Decimal.valueOf(productPrice).setScale(4, RoundingMode.HALF_UP);
         OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(productPrice, taxValue);
         createCreditMemoAndRelatedRecords(orderPaySum.OrderSummaryId);
 
@@ -165,7 +221,7 @@ private class AdyenPaymentUtilityTest {
         Assert.areEqual(16, reference.length());
         Assert.areEqual(16, referenceNullOrderPaySum.length());
     }
-    
+
     private static OrderPaymentSummary createInvoiceAndRelatedRecords(Decimal price, Decimal taxValue) {
         Account acct = TestDataFactory.createAccount();
         insert acct;

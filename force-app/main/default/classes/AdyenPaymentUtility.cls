@@ -260,7 +260,7 @@ public with sharing class AdyenPaymentUtility {
             lineItem.amountIncludingTax = Integer.valueOf(amountIncludingTax * getAmountMultiplier(currencyIsoCode));
             lineItem.taxAmount = Integer.valueOf(taxAmount * getAmountMultiplier(currencyIsoCode));
             lineItem.taxPercentage = amountExcludingTax != 0 ?
-                Integer.valueOf((taxAmount/amountExcludingTax).setScale(4, RoundingMode.HALF_EVEN) * 10000) :
+                Integer.valueOf((taxAmount/amountExcludingTax).setScale(4, RoundingMode.HALF_UP) * 10000) :
                 0;
             lineItem.description = ((Product2)lineItemRecord.getSObject('Product2')).Name;
             if (lineItemRecord.getSObjectType() == Schema.InvoiceLine.getSObjectType()) { // credit memo line does not have quantity
@@ -369,7 +369,7 @@ public with sharing class AdyenPaymentUtility {
     * @return the same amount with 2 decimal points using half even rounding mode
     */
     public static Decimal normalizeAmount(Decimal amount) {
-        return amount.setScale(2, System.RoundingMode.HALF_EVEN);
+        return amount.setScale(2, System.RoundingMode.HALF_UP);
     }
     
     /**
@@ -447,11 +447,11 @@ public with sharing class AdyenPaymentUtility {
             CommercePayments.AuthApiPaymentMethodRequest paymentMethod = authRequest.paymentMethod;
             String currencyCode = authRequest.currencyIsoCode.toUpperCase();
             
-            Decimal authAmount = AdyenPaymentUtility.normalizeAmount(authRequest.amount);
+            Decimal authAmount = authRequest.amount;
             adyenAuthorisationRequest.amount = new Amount();
             adyenAuthorisationRequest.amount.currency_x = currencyCode;
-            adyenAuthorisationRequest.amount.value = (authAmount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
-            
+            adyenAuthorisationRequest.amount.value = (authAmount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).round(System.RoundingMode.HALF_UP);
+
             //Use existing token to create auth request
             if(paymentMethod.id != null){
                 //paymentMethod.id would be a string that represents the Salesforce record id of CardPaymentMethod or AlternativePaymentMethod object
