@@ -6,7 +6,7 @@
       "package": "Adyen Salesforce Order Management",
       "definitionFile": "config/project-scratch-def.json",
       "versionName": "version 2.1",
-      "versionNumber": "2.1.1.NEXT",
+      "versionNumber": "2.1.2.NEXT",
       "ancestorVersion": "HIGHEST",
       "dependencies": [
         {
@@ -24,6 +24,7 @@
     "API Library Apex Adyen": "0Ho4T0000000043SAA",
     "Adyen Salesforce Order Management@2.0.0": "04t4T000001y7C0QAI",
     "Adyen Salesforce Order Management@2.1.0": "04tRP00000002BVYAY",
-    "Adyen Salesforce Order Management@2.1.1-1": "04tRP0000000A7RYAU"
+    "Adyen Salesforce Order Management@2.1.1-1": "04tRP0000000A7RYAU",
+    "Adyen Salesforce Order Management@2.1.2-1": "04tRP0000000AFVYA2"
   }
 }
