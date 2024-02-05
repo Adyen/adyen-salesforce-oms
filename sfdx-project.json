@@ -10,8 +10,7 @@
       "ancestorVersion": "HIGHEST",
       "dependencies": [
         {
-          "package": "API Library Apex Adyen",
-          "versionNumber": "3.0.1.LATEST"
+          "package": "API Library Apex Adyen@3.0.1-1"
         }
       ]
     }
@@ -21,7 +20,7 @@
   "sourceApiVersion": "57.0",
   "packageAliases": {
     "Adyen Salesforce Order Management": "0Ho4T000000blPMSAY",
-    "API Library Apex Adyen": "0Ho4T0000000043SAA",
+    "API Library Apex Adyen@3.0.1-1": "04tRP0000000A5pYAE",
     "Adyen Salesforce Order Management@2.0.0": "04t4T000001y7C0QAI",
     "Adyen Salesforce Order Management@2.1.0": "04tRP00000002BVYAY",
     "Adyen Salesforce Order Management@2.1.1-1": "04tRP0000000A7RYAU",
