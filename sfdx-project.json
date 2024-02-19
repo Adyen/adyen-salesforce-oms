@@ -5,12 +5,12 @@
       "default": true,
       "package": "Adyen Salesforce Order Management",
       "definitionFile": "config/project-scratch-def.json",
-      "versionName": "version 2.0",
-      "versionNumber": "2.0.0.NEXT",
+      "versionName": "version 2.1",
+      "versionNumber": "2.1.2.NEXT",
       "ancestorVersion": "HIGHEST",
       "dependencies": [
         {
-          "package": "API Library Apex Adyen@3.0.0-0"
+          "package": "API Library Apex Adyen@3.0.1-1"
         }
       ]
     }
@@ -20,8 +20,10 @@
   "sourceApiVersion": "57.0",
   "packageAliases": {
     "Adyen Salesforce Order Management": "0Ho4T000000blPMSAY",
-    "API Library Apex Adyen@3.0.0-0": "04t4T000001y7BWQAY",
+    "API Library Apex Adyen@3.0.1-1": "04tRP0000000A5pYAE",
     "Adyen Salesforce Order Management@2.0.0": "04t4T000001y7C0QAI",
-    "Adyen Salesforce Order Management@2.1.0": "04tRP00000002BVYAY"
+    "Adyen Salesforce Order Management@2.1.0": "04tRP00000002BVYAY",
+    "Adyen Salesforce Order Management@2.1.1-1": "04tRP0000000A7RYAU",
+    "Adyen Salesforce Order Management@2.1.2-1": "04tRP0000000AFVYA2"
   }
 }
