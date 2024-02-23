@@ -74,9 +74,6 @@ public class TestDataFactory {
         CardPaymentMethod cardPayMeth = createCardPaymentMethod();
         insert cardPayMeth;
         
-//        PaymentGateway payGat = createPaymentGateway();
-//        insert payGat;
-        
         PaymentAuthorization payAuth = createPaymentAuthorization(accId, cardPayMeth.Id, null, orderPaySummaryId);
         insert payAuth;
         

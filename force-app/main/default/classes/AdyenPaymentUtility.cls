@@ -260,7 +260,7 @@ public with sharing class AdyenPaymentUtility {
             lineItem.amountIncludingTax = Integer.valueOf(amountIncludingTax * getAmountMultiplier(currencyIsoCode));
             lineItem.taxAmount = Integer.valueOf(taxAmount * getAmountMultiplier(currencyIsoCode));
             lineItem.taxPercentage = amountExcludingTax != 0 ?
-                Integer.valueOf((taxAmount/amountExcludingTax).setScale(4, RoundingMode.HALF_EVEN) * 10000) :
+                Integer.valueOf((taxAmount/amountExcludingTax).setScale(4, RoundingMode.HALF_UP) * 10000) :
                 0;
             lineItem.description = ((Product2)lineItemRecord.getSObject('Product2')).Name;
             if (lineItemRecord.getSObjectType() == Schema.InvoiceLine.getSObjectType()) { // credit memo line does not have quantity
@@ -323,7 +323,7 @@ public with sharing class AdyenPaymentUtility {
         return String.valueOf(Math.round(Math.random() * MAX)).leftPad(stringLength, '0');
     }
 
-    public static FulfillmentOrder getFulfillmentOrder(Id orderSummaryId, Double amount) {
+    public static FulfillmentOrder getFulfillmentOrder(Id orderSummaryId, Decimal amount) {
         try {
             List<FulfillmentOrder> fulfillmentOrders = [
                 SELECT FulfillmentOrderNumber, Status, StatusCategory, Type, TypeCategory, GrandTotalAmount
@@ -345,7 +345,7 @@ public with sharing class AdyenPaymentUtility {
         return null;
     }
 
-    public static String getReference(SObject anyPaymentTypeRecord, Double amount) {
+    public static String getReference(SObject anyPaymentTypeRecord, Decimal amount) {
         String randomNumber = getRandomNumber(16);
         OrderPaymentSummary orderPaymentSummary = (OrderPaymentSummary)anyPaymentTypeRecord.getSObject('OrderPaymentSummary');
         if (orderPaymentSummary?.OrderSummaryId == null) {
@@ -368,8 +368,8 @@ public with sharing class AdyenPaymentUtility {
     * @param amount the decimal amount type to be normalized
     * @return the same amount with 2 decimal points using half even rounding mode
     */
-    public static Double normalizeAmount(Double amount) {
-        return Double.valueOf(Decimal.valueOf(amount).setScale(2, System.RoundingMode.HALF_EVEN));
+    public static Decimal normalizeAmount(Decimal amount) {
+        return amount.setScale(2, System.RoundingMode.HALF_UP);
     }
     
     /**
@@ -404,7 +404,7 @@ public with sharing class AdyenPaymentUtility {
     *
     * @return CheckoutModificationRequest to send to Adyen.
     */
-    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Double amount, String merchantAccount, String reference) {
+    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Decimal amount, String merchantAccount, String reference, String systemIntegratorName) {
         CheckoutModificationRequest modRequest;
         if (paymentType == CommercePayments.RequestType.Capture) {
             modRequest = new CheckoutCaptureRequest();
@@ -417,6 +417,7 @@ public with sharing class AdyenPaymentUtility {
         requestAmount.value = (amount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
         requestAmount.currency_x = currencyCode;
         modRequest.setAmount(requestAmount);
+        modRequest.setApplicationInfo(AdyenPaymentUtility.getApplicationInfo(systemIntegratorName));
         return modRequest;
     }
     
@@ -446,11 +447,11 @@ public with sharing class AdyenPaymentUtility {
             CommercePayments.AuthApiPaymentMethodRequest paymentMethod = authRequest.paymentMethod;
             String currencyCode = authRequest.currencyIsoCode.toUpperCase();
             
-            Double authAmount = AdyenPaymentUtility.normalizeAmount(authRequest.amount);
+            Decimal authAmount = authRequest.amount;
             adyenAuthorisationRequest.amount = new Amount();
             adyenAuthorisationRequest.amount.currency_x = currencyCode;
-            adyenAuthorisationRequest.amount.value = (authAmount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
-            
+            adyenAuthorisationRequest.amount.value = (authAmount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).round(System.RoundingMode.HALF_UP);
+
             //Use existing token to create auth request
             if(paymentMethod.id != null){
                 //paymentMethod.id would be a string that represents the Salesforce record id of CardPaymentMethod or AlternativePaymentMethod object
