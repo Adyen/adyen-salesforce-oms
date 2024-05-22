@@ -50,7 +50,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy This Repository Code
-        run: sf project deploy start --target-org ScratchOrg
+        run: sf project deploy start --target-org ScratchOrg --ignore-conflicts
 
       - name: Run Apex tests
         run: sf apex run test --target-org ScratchOrg --code-coverage -w 5
