@@ -21,8 +21,14 @@ jobs:
           ref: develop
           path: dependency-repo
 
+      - name: List Directory for Debugging 1
+        run: ls -l
+
       - name: Checkout This Repository
         uses: actions/checkout@v4
+
+      - name: List Directory for Debugging 2
+        run: ls -l
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
