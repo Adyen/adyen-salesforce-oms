@@ -14,21 +14,8 @@ jobs:
       PBO_AUTH_URL: ${{ secrets.PBO_AUTH_URL }}
 
     steps:
-      - name: Checkout Apex-Library Repository
-        uses: actions/checkout@v4
-        with:
-          repository: Adyen/adyen-apex-api-library
-          ref: develop
-          path: dependency-repo
-
-      - name: List Directory for Debugging 1
-        run: ls -l
-
       - name: Checkout This Repository
         uses: actions/checkout@v4
-
-      - name: List Directory for Debugging 2
-        run: ls -l
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -47,10 +34,20 @@ jobs:
       - name: Create Scratch Org
         run: sf org create scratch -f config/project-scratch-def.json --set-default --alias ScratchOrg --no-namespace -y 1
 
+      - name: Checkout Apex-Library Repository
+        uses: actions/checkout@v4
+        with:
+          repository: Adyen/adyen-apex-api-library
+          ref: develop
+          path: dependency-repo
+
       - name: Push Apex Lib Source to Scratch Org
         run: |
           cd dependency-repo
           sf project deploy start --target-org ScratchOrg
+
+      - name: Checkout This Repository Back
+        uses: actions/checkout@v4
 
       - name: Deploy This Repository Code
         run: sf project deploy start --target-org ScratchOrg
