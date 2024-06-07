@@ -42,7 +42,7 @@ public with sharing class AdyenCaptureHelper {
             currencyCode,
             captureRequest.amount,
             adyenAdapterMdt.Merchant_Account__c,
-            AdyenPaymentUtility.getReference(pa, captureRequest.amount),
+            AdyenPaymentUtility.getReference(captureRequest),
             adyenAdapterMdt.System_Integrator_Name__c
         );
 

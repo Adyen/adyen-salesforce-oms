@@ -345,14 +345,20 @@ public with sharing class AdyenPaymentUtility {
         return null;
     }
 
-    public static String getReference(SObject anyPaymentTypeRecord, Decimal amount) {
-        String randomNumber = getRandomNumber(16);
-        OrderPaymentSummary orderPaymentSummary = (OrderPaymentSummary)anyPaymentTypeRecord.getSObject('OrderPaymentSummary');
-        if (orderPaymentSummary?.OrderSummaryId == null) {
-            return randomNumber;
+    public static String getReference(CommercePayments.CaptureRequest captureRequest) {
+        Id invoiceId = captureRequest.additionalData?.get('invoiceId');
+        if (invoiceId == null) {
+            return getRandomNumber(16);
         }
-        String reference = getFulfillmentOrder(orderPaymentSummary.OrderSummaryId, amount)?.FulfillmentOrderNumber;
-        return String.isNotBlank(reference) ? reference : randomNumber;
+        List<FulfillmentOrder> fulfillmentOrders = [
+                SELECT FulfillmentOrderNumber
+                FROM FulfillmentOrder
+                WHERE InvoiceId = :invoiceId
+        ];
+        if (fulfillmentOrders.isEmpty() || fulfillmentOrders.size() > 1) {
+            return getRandomNumber(16);
+        }
+        return fulfillmentOrders[0].FulfillmentOrderNumber;
     }
 
     public static void logException(Exception ex, LoggingLevel loggingLevel) {
