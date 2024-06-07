@@ -25,23 +25,21 @@ public with sharing class AdyenPaymentHelper {
     }
     
     public static CommercePayments.GatewayNotificationResponse handleAsyncNotificationCallback(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext, String apexName) {
-        System.debug('----> Entering AdyenPaymentHelper.handleAsyncNotificationCallback PaymentGatewayNotificationContext= ' + gatewayNotificationContext);
         CommercePayments.PaymentGatewayNotificationRequest paymentGatewayNotificationRequest = Test.isRunningTest() ? null : gatewayNotificationContext.getPaymentGatewayNotificationRequest();
         CommercePayments.GatewayNotificationResponse gatewayNotificationResponse = new CommercePayments.GatewayNotificationResponse();
-        
-        CommercePayments.NotificationSaveResult notificationSaveResult;
         NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
-        String adapterIdFromNotificationData;
-        if (notificationRequestItem.originalReference != null) {
-            adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
+
+        if (notificationRequestItem.originalReference == null) {
+            String msg = '[accepted] Notification skipped, original reference is not available';
+            gatewayNotificationResponse.setResponseBody(Blob.valueOf(msg));
+            gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
+            return gatewayNotificationResponse;
         }
-        
+
+        String adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
         Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1].Id;
-        
-        if(adapterIdFromNotificationData == adyenAdapterId) {
-            
-            notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
-            
+        if (adapterIdFromNotificationData == adyenAdapterId) {
+            CommercePayments.NotificationSaveResult notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
             if (notificationSaveResult != null) {
                 if(notificationSaveResult.isSuccess()){ // Notification is accepted by the platform
                     gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
@@ -66,17 +64,9 @@ public with sharing class AdyenPaymentHelper {
             
         } else {
             String msg = '[accepted] ';
-            if (notificationRequestItem.originalReference == null) {
-                msg += 'Notification skipped, original reference is not available';
-                gatewayNotificationResponse.setResponseBody(Blob.valueOf(msg));
-                gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
-                System.debug('----> Exiting AdyenPaymentHelper.handleAsyncNotificationCallback, originalReference is n/a: ' + gatewayNotificationResponse);
-            } else {
-                msg += 'But not processed - wrong payment adapter or wrong instance';
-                gatewayNotificationResponse.setResponseBody(Blob.valueOf(msg));
-                gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
-                System.debug('----> Exiting AdyenPaymentHelper.handleAsyncNotificationCallback after identifying that it was the wrong payment adapter: ' + gatewayNotificationResponse);
-            }
+            msg += 'But not processed - wrong payment adapter or wrong instance';
+            gatewayNotificationResponse.setResponseBody(Blob.valueOf(msg));
+            gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
             return gatewayNotificationResponse;
         }
     }

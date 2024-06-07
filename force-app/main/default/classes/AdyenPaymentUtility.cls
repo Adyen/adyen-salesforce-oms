@@ -171,8 +171,8 @@ public with sharing class AdyenPaymentUtility {
     /**
     * Retrieve apex adapter id from the gateway reference number.
     *
-    * @param gatewayRefNumber original payment gatewayrefnumber as recieved in the notification
-    * @return apexclass id for the payment gateway adapter.
+    * @param gatewayRefNumber original payment gateway reference number as received in the notification
+    * @return apex class id for the payment gateway adapter.
     */
     public static String retrieveApexAdapterId(String gatewayRefNumber) {
         String apexAdapterId = null;
