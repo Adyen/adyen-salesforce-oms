@@ -1,6 +1,6 @@
 @IsTest
 private class AdyenPaymentUtilityTest {
-    private static String ASSERT_PRICE_MESSAGE = 'For input price of ';
+    private static final String ASSERT_PRICE_MESSAGE = 'For input price of ';
     @IsTest
     static void createAuthorisationRequestTest() {
         // given

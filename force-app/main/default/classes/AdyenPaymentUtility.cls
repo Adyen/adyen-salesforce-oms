@@ -65,7 +65,7 @@ public with sharing class AdyenPaymentUtility {
     
     /**
     *  Retrieves custom meta data associated with Adyen (Endpoint info) pulls all fields.
-    *
+    *  @param metaType name of the custom metadata type with Adyen configuration
     *  @return Adyen_Adapter__mdt for the passed metadata type with all fields.
     */
     public static Adyen_Adapter__mdt retrieveGatewayMetadata(String metaType) {
@@ -220,7 +220,6 @@ public with sharing class AdyenPaymentUtility {
     *
     * @param pa  The PaymentAuthorization sObject
     * @return the GatewayRefNumber for the request.
-    * @see https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=852588546520527A&txType=Payment
     */
     public static String getCaptureGatewayRefNumber(PaymentAuthorization pa) {
         if (pa == null) {
