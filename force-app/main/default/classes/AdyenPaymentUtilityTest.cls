@@ -1,6 +1,6 @@
 @IsTest
 private class AdyenPaymentUtilityTest {
-    private static String ASSERT_PRICE_MESSAGE = 'For input price of ';
+    private static final String ASSERT_PRICE_MESSAGE = 'For input price of ';
     @IsTest
     static void createAuthorisationRequestTest() {
         // given
@@ -128,6 +128,7 @@ private class AdyenPaymentUtilityTest {
         Assert.areEqual(productPrice*100, lineItems[0].amountExcludingTax);
         Assert.areEqual((productPrice+taxValue)*100, lineItems[0].amountIncludingTax);
     }
+
     @IsTest(SeeAllData=true) // for ConnectApi use only
     static void addCreditMemoDataTest() {
         Integer productPrice = 100;
@@ -162,64 +163,48 @@ private class AdyenPaymentUtilityTest {
     }
 
     @IsTest(SeeAllData=true) // for ConnectApi use only
-    static void getFulfillmentOrderTest() {
-        OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(100, 5);
-        Test.startTest();
-        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(orderPaySum.OrderSummaryId, 105);
-        Test.stopTest();
-        Assert.isNotNull(fulfillmentOrder);
-    }
-
-    @IsTest
-    static void getFulfillmentOrderFailTest() {
-        Test.startTest();
-        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(null, 0);
-        Test.stopTest();
-        Assert.isNull(fulfillmentOrder);
-    }
-
-    @IsTest(SeeAllData=true) // for ConnectApi use only
     static void getReferenceTest() {
+        // given
         OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(100, 5);
         PaymentAuthorization payAuth = [
-            SELECT OrderPaymentSummary.OrderSummaryId
+            SELECT Id
             FROM PaymentAuthorization
             WHERE OrderPaymentSummaryId = :orderPaySum.Id
         ];
-        Payment payment = [
-            SELECT OrderPaymentSummary.OrderSummaryId
-            FROM Payment
-            WHERE OrderPaymentSummaryId = :orderPaySum.Id
-        ];
         FulfillmentOrder fulfillmentOrder = [
-            SELECT FulfillmentOrderNumber
+            SELECT FulfillmentOrderNumber, InvoiceId, GrandTotalAmount
             FROM FulfillmentOrder
             WHERE OrderSummaryId = :orderPaySum.OrderSummaryId
         ];
-
+        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(Double.valueOf(fulfillmentOrder.GrandTotalAmount), payAuth.Id);
+        captureRequest.additionalData = new Map<String,String>();
+        captureRequest.additionalData.put('invoiceId', fulfillmentOrder.InvoiceId);
+        // when
         Test.startTest();
-        String referencePayAuth = AdyenPaymentUtility.getReference(payAuth, 105);
-        String referencePayment = AdyenPaymentUtility.getReference(payment, 105);
+        String referencePayAuth = AdyenPaymentUtility.getReference(captureRequest);
         Test.stopTest();
-
+        // then
         Assert.areEqual(fulfillmentOrder.FulfillmentOrderNumber, referencePayAuth);
-        Assert.areEqual(fulfillmentOrder.FulfillmentOrderNumber, referencePayment);
     }
 
     @IsTest
     static void getReferenceRandomTest() {
-        OrderPaymentSummary  orderPaymentSummary = new OrderPaymentSummary(Id = '0bM7Q000000QP0uUAG', OrderSummaryId = '1Os7Q000000Uh77SAC');
-        PaymentAuthorization payAuth = new PaymentAuthorization(OrderPaymentSummary = orderPaymentSummary);
-
+        // given
+        CommercePayments.CaptureRequest captureRequest1 = new CommercePayments.CaptureRequest(Double.valueOf(99.9), '0Xc7Q000000YFVcSAO');
+        CommercePayments.CaptureRequest captureRequest2 = new CommercePayments.CaptureRequest(Double.valueOf(99.9), '0Xc7Q000000YFVcSAO');
+        captureRequest2.additionalData = new Map<String,String>();
+        captureRequest2.additionalData.put('invoiceId', '3tt7Q000000cJbuQAE');
+        // when
         Test.startTest();
-        String reference = AdyenPaymentUtility.getReference(payAuth, 23);
-        String referenceNullOrderPaySum = AdyenPaymentUtility.getReference(new PaymentAuthorization(), 23);
+        String reference1 = AdyenPaymentUtility.getReference(captureRequest1);
+        String reference2 = AdyenPaymentUtility.getReference(captureRequest2);
         Test.stopTest();
-
-        Assert.isNotNull(reference);
-        Assert.isNotNull(referenceNullOrderPaySum);
-        Assert.areEqual(16, reference.length());
-        Assert.areEqual(16, referenceNullOrderPaySum.length());
+        // then
+        Assert.isNotNull(reference1);
+        Assert.isNotNull(reference2);
+        Assert.areEqual(16, reference1.length());
+        Assert.areEqual(16, reference2.length());
+        Assert.areNotEqual(reference1, reference2);
     }
 
     private static OrderPaymentSummary createInvoiceAndRelatedRecords(Decimal price, Decimal taxValue) {

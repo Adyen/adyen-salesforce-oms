@@ -2,7 +2,7 @@ public with sharing class AdyenCaptureHelper {
 
     /**
      * invoked by handleFulfillmentOrderStatusChange to capture funds with Adyen
-     * @param captureRequest
+     * @param captureRequest with required information
      * @return `CommercePayments.GatewayResponse`
      */
     public static CommercePayments.GatewayResponse capture(CommercePayments.CaptureRequest captureRequest) {
@@ -42,7 +42,7 @@ public with sharing class AdyenCaptureHelper {
             currencyCode,
             captureRequest.amount,
             adyenAdapterMdt.Merchant_Account__c,
-            AdyenPaymentUtility.getReference(pa, captureRequest.amount),
+            AdyenPaymentUtility.getReference(captureRequest),
             adyenAdapterMdt.System_Integrator_Name__c
         );
 
