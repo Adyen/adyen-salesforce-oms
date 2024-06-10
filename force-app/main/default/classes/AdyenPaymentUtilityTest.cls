@@ -163,23 +163,6 @@ private class AdyenPaymentUtilityTest {
     }
 
     @IsTest(SeeAllData=true) // for ConnectApi use only
-    static void getFulfillmentOrderTest() {
-        OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(100, 5);
-        Test.startTest();
-        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(orderPaySum.OrderSummaryId, 105);
-        Test.stopTest();
-        Assert.isNotNull(fulfillmentOrder);
-    }
-
-    @IsTest
-    static void getFulfillmentOrderFailTest() {
-        Test.startTest();
-        FulfillmentOrder fulfillmentOrder = AdyenPaymentUtility.getFulfillmentOrder(null, 0);
-        Test.stopTest();
-        Assert.isNull(fulfillmentOrder);
-    }
-
-    @IsTest(SeeAllData=true) // for ConnectApi use only
     static void getReferenceTest() {
         // given
         OrderPaymentSummary orderPaySum = createInvoiceAndRelatedRecords(100, 5);

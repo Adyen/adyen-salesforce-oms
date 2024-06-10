@@ -322,28 +322,6 @@ public with sharing class AdyenPaymentUtility {
         return String.valueOf(Math.round(Math.random() * MAX)).leftPad(stringLength, '0');
     }
 
-    public static FulfillmentOrder getFulfillmentOrder(Id orderSummaryId, Decimal amount) {
-        try {
-            List<FulfillmentOrder> fulfillmentOrders = [
-                SELECT FulfillmentOrderNumber, Status, StatusCategory, Type, TypeCategory, GrandTotalAmount
-                FROM FulfillmentOrder
-                WHERE OrderSummaryId = :orderSummaryId
-                ORDER BY CreatedDate DESC
-            ];
-            for (FulfillmentOrder fulfillmentOrder : fulfillmentOrders) {
-                if (fulfillmentOrder.GrandTotalAmount == amount) {
-                    return fulfillmentOrder;
-                }
-            }
-            throw new AdyenAsyncAdapter.GatewayException(
-                'Cannot find any fulfillment order related to order summary Id ' + orderSummaryId + ' with amount ' + amount
-            );
-        } catch (Exception ex) {
-            logException(ex, LoggingLevel.ERROR);
-        }
-        return null;
-    }
-
     public static String getReference(CommercePayments.CaptureRequest captureRequest) {
         Id invoiceId = captureRequest.additionalData?.get('invoiceId');
         if (invoiceId == null) {
