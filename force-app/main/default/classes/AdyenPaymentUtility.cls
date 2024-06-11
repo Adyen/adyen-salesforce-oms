@@ -65,7 +65,7 @@ public with sharing class AdyenPaymentUtility {
     
     /**
     *  Retrieves custom meta data associated with Adyen (Endpoint info) pulls all fields.
-    *
+    *  @param metaType name of the custom metadata type with Adyen configuration
     *  @return Adyen_Adapter__mdt for the passed metadata type with all fields.
     */
     public static Adyen_Adapter__mdt retrieveGatewayMetadata(String metaType) {
@@ -220,7 +220,6 @@ public with sharing class AdyenPaymentUtility {
     *
     * @param pa  The PaymentAuthorization sObject
     * @return the GatewayRefNumber for the request.
-    * @see https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=852588546520527A&txType=Payment
     */
     public static String getCaptureGatewayRefNumber(PaymentAuthorization pa) {
         if (pa == null) {
@@ -323,36 +322,20 @@ public with sharing class AdyenPaymentUtility {
         return String.valueOf(Math.round(Math.random() * MAX)).leftPad(stringLength, '0');
     }
 
-    public static FulfillmentOrder getFulfillmentOrder(Id orderSummaryId, Decimal amount) {
-        try {
-            List<FulfillmentOrder> fulfillmentOrders = [
-                SELECT FulfillmentOrderNumber, Status, StatusCategory, Type, TypeCategory, GrandTotalAmount
+    public static String getReference(CommercePayments.CaptureRequest captureRequest) {
+        Id invoiceId = captureRequest.additionalData?.get('invoiceId');
+        if (invoiceId == null) {
+            return getRandomNumber(16);
+        }
+        List<FulfillmentOrder> fulfillmentOrders = [
+                SELECT FulfillmentOrderNumber
                 FROM FulfillmentOrder
-                WHERE OrderSummaryId = :orderSummaryId
-                ORDER BY CreatedDate DESC
-            ];
-            for (FulfillmentOrder fulfillmentOrder : fulfillmentOrders) {
-                if (fulfillmentOrder.GrandTotalAmount == amount) {
-                    return fulfillmentOrder;
-                }
-            }
-            throw new AdyenAsyncAdapter.GatewayException(
-                'Cannot find any fulfillment order related to order summary Id ' + orderSummaryId + ' with amount ' + amount
-            );
-        } catch (Exception ex) {
-            logException(ex, LoggingLevel.ERROR);
+                WHERE InvoiceId = :invoiceId
+        ];
+        if (fulfillmentOrders.isEmpty() || fulfillmentOrders.size() > 1) {
+            return getRandomNumber(16);
         }
-        return null;
-    }
-
-    public static String getReference(SObject anyPaymentTypeRecord, Decimal amount) {
-        String randomNumber = getRandomNumber(16);
-        OrderPaymentSummary orderPaymentSummary = (OrderPaymentSummary)anyPaymentTypeRecord.getSObject('OrderPaymentSummary');
-        if (orderPaymentSummary?.OrderSummaryId == null) {
-            return randomNumber;
-        }
-        String reference = getFulfillmentOrder(orderPaymentSummary.OrderSummaryId, amount)?.FulfillmentOrderNumber;
-        return String.isNotBlank(reference) ? reference : randomNumber;
+        return fulfillmentOrders[0].FulfillmentOrderNumber;
     }
 
     public static void logException(Exception ex, LoggingLevel loggingLevel) {
