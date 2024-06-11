@@ -5,7 +5,7 @@ public with sharing class AdyenPaymentHelper {
     /**
     *  Receives Payment Gateway Context from AdyenAsyncAdapter, looks at the context type and then invokes the appropriate Capture or Refund operation
     * 
-    * @param paymentGatewayContext
+    * @param paymentGatewayContext from commerce api
     * @return `CommercePayments.GatewayResponse`
     */
     public static CommercePayments.GatewayResponse handleFulfillmentOrderStatusChange(CommercePayments.PaymentGatewayContext paymentGatewayContext) {
@@ -74,8 +74,8 @@ public with sharing class AdyenPaymentHelper {
     /**
     * Take the http request from the async notification callback and deserializes it into AdyenNotificationResponse.
     *
-    * @param notificationRequest   The body of the Adyen notification request.
-    * @return AdyenNotificationRequest         The deserialized version of the Adyen nodification request.
+    * @param notificationRequest The body of the Adyen notification request.
+    * @return AdyenNotificationRequest  The deserialized version of the Adyen notification request.
     *
     * @see https://docs.adyen.com/development-resources/webhooks/understand-notifications
     */
@@ -95,66 +95,53 @@ public with sharing class AdyenPaymentHelper {
     
     
     /**
-    * Creates and records (ie saves) the notificationsaveresult.
+    * Creates and records (ie saves) the notification save result.
     *
-    * @param notificationRequestItem
+    * @param notificationRequestItem parsed from Adyen web hook
     * @return CommercePayments.NotificationSaveResult.
     */
     @TestVisible
     private static CommercePayments.NotificationSaveResult createNotificationSaveResult( NotificationRequestItem notificationRequestItem ) {
-        Boolean unsupportedNotificationType = false;
-        CommercePayments.BaseNotification notification = null;
-        CommercePayments.NotificationStatus notificationStatus = null;
-        CommercePayments.SalesforceResultCode notificationStatusSF = null;
-        
-        if (!Boolean.valueOf(notificationRequestItem.success)){
-            notificationStatus = CommercePayments.NotificationStatus.Failed;
-            notificationStatusSF = CommercePayments.SalesforceResultCode.Decline;
+        CommercePayments.BaseNotification notification;
+        CommercePayments.NotificationStatus notificationStatus;
+        CommercePayments.SalesforceResultCode notificationStatusSF;
+
+        String gatewayMessageTemplate;
+        Boolean isCaptureRequest = AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE.equalsIgnoreCase(notificationRequestItem.eventCode);
+        Boolean isRefundRequest = AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND.equalsIgnoreCase(notificationRequestItem.eventCode);
+        Boolean isCaptureFailedRequest = AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED.endsWithIgnoreCase(notificationRequestItem.eventCode);
+        if (isCaptureRequest || isCaptureFailedRequest) {
+            notification = new CommercePayments.CaptureNotification();
+            gatewayMessageTemplate = '[capture-{0}] {1}';
+        } else if (isRefundRequest) {
+            notification = new CommercePayments.ReferencedRefundNotification();
+            gatewayMessageTemplate = '[refund-{0}] {1}';
         } else {
+            return null; // unsupported notification request
+        }
+
+        String result;
+        Boolean isSuccessfulNotification = Boolean.valueOf(notificationRequestItem.success);
+        if (isSuccessfulNotification && !isCaptureFailedRequest) {
             notificationStatus = CommercePayments.NotificationStatus.Success;
             notificationStatusSF = CommercePayments.SalesforceResultCode.Success;
-        }
-        
-        if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE.equalsIgnoreCase(notificationRequestItem.eventCode)) {
-            notification = new CommercePayments.CaptureNotification();
-        } else if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND.equalsIgnoreCase(notificationRequestItem.eventCode)) {
-            notification = new CommercePayments.ReferencedRefundNotification();
+            result = 'complete';
         } else {
-            unsupportedNotificationType = true;
+            notificationStatus = CommercePayments.NotificationStatus.Failed;
+            notificationStatusSF = CommercePayments.SalesforceResultCode.Decline;
+            result = 'fail';
         }
-        
-        CommercePayments.NotificationSaveResult notificationSaveResult;
-        if(!unsupportedNotificationType) {
-            notification.setStatus(notificationStatus);
-            notification.setSalesforceResultCodeInfo(new CommercePayments.SalesforceResultCodeInfo(notificationStatusSF));
-            notification.setGatewayReferenceNumber(notificationRequestItem.pspReference);
-            notification.setGatewayResultCode(notificationRequestItem.eventCode);
-            notification.setGatewayResultCodeDescription(notificationRequestItem.reason);
-            if(String.isBlank(notificationRequestItem.reason) && notificationStatus == CommercePayments.NotificationStatus.Success) {
-                if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE.equalsIgnoreCase(notificationRequestItem.eventCode)) {
-                    notification.setGatewayMessage('[capture-complete]');
-                } else if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND.equalsIgnoreCase(notificationRequestItem.eventCode)) {
-                    notification.setGatewayMessage('[refund-complete]');
-                }
-            } else{
-                notification.setGatewayMessage(notificationRequestItem.reason);
-            }
-            
-            Decimal value;
-            if(notificationRequestItem.amount != null) {
-                value = notificationRequestItem.amount.value;
-            }
-            value = value / AdyenPaymentUtility.getAmountMultiplier(notificationRequestItem.amount.currency_x);
-            
-            Double dValue = value;
-            notification.setAmount(dValue);
-            notificationSaveResult = CommercePayments.NotificationClient.record(notification);
-            System.debug(JSON.serialize(notificationSaveResult));
-            return notificationSaveResult;
-        } else {
-            notificationSaveResult = null;
-            System.debug('---> Exiting AdyenPaymentHelper.createNotificationSaveResult after ignoring unsupported notification= ' + notificationRequestItem.eventCode);
-            return notificationSaveResult;
-        }
+        String gatewayMessage = String.format(gatewayMessageTemplate, new List<String>{result, notificationRequestItem.reason});
+        Decimal priceMinorUnits = notificationRequestItem.amount != null ? notificationRequestItem.amount.value : 0;
+        Decimal price = priceMinorUnits / AdyenPaymentUtility.getAmountMultiplier(notificationRequestItem.amount.currency_x);
+
+        notification.setGatewayMessage(gatewayMessage);
+        notification.setStatus(notificationStatus);
+        notification.setSalesforceResultCodeInfo(new CommercePayments.SalesforceResultCodeInfo(notificationStatusSF));
+        notification.setGatewayReferenceNumber(notificationRequestItem.pspReference);
+        notification.setGatewayResultCode(notificationRequestItem.eventCode);
+        notification.setAmount(Double.valueOf(price));
+
+        return CommercePayments.NotificationClient.record(notification);
     }
 }
