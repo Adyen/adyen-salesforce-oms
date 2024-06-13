@@ -34,7 +34,7 @@ public with sharing class AdyenPaymentHelper {
         }
 
         String adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
-        Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = 'danilo_2gp_test') LIMIT 1].Id;
+        Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1].Id;
         Boolean isAdapterSameAsThis = adapterIdFromNotificationData == adyenAdapterId;
         if (isAdapterSameAsThis) {
             CommercePayments.NotificationSaveResult notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
@@ -66,12 +66,14 @@ public with sharing class AdyenPaymentHelper {
     * @see https://docs.adyen.com/development-resources/webhooks/understand-notifications
     */
     public static NotificationRequestItem parseAdyenNotificationRequest(CommercePayments.PaymentGatewayNotificationRequest notificationRequest) {
+        System.debug('Notification Request From Commerce');
+        System.debug(notificationRequest);
         String adyenNotificationRequestPayload = Test.isRunningTest() ? TEST_NOTIFICATION_REQUEST_BODY : AdyenPaymentUtility.makeSalesforceCompatible(notificationRequest.getRequestBody().toString());
         AdyenNotification adyenNotification  = (AdyenNotification) JSON.deserialize(adyenNotificationRequestPayload, AdyenNotification.class);
         NotificationRequestItem notificationRequestItem = new NotificationRequestItem();
-        if(adyenNotification != null) {
-            for(NotificationItems notificationItem : adyenNotification.notificationItems) {
-                if(notificationItem.NotificationRequestItem != null) {
+        if (adyenNotification != null) {
+            for (NotificationItems notificationItem : adyenNotification.notificationItems) {
+                if (notificationItem.NotificationRequestItem != null) {
                     notificationRequestItem = notificationItem.NotificationRequestItem;
                 }
             }

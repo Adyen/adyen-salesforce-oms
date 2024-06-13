@@ -19,7 +19,6 @@ public with sharing class AdyenAuthorisationHelper {
         Map<String,Object> body = (Map<String,Object>)JSON.deserializeUntyped(response.getBody());
         String resultCode = (String)body.get('resultCode');
         if(resultCode != null) {
-            System.debug('-----> Adyen accepted request');
             CommercePayments.AuthorizationResponse salesforceAuthResponse = new CommercePayments.AuthorizationResponse();
             if(resultCode == 'Authorised') {
                 Map<String,Object> additionalData = (Map<String,Object>)body.get('additionalData');
@@ -35,7 +34,6 @@ public with sharing class AdyenAuthorisationHelper {
             salesforceAuthResponse.setGatewayReferenceDetails(merchantAccountName);
             return salesforceAuthResponse;
         } else {
-            System.debug('-----> Adyen rejected request');
             return new CommercePayments.GatewayErrorResponse(
                 String.valueOf(response.getStatusCode()),
                 String.valueOf(body.get('message'))

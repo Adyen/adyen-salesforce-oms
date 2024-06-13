@@ -50,7 +50,6 @@ public with sharing class AdyenRefundHelper {
         if (String.isNotBlank(payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c)) {
             if (payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c.equalsIgnoreCase('Paypal') && String.isNotBlank(payment.GatewayRefDetails)) {
                 String refundReference = modRequest.getReference() + payment.GatewayRefDetails;     //payment.GatewayRefDetails has the capture reference
-                System.debug('refundReference for Paypal :: ' + refundReference);
                 modRequest.setReference(refundReference);
             }
         }
