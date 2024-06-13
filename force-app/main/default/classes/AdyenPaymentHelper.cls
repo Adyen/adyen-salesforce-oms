@@ -66,8 +66,6 @@ public with sharing class AdyenPaymentHelper {
     * @see https://docs.adyen.com/development-resources/webhooks/understand-notifications
     */
     public static NotificationRequestItem parseAdyenNotificationRequest(CommercePayments.PaymentGatewayNotificationRequest notificationRequest) {
-        System.debug('Notification Request From Commerce');
-        System.debug(notificationRequest);
         String adyenNotificationRequestPayload = Test.isRunningTest() ? TEST_NOTIFICATION_REQUEST_BODY : AdyenPaymentUtility.makeSalesforceCompatible(notificationRequest.getRequestBody().toString());
         AdyenNotification adyenNotification  = (AdyenNotification) JSON.deserialize(adyenNotificationRequestPayload, AdyenNotification.class);
         NotificationRequestItem notificationRequestItem = new NotificationRequestItem();
