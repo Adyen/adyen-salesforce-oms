@@ -11,7 +11,7 @@ private class AdyenPaymentUtilityTest {
         Long expectedValue;
         for (Integer i = 0; i < 10; i++) {
             price = 1008.90 + (0.01 * i);
-            authRequest = new CommercePayments.AuthorizationRequest(price);
+            authRequest = TestDataFactory.createAuthorisationRequest(null, price);
             authRequest.currencyIsoCode = 'USD';
             // when
             adyenAuthRequest = AdyenPaymentUtility.createAuthorisationRequest(authRequest, adyenAdapterMdt);
@@ -22,7 +22,7 @@ private class AdyenPaymentUtilityTest {
         // given a higher amount of decimals
         for (Integer i = 0; i < 10; i++) {
             price = 1008.900 + (i * 0.001);
-            authRequest = new CommercePayments.AuthorizationRequest(price);
+            authRequest = TestDataFactory.createAuthorisationRequest(null, price);
             authRequest.currencyIsoCode = 'USD';
             // when
             adyenAuthRequest = AdyenPaymentUtility.createAuthorisationRequest(authRequest, adyenAdapterMdt);
@@ -33,7 +33,7 @@ private class AdyenPaymentUtilityTest {
         // given 0 decimals currency
         for (Integer i = 0; i < 10; i++) {
             price = 100890 + i;
-            authRequest = new CommercePayments.AuthorizationRequest(price);
+            authRequest = TestDataFactory.createAuthorisationRequest(null, price);
             authRequest.currencyIsoCode = 'JPY';
             // when
             adyenAuthRequest = AdyenPaymentUtility.createAuthorisationRequest(authRequest, adyenAdapterMdt);
@@ -44,7 +44,7 @@ private class AdyenPaymentUtilityTest {
         // given 3 decimals currency
         for (Integer i = 0; i < 10; i++) {
             price = 100.890 + (i * 0.001);
-            authRequest = new CommercePayments.AuthorizationRequest(price);
+            authRequest = TestDataFactory.createAuthorisationRequest(null, price);
             authRequest.currencyIsoCode = 'JOD';
             // when
             adyenAuthRequest = AdyenPaymentUtility.createAuthorisationRequest(authRequest, adyenAdapterMdt);

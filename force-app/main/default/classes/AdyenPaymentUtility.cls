@@ -143,9 +143,8 @@ public with sharing class AdyenPaymentUtility {
                 ORDER BY
                     CreatedDate DESC
             ];
-            if(!paymentAuthorizations.isEmpty()) {
+            if (!paymentAuthorizations.isEmpty()) {
                 pa = paymentAuthorizations[0];
-                System.debug(LoggingLevel.INFO, 'SalesChannel Config: ' + pa.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c);
             }
         }
         return pa;
@@ -171,8 +170,8 @@ public with sharing class AdyenPaymentUtility {
     /**
     * Retrieve apex adapter id from the gateway reference number.
     *
-    * @param gatewayRefNumber original payment gatewayrefnumber as recieved in the notification
-    * @return apexclass id for the payment gateway adapter.
+    * @param gatewayRefNumber original payment gateway reference number as received in the notification
+    * @return apex class id for the payment gateway adapter.
     */
     public static String retrieveApexAdapterId(String gatewayRefNumber) {
         String apexAdapterId = null;
@@ -338,13 +337,6 @@ public with sharing class AdyenPaymentUtility {
         return fulfillmentOrders[0].FulfillmentOrderNumber;
     }
 
-    public static void logException(Exception ex, LoggingLevel loggingLevel) {
-        System.debug(loggingLevel, 'Exception message : ' + ex.getMessage());
-        System.debug(loggingLevel, 'Exception type : ' + ex.getTypeName());
-        System.debug(loggingLevel, 'Exception line : ' + ex.getLineNumber());
-        System.debug(loggingLevel, 'Stacktrace : ' + ex.getStackTraceString());
-    }
-    
     /**
     * Round an amount to a normalized value for consistency
     *
@@ -361,7 +353,6 @@ public with sharing class AdyenPaymentUtility {
     * @return application information map for the request.
     */
     public static ApplicationInfo getApplicationInfo(String integratorName) {
-        
         ApplicationInfo info = new ApplicationInfo();
         
         ExternalPlatform exPlatform = new ExternalPlatform();
@@ -423,61 +414,56 @@ public with sharing class AdyenPaymentUtility {
     *
     * @return AuthorisationRequest to send to Adyen.
     */
-    public static AuthorisationRequest createAuthorisationRequest(CommercePayments.AuthorizationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt){
-        
+    public static AuthorisationRequest createAuthorisationRequest(CommercePayments.AuthorizationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt) {
         AuthorisationRequest adyenAuthorisationRequest = new AuthorisationRequest();
-        try{
-            CommercePayments.AuthApiPaymentMethodRequest paymentMethod = authRequest.paymentMethod;
-            String currencyCode = authRequest.currencyIsoCode.toUpperCase();
-            
-            Decimal authAmount = authRequest.amount;
-            adyenAuthorisationRequest.amount = new Amount();
-            adyenAuthorisationRequest.amount.currency_x = currencyCode;
-            adyenAuthorisationRequest.amount.value = (authAmount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).round(System.RoundingMode.HALF_UP);
+        CommercePayments.AuthApiPaymentMethodRequest paymentMethod = authRequest.paymentMethod;
+        String currencyCode = authRequest.currencyIsoCode.toUpperCase();
 
-            //Use existing token to create auth request
-            if(paymentMethod.id != null){
-                //paymentMethod.id would be a string that represents the Salesforce record id of CardPaymentMethod or AlternativePaymentMethod object
-                String adyenToken;
-                Id recordId = paymentMethod.id;
-                String sObjName = recordId.getSobjectType().getDescribe().getName(); //determine object name
-                
-                if(sObjName == AdyenOMSConstants.CARD_PAYMENTMETHOD_OBJECT) {
-                    //for CardPaymentMethod : Use GatewayTokenEncrypted field to retrieve token
-                    CardPaymentMethod cpmRecord = [SELECT Id, GatewayTokenEncrypted FROM CardPaymentMethod WHERE Id = :recordId LIMIT 1];
-                    adyenToken = cpmRecord.GatewayTokenEncrypted;
-                } else if(sObjName == AdyenOMSConstants.ALTERNATIVE_PAYMENTMETHOD_OBJECT) {
-                    //for AlternativePaymentMethod : Use GatewayToken field to retrieve token
-                    AlternativePaymentMethod apmRecord = [SELECT Id, GatewayToken FROM AlternativePaymentMethod WHERE Id = :recordId LIMIT 1];
-                    adyenToken = apmRecord.GatewayToken;
-                }
-                
-                CardDetails cardDetails = new CardDetails();
-                cardDetails.storedPaymentMethodId = adyenToken;
-                adyenAuthorisationRequest.paymentMethod = cardDetails;
-                adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.ShopperInteractionEnum.ContAuth;
-                adyenAuthorisationRequest.recurringProcessingModel = AuthorisationRequest.RecurringProcessingModelEnum.CardOnFile;
-                
-            } else if(paymentMethod.cardPaymentMethod != null) {
-                //use new card details to create auth request
-                CommercePayments.CardPaymentMethodRequest cpmRequest = paymentMethod.cardPaymentMethod;
-                CardDetails cardDetails = new CardDetails();
-                cardDetails.number_x = cpmRequest.cardNumber;
-                cardDetails.expiryMonth = String.valueOf(cpmRequest.expiryMonth);
-                cardDetails.expiryYear = String.valueOf(cpmRequest.expiryYear);
-                cardDetails.holderName = cpmRequest.cardHolderName;
-                cardDetails.cvc = cpmRequest.cvv;
-                adyenAuthorisationRequest.paymentMethod = cardDetails;
-                adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.ShopperInteractionEnum.Ecommerce;
+        Decimal authAmount = authRequest.amount;
+        adyenAuthorisationRequest.amount = new Amount();
+        adyenAuthorisationRequest.amount.currency_x = currencyCode;
+        adyenAuthorisationRequest.amount.value = (authAmount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).round(System.RoundingMode.HALF_UP);
+
+        //Use existing token to create auth request
+        if (paymentMethod.id != null) {
+            //paymentMethod.id would be a string that represents the Salesforce record id of CardPaymentMethod or AlternativePaymentMethod object
+            String adyenToken;
+            Id recordId = paymentMethod.id;
+            String sObjName = recordId.getSobjectType().getDescribe().getName(); //determine object name
+
+            if (sObjName == AdyenOMSConstants.CARD_PAYMENTMETHOD_OBJECT) {
+                //for CardPaymentMethod : Use GatewayTokenEncrypted field to retrieve token
+                CardPaymentMethod cpmRecord = [SELECT Id, GatewayTokenEncrypted FROM CardPaymentMethod WHERE Id = :recordId LIMIT 1];
+                adyenToken = cpmRecord.GatewayTokenEncrypted;
+            } else if (sObjName == AdyenOMSConstants.ALTERNATIVE_PAYMENTMETHOD_OBJECT) {
+                //for AlternativePaymentMethod : Use GatewayToken field to retrieve token
+                AlternativePaymentMethod apmRecord = [SELECT Id, GatewayToken FROM AlternativePaymentMethod WHERE Id = :recordId LIMIT 1];
+                adyenToken = apmRecord.GatewayToken;
             }
-            
-            adyenAuthorisationRequest.reference = AdyenPaymentUtility.getRandomNumber(16);
-            adyenAuthorisationRequest.merchantAccount = adyenAdapterMdt.Merchant_Account__c;
-            adyenAuthorisationRequest.shopperReference = UserInfo.getUserId();
-            adyenAuthorisationRequest.applicationInfo = AdyenPaymentUtility.getApplicationInfo(adyenAdapterMdt.System_Integrator_Name__c);
-        } catch(Exception ex) {
-            logException(ex, LoggingLevel.ERROR);
+
+            CardDetails cardDetails = new CardDetails();
+            cardDetails.storedPaymentMethodId = adyenToken;
+            adyenAuthorisationRequest.paymentMethod = cardDetails;
+            adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.ShopperInteractionEnum.ContAuth;
+            adyenAuthorisationRequest.recurringProcessingModel = AuthorisationRequest.RecurringProcessingModelEnum.CardOnFile;
+
+        } else if (paymentMethod.cardPaymentMethod != null) {
+            //use new card details to create auth request
+            CommercePayments.CardPaymentMethodRequest cpmRequest = paymentMethod.cardPaymentMethod;
+            CardDetails cardDetails = new CardDetails();
+            cardDetails.number_x = cpmRequest.cardNumber;
+            cardDetails.expiryMonth = String.valueOf(cpmRequest.expiryMonth);
+            cardDetails.expiryYear = String.valueOf(cpmRequest.expiryYear);
+            cardDetails.holderName = cpmRequest.cardHolderName;
+            cardDetails.cvc = cpmRequest.cvv;
+            adyenAuthorisationRequest.paymentMethod = cardDetails;
+            adyenAuthorisationRequest.shopperInteraction = AuthorisationRequest.ShopperInteractionEnum.Ecommerce;
         }
+
+        adyenAuthorisationRequest.reference = AdyenPaymentUtility.getRandomNumber(16);
+        adyenAuthorisationRequest.merchantAccount = adyenAdapterMdt.Merchant_Account__c;
+        adyenAuthorisationRequest.shopperReference = UserInfo.getUserId();
+        adyenAuthorisationRequest.applicationInfo = AdyenPaymentUtility.getApplicationInfo(adyenAdapterMdt.System_Integrator_Name__c);
         return adyenAuthorisationRequest;
     }
     
@@ -489,15 +475,11 @@ public with sharing class AdyenPaymentUtility {
     public static HttpResponse sendAuthorisationRequest(AuthorisationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt){
         HttpResponse response;
         String endpoint;
-        try{
-            String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(authRequest, true));
-            String apiKey = MERCHANT_API_KEY;
-            endpoint = Test.isRunningTest() ? TEST_ENDPOINT + adyenAdapterMdt.Authorize_Endpoint__c : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + adyenAdapterMdt.Authorize_Endpoint__c;
-            AdyenClient client = new AdyenClient(apiKey, endpoint);
-            response = client.request(client.config, body);
-        } catch(Exception ex) {
-            logException(ex, LoggingLevel.ERROR);
-        }
+        String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(authRequest, true));
+        String apiKey = MERCHANT_API_KEY;
+        endpoint = Test.isRunningTest() ? TEST_ENDPOINT + adyenAdapterMdt.Authorize_Endpoint__c : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + adyenAdapterMdt.Authorize_Endpoint__c;
+        AdyenClient client = new AdyenClient(apiKey, endpoint);
+        response = client.request(client.config, body);
         return response;
     }
     

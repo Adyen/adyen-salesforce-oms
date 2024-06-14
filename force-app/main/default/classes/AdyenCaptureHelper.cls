@@ -53,7 +53,6 @@ public with sharing class AdyenCaptureHelper {
             if (captureRequest.additionalData.containsKey('invoiceId')) {
                 invoiceId = captureRequest.additionalData.get('invoiceId');
             }
-            System.debug('--------> paymentRequest InvoiceId: ' + invoiceId);
             modRequest.setLineItems(AdyenPaymentUtility.addInvoiceData(invoiceId));
         }
 

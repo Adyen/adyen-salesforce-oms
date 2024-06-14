@@ -107,15 +107,19 @@ public class TestDataFactory {
     }
 
     public static CommercePayments.AuthorizationRequest createAuthorisationRequest(Id payMethodId) {
-        CommercePayments.AuthorizationRequest authRequest = new CommercePayments.AuthorizationRequest(TEST_AMOUNT);
+        return createAuthorisationRequest(payMethodId, TEST_AMOUNT);
+    }
+
+    public static CommercePayments.AuthorizationRequest createAuthorisationRequest(Id payMethodId, Double price) {
+        CommercePayments.AuthorizationRequest authRequest = new CommercePayments.AuthorizationRequest(price);
         authRequest.currencyIsoCode = ACTIVE_CURRENCY;
-        
+
         CommercePayments.CardPaymentMethodRequest cardPayMeth = new CommercePayments.CardPaymentMethodRequest(CommercePayments.CardCategory.CreditCard);
         authRequest.paymentMethod = new CommercePayments.AuthApiPaymentMethodRequest(cardPayMeth);
         authRequest.paymentMethod.id = payMethodId;
 
-        CommercePayments.PaymentGatewayContext payGatecontext = new CommercePayments.PaymentGatewayContext(authRequest, CommercePayments.RequestType.Authorize);
-        CommercePayments.PaymentGatewayRequest paymentRequest = payGatecontext.getPaymentRequest();
+        CommercePayments.PaymentGatewayContext payGateContext = new CommercePayments.PaymentGatewayContext(authRequest, CommercePayments.RequestType.Authorize);
+        CommercePayments.PaymentGatewayRequest paymentRequest = payGateContext.getPaymentRequest();
         return (CommercePayments.AuthorizationRequest)paymentRequest;
     }
 
