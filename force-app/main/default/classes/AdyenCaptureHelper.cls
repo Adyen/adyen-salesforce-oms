@@ -36,15 +36,7 @@ public with sharing class AdyenCaptureHelper {
         }
 
         Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
-        String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : pa.CurrencyIsoCode;
-        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(
-            CommercePayments.RequestType.Capture,
-            currencyCode,
-            captureRequest.amount,
-            adyenAdapterMdt.Merchant_Account__c,
-            AdyenPaymentUtility.getReference(captureRequest),
-            adyenAdapterMdt.System_Integrator_Name__c
-        );
+        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(captureRequest, pa.CurrencyIsoCode, adyenAdapterMdt);
 
         // Line items required for partial captures for Open Invoice methods
         if (AdyenPaymentUtility.checkIfOpenInvoiceFromAuthorization(pa)) {
@@ -56,9 +48,7 @@ public with sharing class AdyenCaptureHelper {
             modRequest.setLineItems(AdyenPaymentUtility.addInvoiceData(invoiceId));
         }
 
-        String captureEndpointURL = adyenAdapterMdt.Capture_Endpoint__c;
-        captureEndpointURL = captureEndpointURL.replace('{paymentPspReference}', pspReference);
-        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, captureEndpointURL);
+        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
         return processCaptureResponse(adyenHttpResponse, captureRequest.amount);
     }
 

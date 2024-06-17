@@ -37,15 +37,8 @@ public with sharing class AdyenRefundHelper {
             adapterName = AdyenConstants.DEFAULT_ADAPTER_NAME;
         }
         Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
-        String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : payment.CurrencyIsoCode.toUpperCase();
-        String pspReference = (payment.OrderPaymentSummary.FullName == 'DeclineRefund' ? 'dummytransaction' : AdyenPaymentUtility.getRefundGatewayRefNumber(payment));
-        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(
-            CommercePayments.RequestType.ReferencedRefund,
-            currencyCode, refundRequest.amount,
-            adyenAdapterMdt.Merchant_Account__c,
-            AdyenPaymentUtility.getRandomNumber(16),
-            adyenAdapterMdt.System_Integrator_Name__c
-        );
+        String pspReference = AdyenPaymentUtility.getRefundGatewayRefNumber(payment);
+        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(refundRequest, payment.CurrencyIsoCode, adyenAdapterMdt);
         //Only for Paypal Refunds - Capture reference must be a substring of refund reference
         if (String.isNotBlank(payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c)) {
             if (payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c.equalsIgnoreCase('Paypal') && String.isNotBlank(payment.GatewayRefDetails)) {
@@ -58,9 +51,7 @@ public with sharing class AdyenRefundHelper {
             modRequest.setLineItems(AdyenPaymentUtility.addCreditMemoData(payment.OrderPaymentSummary.OrderSummaryId));
         }
 
-        String refundEndpointURL = adyenAdapterMdt.Refund_Endpoint__c;
-        refundEndpointURL = refundEndpointURL.replace('{paymentPspReference}', pspReference);
-        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, refundEndpointURL);
+        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
         return processRefundResponse(adyenHttpResponse, refundRequest.amount);
     }
 

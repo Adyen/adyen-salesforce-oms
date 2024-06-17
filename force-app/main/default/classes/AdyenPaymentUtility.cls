@@ -26,22 +26,7 @@ public with sharing class AdyenPaymentUtility {
     * @return a Payment sObject.
     */
     public static Payment retrievePayment(Id paymentId) {
-        Payment payment;
-        
-        if ( Test.isRunningTest() || (
-        Schema.SObjectType.Payment.fields.Id.isAccessible() &&
-        Schema.SObjectType.Payment.fields.GatewayRefNumber.isAccessible() &&
-        Schema.SObjectType.Payment.fields.GatewayRefDetails.isAccessible() &&
-        Schema.SObjectType.Payment.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.Adyen_Payment_Method_Variant__c.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.Adyen_Payment_Method__c.isAccessible() &&
-        Schema.SObjectType.Payment.fields.CurrencyIsoCode.isAccessible() &&
-        Schema.SObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
-        Schema.SObjectType.SalesChannel.fields.AdyenMerchantID__c.isAccessible()
-        ) ) {
-            List<Payment> payments = [
+        Payment payment = [
             SELECT
                 Id, GatewayRefNumber, GatewayRefDetails,
                 PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
@@ -52,58 +37,30 @@ public with sharing class AdyenPaymentUtility {
                 Payment
             WHERE
                 Id = :paymentId
-            ];
-            
-            if (!payments.isEmpty()) {
-                payment = payments[0];
-            }
-            
-        }
+            WITH USER_MODE
+        ];
         return payment;
     }
     
     
     /**
     *  Retrieves custom meta data associated with Adyen (Endpoint info) pulls all fields.
-    *  @param metaType name of the custom metadata type with Adyen configuration
+    *  @param developerName name of the custom metadata type with Adyen configuration
     *  @return Adyen_Adapter__mdt for the passed metadata type with all fields.
     */
-    public static Adyen_Adapter__mdt retrieveGatewayMetadata(String metaType) {
-        if (Test.isRunningTest()) {
-            return new Adyen_Adapter__mdt(
-                MasterLabel = 'AdyenDefault',
-                Single_Currency_Code__c = 'USD',
-                System_Integrator_Name__c = 'Test integrator',
-                Endpoint_Method__c = 'POST',
-                Authorize_Endpoint__c = '/payments',
-                Refund_Endpoint__c = '/{paymentPspReference}/refund',
-                Capture_Endpoint__c = '/{paymentPspReference}/capture',
-                Endpoint_Api_Version__c = '/v1',
-                Merchant_Account__c = skipMerchantAccount ? '' : 'TEST_MERCHANT_ACCOUNT'
-            );
-        } else {
-            Adyen_Adapter__mdt adyenAdapterMdt;
-            if (
-                Schema.SObjectType.Adyen_Adapter__mdt.fields.Developername.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.NamespacePrefix.isAccessible() &&
-                Schema.SObjectType.Adyen_Adapter__mdt.fields.MasterLabel.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Capture_Endpoint__c.isAccessible() &&
-                Schema.SObjectType.Adyen_Adapter__mdt.fields.Endpoint_Api_Version__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Endpoint_Method__c.isAccessible() &&
-                Schema.SObjectType.Adyen_Adapter__mdt.fields.Endpoint_Path__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Merchant_Account__c.isAccessible() &&
-                Schema.SObjectType.Adyen_Adapter__mdt.fields.System_Integrator_Name__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Refund_Endpoint__c.isAccessible() &&
-                Schema.SObjectType.Adyen_Adapter__mdt.fields.Single_Currency_Code__c.isAccessible() && Schema.SObjectType.Adyen_Adapter__mdt.fields.Authorize_Endpoint__c.isAccessible()
-            ) {
-                adyenAdapterMdt = [
-                    SELECT
-                        DeveloperName, NamespacePrefix, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
-                        System_Integrator_Name__c, Endpoint_Method__c, Endpoint_Path__c, Merchant_Account__c,
-                        Refund_Endpoint__c, Single_Currency_Code__c, Authorize_Endpoint__c
-                    FROM
-                        Adyen_Adapter__mdt
-                    WHERE
-                        DeveloperName = :metaType
-                ];
-            }
-            return adyenAdapterMdt;
-        }
+    public static Adyen_Adapter__mdt retrieveGatewayMetadata(String developerName) {
+        Adyen_Adapter__mdt adyenAdapterMdt = [
+            SELECT
+                DeveloperName, Package_Namespace__c, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
+                System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c,
+                Authorize_Endpoint__c
+            FROM
+                Adyen_Adapter__mdt
+            WHERE
+                DeveloperName = :developerName
+            WITH USER_MODE
+        ];
+        return adyenAdapterMdt;
     }
     
     
@@ -114,40 +71,21 @@ public with sharing class AdyenPaymentUtility {
     * @return a PaymentAuthorization sObject.
     */
     public static PaymentAuthorization retrievePaymentAuthorization(Id paymentAuthId) {
-        PaymentAuthorization pa;
-        
-        if ( Test.isRunningTest() || (
-        Schema.SObjectType.PaymentAuthorization.fields.Id.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.PaymentAuthorizationNumber.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.GatewayRefNumber.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.CurrencyIsoCode.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.adyenOverrideMerchantConfig__c.isAccessible() &&
-        Schema.SObjectType.PaymentAuthorization.fields.Adyen_Payment_Method_Variant__c.isAccessible() &&
-        Schema.SObjectType.PaymentGatewayLog.fields.GatewayRefNumber.isAccessible() &&
-        Schema.SObjectType.OrderPaymentSummary.fields.Id.isAccessible() &&
-        Schema.SObjectType.OrderPaymentSummary.fields.FullName.isAccessible() &&
-        Schema.SObjectType.SalesChannel.fields.AdyenMerchantID__c.isAccessible()) )
-        {
-            List<PaymentAuthorization> paymentAuthorizations = [
-                SELECT
-                    Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c, Adyen_Payment_Method_Variant__c,
-                    OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber,
-                    OrderPaymentSummary.Id,
-                    OrderPaymentSummary.FullName, CurrencyIsoCode,
-                    OrderPaymentSummary.OrderSummary.Id,
-                    OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
-                FROM
-                    PaymentAuthorization
-                WHERE
-                    Id = :paymentAuthId
-                ORDER BY
-                    CreatedDate DESC
-            ];
-            if (!paymentAuthorizations.isEmpty()) {
-                pa = paymentAuthorizations[0];
-            }
-        }
-        return pa;
+        PaymentAuthorization paymentAuthorization = [
+            SELECT
+                Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c, Adyen_Payment_Method_Variant__c,
+                OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber,
+                OrderPaymentSummary.Id,
+                OrderPaymentSummary.FullName, CurrencyIsoCode,
+                OrderPaymentSummary.OrderSummary.Id,
+                OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
+            FROM
+                PaymentAuthorization
+            WHERE
+                Id = :paymentAuthId
+            WITH USER_MODE
+        ];
+        return paymentAuthorization;
     }
     
     /**
@@ -173,8 +111,8 @@ public with sharing class AdyenPaymentUtility {
     * @param gatewayRefNumber original payment gateway reference number as received in the notification
     * @return apex class id for the payment gateway adapter.
     */
-    public static String retrieveApexAdapterId(String gatewayRefNumber) {
-        String apexAdapterId = null;
+    public static Id retrieveApexAdapterId(String gatewayRefNumber) {
+        Id apexAdapterId = null;
         
         // Prioritize the payment authorization record if it exists
         for (PaymentAuthorization paymentAuthorization : [
@@ -327,9 +265,9 @@ public with sharing class AdyenPaymentUtility {
             return getRandomNumber(16);
         }
         List<FulfillmentOrder> fulfillmentOrders = [
-                SELECT FulfillmentOrderNumber
-                FROM FulfillmentOrder
-                WHERE InvoiceId = :invoiceId
+            SELECT FulfillmentOrderNumber
+            FROM FulfillmentOrder
+            WHERE InvoiceId = :invoiceId
         ];
         if (fulfillmentOrders.isEmpty() || fulfillmentOrders.size() > 1) {
             return getRandomNumber(16);
@@ -350,6 +288,7 @@ public with sharing class AdyenPaymentUtility {
     /**
     * Add application information to the webservice request
     *
+    * @param integratorName as specified in the custom metadata
     * @return application information map for the request.
     */
     public static ApplicationInfo getApplicationInfo(String integratorName) {
@@ -376,34 +315,54 @@ public with sharing class AdyenPaymentUtility {
     /**
     * Create a modification request by populating required properties (capture/refund)
     *
+    * @param paymentRequest capture or refund request
+    * @param currencyCode string containing the currency ISO code
+    * @param adyenAdapter custom metadata type containing the configuration
     * @return CheckoutModificationRequest to send to Adyen.
     */
-    public static CheckoutModificationRequest createModificationRequest(CommercePayments.RequestType paymentType, String currencyCode, Decimal amount, String merchantAccount, String reference, String systemIntegratorName) {
+    public static CheckoutModificationRequest createModificationRequest(CommercePayments.PaymentGatewayRequest paymentRequest, String currencyCode, Adyen_Adapter__mdt adyenAdapter) {
         CheckoutModificationRequest modRequest;
-        if (paymentType == CommercePayments.RequestType.Capture) {
+        Decimal price;
+        String reference;
+        if (paymentRequest instanceof CommercePayments.CaptureRequest) {
             modRequest = new CheckoutCaptureRequest();
-        } else if (paymentType == CommercePayments.RequestType.ReferencedRefund) {
+            CommercePayments.CaptureRequest captureRequest = (CommercePayments.CaptureRequest)paymentRequest;
+            price = captureRequest.amount;
+            reference = AdyenPaymentUtility.getReference(captureRequest);
+        } else if (paymentRequest instanceof CommercePayments.ReferencedRefundRequest) {
             modRequest = new CheckoutRefundRequest();
+            CommercePayments.ReferencedRefundRequest refundRequest = (CommercePayments.ReferencedRefundRequest)paymentRequest;
+            price = refundRequest.amount;
+            reference = AdyenPaymentUtility.getRandomNumber(16);
         }
-        modRequest.setReference(reference);
-        modRequest.setMerchantAccount(merchantAccount);
         Amount requestAmount = new Amount();
-        requestAmount.value = (amount * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
+        requestAmount.value = (price * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
         requestAmount.currency_x = currencyCode;
+
         modRequest.setAmount(requestAmount);
-        modRequest.setApplicationInfo(AdyenPaymentUtility.getApplicationInfo(systemIntegratorName));
+        modRequest.setReference(reference);
+        modRequest.setMerchantAccount(adyenAdapter.Merchant_Account__c);
+        modRequest.setApplicationInfo(AdyenPaymentUtility.getApplicationInfo(adyenAdapter.System_Integrator_Name__c));
         return modRequest;
     }
     
     /**
     * Send modification request (payment/refund) to Adyen platform
     *
+    * @param modRequest request to be sent
+    * @param adyenAdapterMdt custom metadata used
+    * @param pspReference Adyen payment reference
     * @return response from adyen platform.
     */
-    public static HttpResponse sendModificationRequest(CheckoutModificationRequest modRequest, Adyen_Adapter__mdt adyenAdapterMdt, String endpoint) {
+    public static HttpResponse sendModificationRequest(CheckoutModificationRequest modRequest, Adyen_Adapter__mdt adyenAdapterMdt, String pspReference) {
+        String endpoint = adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c;
+        if (modRequest instanceof CheckoutCaptureRequest) {
+            endpoint += adyenAdapterMdt.Capture_Endpoint__c.replace('{paymentPspReference}', pspReference);
+        } else if (modRequest instanceof CheckoutRefundRequest) {
+            endpoint += adyenAdapterMdt.Refund_Endpoint__c.replace('{paymentPspReference}', pspReference);
+        }
         String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(modRequest, true));
         String apiKey = MERCHANT_API_KEY;
-        endpoint = Test.isRunningTest() ? TEST_ENDPOINT + endpoint : adyenAdapterMdt.Endpoint_Path__c + adyenAdapterMdt.Endpoint_Api_Version__c + endpoint;
         AdyenClient client = new AdyenClient(apiKey, endpoint);
         HttpResponse response = client.request(client.config, body);
         return response;
@@ -412,7 +371,9 @@ public with sharing class AdyenPaymentUtility {
     /**
     * Create an AUTH request by populating required properties
     *
-    * @return AuthorisationRequest to send to Adyen.
+    * @param authRequest authorization request from SF Commerce Payments
+    * @param adyenAdapterMdt custom metadata used
+    * @return AuthorisationRequest to be sent to Adyen.
     */
     public static AuthorisationRequest createAuthorisationRequest(CommercePayments.AuthorizationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt) {
         AuthorisationRequest adyenAuthorisationRequest = new AuthorisationRequest();
@@ -470,6 +431,8 @@ public with sharing class AdyenPaymentUtility {
     /**
     * Send authorisation request to Adyen platform
     *
+    * @param authRequest to be sent to Adyen
+    * @param adyenAdapterMdt custom metadata used
     * @return response from adyen platform.
     */
     public static HttpResponse sendAuthorisationRequest(AuthorisationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt){
