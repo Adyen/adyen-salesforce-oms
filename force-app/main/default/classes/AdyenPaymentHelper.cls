@@ -63,7 +63,6 @@ public with sharing class AdyenPaymentHelper {
     * @param notificationRequest The body of the Adyen notification request.
     * @return AdyenNotificationRequest  The deserialized version of the Adyen notification request.
     *
-    * @see https://docs.adyen.com/development-resources/webhooks/understand-notifications
     */
     public static NotificationRequestItem parseAdyenNotificationRequest(CommercePayments.PaymentGatewayNotificationRequest notificationRequest) {
         String adyenNotificationRequestPayload = Test.isRunningTest() ? TEST_NOTIFICATION_REQUEST_BODY : AdyenPaymentUtility.makeSalesforceCompatible(notificationRequest.getRequestBody().toString());
