@@ -57,18 +57,17 @@ private class AdyenPaymentUtilityTest {
     @IsTest
     private static void createModificationRequestTest() {
         //given
-        CommercePayments.RequestType paymentType = CommercePayments.RequestType.Capture;
+        CommercePayments.CaptureRequest captureRequest;
         String currencyCode = 'USD';
         Double price; // request comes as Double value
-        String merchantAccount = 'test_merchant';
-        String reference = 'test_reference';
-        String systemIntegratorName = 'test_integrator';
+        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(AdyenConstants.DEFAULT_ADAPTER_NAME);
         Decimal expectedPrice;
         CheckoutCaptureRequest modificationRequest;
         for (Integer i = 0; i < 10; i++) {
             price = 100.90 + (0.01 * i);
+            captureRequest = new CommercePayments.CaptureRequest(price, null);
             // when
-            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, price, merchantAccount, reference, systemIntegratorName);
+            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(captureRequest, currencyCode, adyenAdapterMdt);
             // then
             expectedPrice = 100 * Decimal.valueOf(price);
             Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
@@ -77,8 +76,9 @@ private class AdyenPaymentUtilityTest {
         currencyCode = 'JOD';
         for (Integer i = 0; i < 10; i++) {
             price = 100.990 + (0.001 * i);
+            captureRequest = new CommercePayments.CaptureRequest(price, null);
             // when
-            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, price, merchantAccount, reference, systemIntegratorName);
+            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(captureRequest, currencyCode, adyenAdapterMdt);
             // then
             expectedPrice = 1000 * Decimal.valueOf(price);
             Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
@@ -87,8 +87,9 @@ private class AdyenPaymentUtilityTest {
         currencyCode = 'JPY';
         for (Integer i = 0; i < 10; i++) {
             price = 100990 + i;
+            captureRequest = new CommercePayments.CaptureRequest(price, null);
             // when
-            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, price, merchantAccount, reference, systemIntegratorName);
+            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(captureRequest, currencyCode, adyenAdapterMdt);
             // then
             expectedPrice = Decimal.valueOf(price);
             Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
@@ -97,17 +98,17 @@ private class AdyenPaymentUtilityTest {
         currencyCode = 'EUR';
         for (Integer i = 0; i < 10; i++) {
             price = 10.990 + (0.001 * i);
+            captureRequest = new CommercePayments.CaptureRequest(price, null);
             // when
-            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(paymentType, currencyCode, price, merchantAccount, reference, systemIntegratorName);
+            modificationRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(captureRequest, currencyCode, adyenAdapterMdt);
             // then
             expectedPrice = 100 * Decimal.valueOf(price);
             Assert.areEqual(expectedPrice.longValue(), modificationRequest.amount.value, ASSERT_PRICE_MESSAGE + price);
         }
         // checking other properties
         Assert.areEqual(currencyCode, modificationRequest.amount.currency_x);
-        Assert.areEqual(reference, modificationRequest.getReference());
-        Assert.areEqual(merchantAccount, modificationRequest.getMerchantAccount());
-        Assert.areEqual(systemIntegratorName, modificationRequest.getApplicationInfo().externalPlatform.integrator);
+        Assert.areEqual(adyenAdapterMdt.Merchant_Account__c, modificationRequest.getMerchantAccount());
+        Assert.areEqual(adyenAdapterMdt.System_Integrator_Name__c, modificationRequest.getApplicationInfo().externalPlatform.integrator);
     }
 
     @IsTest(SeeAllData=true) // for ConnectApi use only

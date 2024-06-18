@@ -66,11 +66,11 @@ public with sharing class AdyenCaptureHelper {
         salesforceResponse.setGatewayReferenceDetails(adyenResponse.getReference());
         salesforceResponse.setGatewayResultCode(adyenResponse.getStatus());
 
-        if (adyenResponse != null && adyenHttpResponse.getStatusCode() != AdyenConstants.HTTP_ERROR_CODE) { // HTTP connection with Adyen was successful
+        if (adyenHttpResponse.getStatusCode() != AdyenConstants.HTTP_ERROR_CODE) { // HTTP connection with Adyen was successful
            salesforceResponse.setGatewayReferenceNumber(adyenResponse.getPSPReference());
            salesforceResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
            if (adyenResponse.getStatus() == AdyenConstants.NOTIFICATION_RECEIVED_CHECKOUT) {
-            salesforceResponse.setGatewayMessage('[capture-received]');
+                salesforceResponse.setGatewayMessage('[capture-received]');
            }
         } else {
            salesforceResponse.setGatewayReferenceNumber(null);

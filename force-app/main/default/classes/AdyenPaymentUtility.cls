@@ -37,7 +37,6 @@ public with sharing class AdyenPaymentUtility {
                 Payment
             WHERE
                 Id = :paymentId
-            WITH USER_MODE
         ];
         return payment;
     }
@@ -58,7 +57,6 @@ public with sharing class AdyenPaymentUtility {
                 Adyen_Adapter__mdt
             WHERE
                 DeveloperName = :developerName
-            WITH USER_MODE
         ];
         return adyenAdapterMdt;
     }
@@ -83,7 +81,6 @@ public with sharing class AdyenPaymentUtility {
                 PaymentAuthorization
             WHERE
                 Id = :paymentAuthId
-            WITH USER_MODE
         ];
         return paymentAuthorization;
     }

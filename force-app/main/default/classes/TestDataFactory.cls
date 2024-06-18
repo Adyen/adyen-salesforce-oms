@@ -99,7 +99,7 @@ public class TestDataFactory {
         nri.eventCode = eventCode;
         nri.pspReference = GATEWAY_REF;
         nri.eventDate = String.valueOf(System.today());
-        nri.paymentpspReference = 'paymentpspref';
+        nri.paymentPspReference = 'paymentPspRef';
         nri.success = 'true';
         nri.merchantAccountCode = 'merchant_account_code';
         nri.originalReference = originalRef;
@@ -288,39 +288,41 @@ public class TestDataFactory {
             
             String endpoint = req.getEndpoint();
             Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
-            
-            if(endpoint.containsIgnoreCase('payment')) {
-                Map<String, Object> paymentMethod = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize((requestBody.get('paymentMethod'))));
-                Object spm = requestBody.get('storePaymentMethod');
+            if (endpoint.containsIgnoreCase('capture') || endpoint.containsIgnoreCase('refund')) {
+                amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
+            } else {
+                Map<String, Object> paymentMethod = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize((requestBody.get('paymentMethod'))));
                 responseBody.put('resultCode', RESULT_CODE_SUCCESS);
                 // Authorize
-                if(TEST_PAYMENT_TOKEN.equals(paymentMethod.get('storedPaymentMethodId'))) { // Successful Auth
+                if (TEST_PAYMENT_TOKEN.equals(paymentMethod.get('storedPaymentMethodId'))) { // Successful Auth
                     additionalData.put('authCode', TEST_AUTH_CODE);
-                    amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
+                    amount.put('value', Integer.valueOf(TEST_AMOUNT * 10));
                 } else { // Failed Auth
                     responseBody.put('resultCode', RESULT_CODE_FAIL);
                     res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
                 }
                 responseBody.put('additionalData', additionalData);
-            } else if(endpoint.containsIgnoreCase('capture')) {
-                // Capture
-                responseBody.put('reference', TEST_SHOPPER_REFERENCE);
-                if(requestBody.get('merchantAccount') != '' && requestBody.get('amount') != null) { // Successful Capture
-                    amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
-                } else { // Failed Capture
-                    res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
-                }
-            } else if(endpoint.containsIgnoreCase('refund')) {
-                // Refund
-                responseBody.put('reference', TEST_SHOPPER_REFERENCE);
-                if(requestBody.get('merchantAccount') != '' && requestBody.get('amount') != null) { // Successful Refund
-                    amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
-                } else { // Failed Refund
-                    res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
-                }
             }
             res.setBody(JSON.serialize(responseBody));
             return res;
         }
+    }
+
+    public class FailureResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(genericErrorResponse(), 400);
+        }
+    }
+
+    public static HttpResponse mockHttpResponse(String body, Integer code) {
+        HttpResponse res = new HttpResponse();
+        res.setHeader('Content-Type', 'text/json');
+        res.setBody(body);
+        res.setStatusCode(code);
+        return res;
+    }
+
+    private static String genericErrorResponse() {
+        return '{"status": 400, "errorCode": "702", "message": "Empty input which would have resulted in a null result.", "errorType": "validation"}';
     }
 }
