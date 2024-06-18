@@ -94,7 +94,6 @@ public class TestDataFactory {
         nri.eventCode = eventCode;
         nri.pspReference = GATEWAY_REF;
         nri.eventDate = String.valueOf(System.today());
-        nri.paymentPspReference = 'paymentPspRef';
         nri.success = 'true';
         nri.merchantAccountCode = 'merchant_account_code';
         nri.originalReference = originalRef;
