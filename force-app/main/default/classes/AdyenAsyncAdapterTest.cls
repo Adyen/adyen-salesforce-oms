@@ -126,7 +126,7 @@ private class AdyenAsyncAdapterTest {
             Test.startTest();
             CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, null);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-            CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+            TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
             Assert.fail('Exception expected');
         } catch(Exception ex) {
@@ -142,10 +142,10 @@ private class AdyenAsyncAdapterTest {
             Test.startTest();
             CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(null, paymentId);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-            CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+            TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
             Assert.fail('Exception expected');
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             Assert.areEqual('Payment Amount Missing', ex.getMessage(), 'Payment Amount is available.');
         }
     }

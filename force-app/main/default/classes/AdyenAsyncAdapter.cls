@@ -6,7 +6,6 @@
  *
  *  @see AdyenPaymentHelper
  *  @see AdyenClient
- *  @see https://quip.com/z6RVAJzUKYaf
  */
 global with sharing class AdyenAsyncAdapter implements   CommercePayments.PaymentGatewayAdapter,
                                             CommercePayments.PaymentGatewayAsyncAdapter {
