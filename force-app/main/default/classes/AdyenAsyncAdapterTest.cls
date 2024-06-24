@@ -40,32 +40,26 @@ private class AdyenAsyncAdapterTest {
     @IsTest
     static void testCaptureOutboundMissingPaymentAuthorization() {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
-        try {
-            Test.startTest();
-            CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, null);
-            CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-            TestDataFactory.adyenAdapter.processRequest(context);
-            Test.stopTest();
-            Assert.fail('Exception expected');
-        } catch(Exception ex) {
-            Assert.isInstanceOfType(ex, System.QueryException.class, 'Payment Authorization is available');
-        }
+        Test.startTest();
+        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, null);
+        CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
+        CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
+        Test.stopTest();
+        Assert.isInstanceOfType(gatewayResponse, CommercePayments.GatewayErrorResponse.class);
+        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase('List has no rows for assignment to SObject'));
     }
     
     @IsTest
     static void testCaptureOutboundMissingAmount() {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
-        try {
-            Test.startTest();
-            CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(null, authId);
-            CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-            TestDataFactory.adyenAdapter.processRequest(context);
-            Test.stopTest();
-            Assert.fail('Exception expected');
-        } catch(Exception ex) {
-            Assert.areEqual('Payment Amount Missing', ex.getMessage(), 'Payment Amount is available.');
-        }
+        Test.startTest();
+        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(null, authId);
+        CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
+        CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
+        Test.stopTest();
+        Assert.isInstanceOfType(gatewayResponse, CommercePayments.GatewayErrorResponse.class);
+        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase('Payment Amount Missing'));
     }
     
     @IsTest
@@ -122,31 +116,25 @@ private class AdyenAsyncAdapterTest {
     @IsTest
     static void testRefundOutboundMissingPayment() {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
-        try {
-            Test.startTest();
-            CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, null);
-            CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-            TestDataFactory.adyenAdapter.processRequest(context);
-            Test.stopTest();
-            Assert.fail('Exception expected');
-        } catch(Exception ex) {
-            Assert.isInstanceOfType(ex, System.QueryException.class, 'Payment Authorization is available');
-        }
+        Test.startTest();
+        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, null);
+        CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
+        CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
+        Test.stopTest();
+        Assert.isInstanceOfType(gatewayResponse, CommercePayments.GatewayErrorResponse.class);
+        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase('List has no rows for assignment to SObject'));
     }
     
     @IsTest
     static void testRefundOutboundMissingAmount() {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
-        try {
-            Test.startTest();
-            CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(null, paymentId);
-            CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-            TestDataFactory.adyenAdapter.processRequest(context);
-            Test.stopTest();
-            Assert.fail('Exception expected');
-        } catch (Exception ex) {
-            Assert.areEqual('Payment Amount Missing', ex.getMessage(), 'Payment Amount is available.');
-        }
+        Test.startTest();
+        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(null, paymentId);
+        CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
+        CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
+        Test.stopTest();
+        Assert.isInstanceOfType(gatewayResponse, CommercePayments.GatewayErrorResponse.class);
+        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase('Payment Amount Missing'));
     }
 }
