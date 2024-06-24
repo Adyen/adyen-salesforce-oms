@@ -42,7 +42,6 @@ global with sharing class AdyenAsyncAdapter implements   CommercePayments.Paymen
     global CommercePayments.GatewayNotificationResponse processNotification(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext) {
         String apexName = String.valueOf(this).substring(0, String.valueOf(this).indexOf(':'));
         return AdyenPaymentHelper.handleAsyncNotificationCallback(gatewayNotificationContext, apexName);
-
     }
 
     public class GatewayException extends Exception {}
