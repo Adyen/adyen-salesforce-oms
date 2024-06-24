@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Refund_Endpoint__c</fullName>
-    <defaultValue>&quot;/refund&quot;</defaultValue>
+    <fullName>Package_Namespace__c</fullName>
+    <description>For Adyen adyen_payment namespace</description>
     <externalId>false</externalId>
     <fieldManageability>DeveloperControlled</fieldManageability>
-    <label>Refund Endpoint</label>
-    <length>64</length>
+    <inlineHelpText>Do not change this value</inlineHelpText>
+    <label>Package Namespace</label>
+    <length>15</length>
     <required>false</required>
     <type>Text</type>
     <unique>false</unique>

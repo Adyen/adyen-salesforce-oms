@@ -15,10 +15,6 @@
         <value xsi:type="xsd:string">/v70</value>
     </values>
     <values>
-        <field>Endpoint_Method__c</field>
-        <value xsi:type="xsd:string">POST</value>
-    </values>
-    <values>
         <field>Endpoint_Path__c</field>
         <value xsi:type="xsd:string">/checkout</value>
     </values>
@@ -27,12 +23,12 @@
         <value xsi:type="xsd:string">MerchantAccountName</value>
     </values>
     <values>
-        <field>Refund_Endpoint__c</field>
-        <value xsi:type="xsd:string">/payments/{paymentPspReference}/refunds</value>
+        <field>Package_Namespace__c</field>
+        <value xsi:type="xsd:string">adyen_payment</value>
     </values>
     <values>
-        <field>Single_Currency_Code__c</field>
-        <value xsi:nil="true"/>
+        <field>Refund_Endpoint__c</field>
+        <value xsi:type="xsd:string">/payments/{paymentPspReference}/refunds</value>
     </values>
     <values>
         <field>System_Integrator_Name__c</field>

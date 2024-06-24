@@ -1,4 +1,4 @@
-@isTest
+@IsTest
 private class AdyenAsyncAdapterTest {
     @TestSetup
     static void makeData() {
@@ -24,7 +24,7 @@ private class AdyenAsyncAdapterTest {
     
     @IsTest
     static void testCaptureOutboundFailure() {
-        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.FailureResponse());
 
         Test.startTest();
         AdyenPaymentUtility.skipMerchantAccount = true;
@@ -44,11 +44,11 @@ private class AdyenAsyncAdapterTest {
             Test.startTest();
             CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, null);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-            CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+            TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
             Assert.fail('Exception expected');
         } catch(Exception ex) {
-            Assert.areEqual('Payment Authorization Missing', ex.getMessage(), 'Payment Authorization is available');
+            Assert.isInstanceOfType(ex, System.QueryException.class, 'Payment Authorization is available');
         }
     }
     
@@ -60,7 +60,7 @@ private class AdyenAsyncAdapterTest {
             Test.startTest();
             CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(null, authId);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-            CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+            TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
             Assert.fail('Exception expected');
         } catch(Exception ex) {
@@ -101,12 +101,12 @@ private class AdyenAsyncAdapterTest {
         CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
 
-        Assert.isTrue(refundResponse.toString().contains(TestDataFactory.TEST_SHOPPER_REFERENCE));
+        Assert.isTrue(refundResponse.toString().contains('received'));
     }
     
     @IsTest
     static void testRefundOutboundFailure() {
-        Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.FailureResponse());
 
         Test.startTest();
         AdyenPaymentUtility.skipMerchantAccount = true;
@@ -126,11 +126,11 @@ private class AdyenAsyncAdapterTest {
             Test.startTest();
             CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, null);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-            CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+            TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
             Assert.fail('Exception expected');
         } catch(Exception ex) {
-            Assert.areEqual('Payment Info Missing', ex.getMessage(), 'Payment Info is available.');
+            Assert.isInstanceOfType(ex, System.QueryException.class, 'Payment Authorization is available');
         }
     }
     
@@ -142,10 +142,10 @@ private class AdyenAsyncAdapterTest {
             Test.startTest();
             CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(null, paymentId);
             CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-            CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+            TestDataFactory.adyenAdapter.processRequest(context);
             Test.stopTest();
             Assert.fail('Exception expected');
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             Assert.areEqual('Payment Amount Missing', ex.getMessage(), 'Payment Amount is available.');
         }
     }

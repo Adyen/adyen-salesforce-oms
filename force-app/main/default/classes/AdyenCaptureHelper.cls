@@ -36,15 +36,7 @@ public with sharing class AdyenCaptureHelper {
         }
 
         Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
-        String currencyCode = adyenAdapterMdt.Single_Currency_Code__c != null ? adyenAdapterMdt.Single_Currency_Code__c : pa.CurrencyIsoCode;
-        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(
-            CommercePayments.RequestType.Capture,
-            currencyCode,
-            captureRequest.amount,
-            adyenAdapterMdt.Merchant_Account__c,
-            AdyenPaymentUtility.getReference(captureRequest),
-            adyenAdapterMdt.System_Integrator_Name__c
-        );
+        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(captureRequest, pa.CurrencyIsoCode, adyenAdapterMdt);
 
         // Line items required for partial captures for Open Invoice methods
         if (AdyenPaymentUtility.checkIfOpenInvoiceFromAuthorization(pa)) {
@@ -56,9 +48,7 @@ public with sharing class AdyenCaptureHelper {
             modRequest.setLineItems(AdyenPaymentUtility.addInvoiceData(invoiceId));
         }
 
-        String captureEndpointURL = adyenAdapterMdt.Capture_Endpoint__c;
-        captureEndpointURL = captureEndpointURL.replace('{paymentPspReference}', pspReference);
-        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, captureEndpointURL);
+        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
         return processCaptureResponse(adyenHttpResponse, captureRequest.amount);
     }
 
@@ -76,11 +66,11 @@ public with sharing class AdyenCaptureHelper {
         salesforceResponse.setGatewayReferenceDetails(adyenResponse.getReference());
         salesforceResponse.setGatewayResultCode(adyenResponse.getStatus());
 
-        if (adyenResponse != null && adyenHttpResponse.getStatusCode() != AdyenConstants.HTTP_ERROR_CODE) { // HTTP connection with Adyen was successful
+        if (adyenHttpResponse.getStatusCode() != AdyenConstants.HTTP_ERROR_CODE) { // HTTP connection with Adyen was successful
            salesforceResponse.setGatewayReferenceNumber(adyenResponse.getPSPReference());
            salesforceResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
            if (adyenResponse.getStatus() == AdyenConstants.NOTIFICATION_RECEIVED_CHECKOUT) {
-            salesforceResponse.setGatewayMessage('[capture-received]');
+                salesforceResponse.setGatewayMessage('[capture-received]');
            }
         } else {
            salesforceResponse.setGatewayReferenceNumber(null);

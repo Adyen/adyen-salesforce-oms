@@ -12,7 +12,7 @@ public with sharing class AdyenPaymentHelper {
         CommercePayments.RequestType paymentRequestType = paymentGatewayContext.getPaymentRequestType();
         CommercePayments.PaymentGatewayRequest paymentRequest = paymentGatewayContext.getPaymentRequest();
         
-        if(paymentRequestType == CommercePayments.RequestType.Authorize){
+        if (paymentRequestType == CommercePayments.RequestType.Authorize) {
             return AdyenAuthorisationHelper.authorise((CommercePayments.AuthorizationRequest)paymentRequest);
         } else if (paymentRequestType == CommercePayments.RequestType.Capture) {
             return AdyenCaptureHelper.capture((CommercePayments.CaptureRequest)paymentRequest);
@@ -26,18 +26,18 @@ public with sharing class AdyenPaymentHelper {
     
     public static CommercePayments.GatewayNotificationResponse handleAsyncNotificationCallback(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext, String apexName) {
         CommercePayments.PaymentGatewayNotificationRequest paymentGatewayNotificationRequest = Test.isRunningTest() ? null : gatewayNotificationContext.getPaymentGatewayNotificationRequest();
-        NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest( paymentGatewayNotificationRequest );
+        NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest(paymentGatewayNotificationRequest);
 
         if (notificationRequestItem.originalReference == null) {
             String msg = '[accepted] Notification skipped, original reference is not available';
             return createNotificationResponse(msg, AdyenConstants.HTTP_SUCCESS_CODE);
         }
-
-        String adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
-        Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND (NamespacePrefix = :AdyenOMSConstants.ADYEN_2GP_NAMESPACE OR NamespacePrefix = '') LIMIT 1].Id;
+        String packageNamespace = AdyenPaymentUtility.retrieveGatewayMetadata(AdyenConstants.DEFAULT_ADAPTER_NAME).Package_Namespace__c;
+        Id adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
+        Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND NamespacePrefix = :packageNamespace LIMIT 1].Id;
         Boolean isAdapterSameAsThis = adapterIdFromNotificationData == adyenAdapterId;
         if (isAdapterSameAsThis) {
-            CommercePayments.NotificationSaveResult notificationSaveResult = createNotificationSaveResult( notificationRequestItem );
+            CommercePayments.NotificationSaveResult notificationSaveResult = createNotificationSaveResult(notificationRequestItem);
             if (notificationSaveResult != null) {
                 return createNotificationResponse(AdyenConstants.NOTIFICATION_ACCEPTED_RESPONSE, AdyenConstants.HTTP_SUCCESS_CODE);
             } else {
@@ -63,7 +63,6 @@ public with sharing class AdyenPaymentHelper {
     * @param notificationRequest The body of the Adyen notification request.
     * @return AdyenNotificationRequest  The deserialized version of the Adyen notification request.
     *
-    * @see https://docs.adyen.com/development-resources/webhooks/understand-notifications
     */
     public static NotificationRequestItem parseAdyenNotificationRequest(CommercePayments.PaymentGatewayNotificationRequest notificationRequest) {
         String adyenNotificationRequestPayload = Test.isRunningTest() ? TEST_NOTIFICATION_REQUEST_BODY : AdyenPaymentUtility.makeSalesforceCompatible(notificationRequest.getRequestBody().toString());
