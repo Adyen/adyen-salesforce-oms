@@ -11,8 +11,12 @@
                 <field>MasterLabel</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
+                <behavior>Required</behavior>
                 <field>Merchant_Account__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Required</behavior>
+                <field>HMAC_Key__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
@@ -36,10 +40,6 @@
             <layoutItems>
                 <behavior>Required</behavior>
                 <field>NamespacePrefix</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>Package_Namespace__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>

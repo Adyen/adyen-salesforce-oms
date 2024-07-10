@@ -61,7 +61,7 @@ public with sharing class AdyenPaymentUtility {
     public static Adyen_Adapter__mdt retrieveGatewayMetadata(String developerName) {
         List<Adyen_Adapter__mdt> adyenAdapters = [
             SELECT
-                DeveloperName, Package_Namespace__c, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
+                DeveloperName, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
                 System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c,
                 Authorize_Endpoint__c, HMAC_Key__c
             FROM Adyen_Adapter__mdt
@@ -76,7 +76,7 @@ public with sharing class AdyenPaymentUtility {
     public static Adyen_Adapter__mdt retrieveAdapterByMerchantAcct(String merchantAccountName) {
         List<Adyen_Adapter__mdt> adyenAdapters = [
             SELECT
-                DeveloperName, Package_Namespace__c, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
+                DeveloperName, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
                 System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c,
                 Authorize_Endpoint__c, HMAC_Key__c
             FROM Adyen_Adapter__mdt
