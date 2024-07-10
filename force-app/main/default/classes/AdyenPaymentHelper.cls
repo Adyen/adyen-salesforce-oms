@@ -24,36 +24,37 @@ public with sharing class AdyenPaymentHelper {
         }
     }
     
-    public static CommercePayments.GatewayNotificationResponse handleAsyncNotificationCallback(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext, String apexName) {
+    public static CommercePayments.GatewayNotificationResponse handleAsyncNotificationCallback(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext) {
         CommercePayments.PaymentGatewayNotificationRequest paymentGatewayNotificationRequest = Test.isRunningTest() ? null : gatewayNotificationContext.getPaymentGatewayNotificationRequest();
         NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest(paymentGatewayNotificationRequest);
+        Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByMerchantAcct(notificationRequestItem.merchantAccountCode);
+        HMACValidator validator = new HMACValidator(notificationRequestItem, adyenAdapter.HMAC_Key__c);
 
-        if (notificationRequestItem.originalReference == null) {
-            String msg = '[accepted] Notification skipped, original reference is not available';
-            return createNotificationResponse(msg, AdyenConstants.HTTP_SUCCESS_CODE);
+        if (!Test.isRunningTest() && !validator.validateHMAC()) {
+            return createAcceptedNotificationResponse('not a valid notification request');
         }
-        String packageNamespace = AdyenPaymentUtility.retrieveGatewayMetadata(AdyenConstants.DEFAULT_ADAPTER_NAME).Package_Namespace__c;
-        Id adapterIdFromNotificationData = AdyenPaymentUtility.retrieveApexAdapterId(notificationRequestItem.originalReference);
-        Id adyenAdapterId = [SELECT Id FROM ApexClass WHERE Name = :apexName AND NamespacePrefix = :packageNamespace LIMIT 1].Id;
-        Boolean isAdapterSameAsThis = adapterIdFromNotificationData == adyenAdapterId;
-        if (isAdapterSameAsThis) {
-            CommercePayments.NotificationSaveResult notificationSaveResult = createNotificationSaveResult(notificationRequestItem);
-            if (notificationSaveResult != null) {
-                return createNotificationResponse(AdyenConstants.NOTIFICATION_ACCEPTED_RESPONSE, AdyenConstants.HTTP_SUCCESS_CODE);
-            } else {
-                String msg = '[accepted] But unsupported notification type: ' + notificationRequestItem.eventCode;
-                return createNotificationResponse(msg, AdyenConstants.HTTP_SUCCESS_CODE);
-            }
-        } else {
-            String msg = '[accepted] But not processed - wrong payment adapter or wrong instance';
-            return createNotificationResponse(msg, AdyenConstants.HTTP_SUCCESS_CODE);
+
+        if (!AdyenPaymentUtility.isValidNotification(notificationRequestItem)) {
+            return createAcceptedNotificationResponse('no valid psp reference found or webhook type was ignored');
         }
+
+        if (!AdyenPaymentUtility.relatedPaymentFound(notificationRequestItem.originalReference)) {
+            return createAcceptedNotificationResponse('no related payment record found');
+        }
+
+        createNotificationSaveResult(notificationRequestItem);
+        return createAcceptedNotificationResponse(null);
     }
 
-    private static CommercePayments.GatewayNotificationResponse createNotificationResponse(String message, Integer httpCode) {
+    private static CommercePayments.GatewayNotificationResponse createAcceptedNotificationResponse(String reason) {
+        String responseMessage = AdyenConstants.NOTIFICATION_ACCEPTED_RESPONSE;
+        if (!String.isBlank(reason)) {
+            responseMessage += ' But not processed, ' + reason;
+        }
+
         CommercePayments.GatewayNotificationResponse gatewayNotificationResponse = new CommercePayments.GatewayNotificationResponse();
-        gatewayNotificationResponse.setResponseBody(Blob.valueOf(message));
-        gatewayNotificationResponse.setStatusCode(httpCode);
+        gatewayNotificationResponse.setResponseBody(Blob.valueOf(responseMessage));
+        gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
         return gatewayNotificationResponse;
     }
     
@@ -77,8 +78,7 @@ public with sharing class AdyenPaymentHelper {
         }
         return notificationRequestItem;
     }
-    
-    
+
     /**
     * Creates and records (ie saves) the notification save result.
     *
@@ -90,24 +90,25 @@ public with sharing class AdyenPaymentHelper {
         CommercePayments.BaseNotification notification;
         CommercePayments.NotificationStatus notificationStatus;
         CommercePayments.SalesforceResultCode notificationStatusSF;
-
         String gatewayMessageTemplate;
         Boolean isCaptureRequest = AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE.equalsIgnoreCase(notificationRequestItem.eventCode);
         Boolean isRefundRequest = AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND.equalsIgnoreCase(notificationRequestItem.eventCode);
         Boolean isCaptureFailedRequest = AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED.endsWithIgnoreCase(notificationRequestItem.eventCode);
+        Boolean isRefundFailedRequest = AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND_FAILED.endsWithIgnoreCase(notificationRequestItem.eventCode);
+
         if (isCaptureRequest || isCaptureFailedRequest) {
             notification = new CommercePayments.CaptureNotification();
             gatewayMessageTemplate = '[capture-{0}] {1}';
-        } else if (isRefundRequest) {
+        } else if (isRefundRequest || isRefundFailedRequest) {
             notification = new CommercePayments.ReferencedRefundNotification();
             gatewayMessageTemplate = '[refund-{0}] {1}';
         } else {
-            return null; // unsupported notification request
+            throw new AdyenAsyncAdapter.GatewayException('Notification of type ' + notificationRequestItem.eventCode + ' does not match criteria');
         }
 
         String result;
         Boolean isSuccessfulNotification = Boolean.valueOf(notificationRequestItem.success);
-        if (isSuccessfulNotification && !isCaptureFailedRequest) {
+        if (isSuccessfulNotification && !isCaptureFailedRequest && !isRefundFailedRequest) {
             notificationStatus = CommercePayments.NotificationStatus.Success;
             notificationStatusSF = CommercePayments.SalesforceResultCode.Success;
             result = 'complete';

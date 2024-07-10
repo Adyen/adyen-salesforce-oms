@@ -6,7 +6,7 @@ public class TestDataFactory {
     public static final String TEST_AUTH_CODE = 'TEST_AUTH_CODE';
     public static final String RESULT_CODE_SUCCESS = 'Authorised';
     public static final String RESULT_CODE_FAIL = 'Failure';
-    public static final String GATEWAY_REF = 'gatewayReference';
+    public static final String GATEWAY_REF = '0000000000000000';
     public static final Double TEST_AMOUNT = 19.99;
     public static final String ACTIVE_CURRENCY = [SELECT IsoCode FROM CurrencyType WHERE IsActive = TRUE LIMIT 1].IsoCode;
 
@@ -95,7 +95,7 @@ public class TestDataFactory {
         nri.pspReference = GATEWAY_REF;
         nri.eventDate = String.valueOf(System.today());
         nri.success = 'true';
-        nri.merchantAccountCode = 'merchant_account_code';
+        nri.merchantAccountCode = [SELECT Merchant_Account__c FROM Adyen_Adapter__mdt LIMIT 1].Merchant_Account__c;
         nri.originalReference = originalRef;
         return nri;
     }

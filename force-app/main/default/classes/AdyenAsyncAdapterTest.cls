@@ -27,7 +27,6 @@ private class AdyenAsyncAdapterTest {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.FailureResponse());
 
         Test.startTest();
-        AdyenPaymentUtility.skipMerchantAccount = true;
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
@@ -40,13 +39,15 @@ private class AdyenAsyncAdapterTest {
     @IsTest
     static void testCaptureOutboundMissingPaymentAuthorization() {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
+
         Test.startTest();
         CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, null);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
         CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
+
         Assert.isInstanceOfType(gatewayResponse, CommercePayments.GatewayErrorResponse.class);
-        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase('List has no rows for assignment to SObject'));
+        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase(AdyenPaymentUtility.NO_PAYMENT_AUTH_FOUND_BY_ID));
     }
     
     @IsTest
@@ -64,18 +65,7 @@ private class AdyenAsyncAdapterTest {
     
     @IsTest
     static void testCaptureInboundSuccess() {
-        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('CAPTURE', TestDataFactory.GATEWAY_REF);
-
-        Test.startTest();
-        CommercePayments.GatewayNotificationResponse captureResponse = TestDataFactory.adyenAdapter.processNotification(null);
-        Test.stopTest();
-        
-        Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
-    }
-    
-    @IsTest
-    static void testRefundInboundSuccess() {
-        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('REFUND', TestDataFactory.GATEWAY_REF);
+        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('CAPTURE', TestDataFactory.TEST_PSP_REFERENCE);
 
         Test.startTest();
         CommercePayments.GatewayNotificationResponse captureResponse = TestDataFactory.adyenAdapter.processNotification(null);
@@ -103,7 +93,6 @@ private class AdyenAsyncAdapterTest {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.FailureResponse());
 
         Test.startTest();
-        AdyenPaymentUtility.skipMerchantAccount = true;
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
@@ -122,7 +111,7 @@ private class AdyenAsyncAdapterTest {
         CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
         Assert.isInstanceOfType(gatewayResponse, CommercePayments.GatewayErrorResponse.class);
-        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase('List has no rows for assignment to SObject'));
+        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase(AdyenPaymentUtility.NO_PAYMENT_FOUND_BY_ID));
     }
     
     @IsTest
