@@ -2,9 +2,17 @@ public with sharing class AdyenPaymentUtility {
     
     @TestVisible
     private static final String TEST_ENDPOINT = 'https://test.com';
+    @TestVisible
+    private static final String NO_PAYMENT_FOUND_BY_ID = 'No Payment found with this id: ';
+    @TestVisible
+    private static final String NO_PAYMENT_AUTH_FOUND_BY_ID = 'No payment authorization found with this id: ';
+    @TestVisible
+    private static final String NO_ADYEN_ADAPTER_BY_NAME = 'No Adyen adapter found with this name: ';
+    @TestVisible
+    private static final String NO_ADYEN_ADAPTER_BY_MERCHANT = 'No Adyen adapter found for this merchant account: ';
+
     public static final String MERCHANT_API_KEY = '{!$Credential.Password}';
-    public static Boolean skipMerchantAccount = false;
-    
+
     /**
     * Looks for the Gateway ref number on the Payment record passed in. If not found gets its from
     * the LastPaymentGateway log on the OrderPaymentSummary record.
@@ -26,7 +34,7 @@ public with sharing class AdyenPaymentUtility {
     * @return a Payment sObject.
     */
     public static Payment retrievePayment(Id paymentId) {
-        Payment payment = [
+        List<Payment> payments = [
             SELECT
                 Id, GatewayRefNumber, GatewayRefDetails,
                 PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
@@ -38,7 +46,10 @@ public with sharing class AdyenPaymentUtility {
             WHERE
                 Id = :paymentId
         ];
-        return payment;
+        if (payments.isEmpty()) {
+            throw new AdyenAsyncAdapter.GatewayException(NO_PAYMENT_FOUND_BY_ID + paymentId);
+        }
+        return payments[0];
     }
     
     
@@ -48,17 +59,44 @@ public with sharing class AdyenPaymentUtility {
     *  @return Adyen_Adapter__mdt for the passed metadata type with all fields.
     */
     public static Adyen_Adapter__mdt retrieveGatewayMetadata(String developerName) {
-        Adyen_Adapter__mdt adyenAdapterMdt = [
+        List<Adyen_Adapter__mdt> adyenAdapters = [
             SELECT
-                DeveloperName, Package_Namespace__c, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
+                DeveloperName, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
                 System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c,
-                Authorize_Endpoint__c
-            FROM
-                Adyen_Adapter__mdt
-            WHERE
-                DeveloperName = :developerName
+                Authorize_Endpoint__c, HMAC_Key__c
+            FROM Adyen_Adapter__mdt
+            WHERE DeveloperName = :developerName
         ];
-        return adyenAdapterMdt;
+        if (adyenAdapters.isEmpty()) {
+            throw new AdyenAsyncAdapter.GatewayException(NO_ADYEN_ADAPTER_BY_NAME + developerName);
+        }
+        return adyenAdapters[0];
+    }
+
+    public static Adyen_Adapter__mdt retrieveAdapterByMerchantAcct(String merchantAccountName) {
+        List<Adyen_Adapter__mdt> adyenAdapters = [
+            SELECT
+                DeveloperName, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
+                System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c,
+                Authorize_Endpoint__c, HMAC_Key__c
+            FROM Adyen_Adapter__mdt
+            WHERE Merchant_Account__c = :merchantAccountName
+        ];
+        if (adyenAdapters.isEmpty()) {
+            throw new AdyenAsyncAdapter.GatewayException(NO_ADYEN_ADAPTER_BY_MERCHANT + merchantAccountName);
+        }
+        return adyenAdapters[0];
+    }
+
+    public static Boolean isValidNotification(NotificationRequestItem notificationRequestItem) {
+        return AdyenOMSConstants.VALID_NOTIFICATION_TYPES.contains(notificationRequestItem.eventCode.toUpperCase())
+            && isValidPspReference(notificationRequestItem.originalReference)
+            && isValidPspReference(notificationRequestItem.pspReference);
+    }
+
+    // The Adyen PSP Reference number is a alphanumeric value containing 16 characters
+    private static Boolean isValidPspReference(String pspReference) {
+        return String.isNotBlank(pspReference) && pspReference.isAlphanumeric() && pspReference.length() == 16;
     }
     
     
@@ -69,7 +107,7 @@ public with sharing class AdyenPaymentUtility {
     * @return a PaymentAuthorization sObject.
     */
     public static PaymentAuthorization retrievePaymentAuthorization(Id paymentAuthId) {
-        PaymentAuthorization paymentAuthorization = [
+        List<PaymentAuthorization> paymentAuthorizations = [
             SELECT
                 Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c, Adyen_Payment_Method_Variant__c,
                 OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber,
@@ -82,7 +120,10 @@ public with sharing class AdyenPaymentUtility {
             WHERE
                 Id = :paymentAuthId
         ];
-        return paymentAuthorization;
+        if (paymentAuthorizations.isEmpty()) {
+            throw new AdyenAsyncAdapter.GatewayException(NO_PAYMENT_AUTH_FOUND_BY_ID + paymentAuthId);
+        }
+        return paymentAuthorizations[0];
     }
     
     /**
@@ -108,34 +149,23 @@ public with sharing class AdyenPaymentUtility {
     * @param gatewayRefNumber original payment gateway reference number as received in the notification
     * @return apex class id for the payment gateway adapter.
     */
-    public static Id retrieveApexAdapterId(String gatewayRefNumber) {
-        Id apexAdapterId = null;
-        
+    public static Boolean relatedPaymentFound(String gatewayRefNumber) {
         // Prioritize the payment authorization record if it exists
-        for (PaymentAuthorization paymentAuthorization : [
+        List<PaymentAuthorization> paymentAuthorizations = [
             SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
             FROM PaymentAuthorization
             WHERE GatewayRefNumber = :gatewayRefNumber
-        ]) {
-            if (paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null) {
-                apexAdapterId = paymentAuthorization.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
-            }
+        ];
+        if (!paymentAuthorizations.isEmpty()) {
+            return true;
         }
-        
         // Fall back to a payment record for pre-captured transactions
-        if (apexAdapterId==null) {
-            for (Payment payment : [
-                SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
-                FROM Payment
-                WHERE GatewayRefNumber = :gatewayRefNumber
-            ]) {
-                if (payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter!=null) {
-                    apexAdapterId = payment.PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id;
-                }
-            }
-        }
-        
-        return apexAdapterId;
+        List<Payment> payments = [
+            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+            FROM Payment
+            WHERE GatewayRefNumber = :gatewayRefNumber
+        ];
+        return !payments.isEmpty();
     }
     
     public static Integer getAmountMultiplier(String currencyCode) {
@@ -217,11 +247,7 @@ public with sharing class AdyenPaymentUtility {
             'number_x' => 'number',
             'group_x' => 'group'
         };
-        String output = input;
-        for (String key : mapKeyToReplace.keySet()) {
-            output = output.replace(key, mapKeyToReplace.get(key));
-        }
-        return output;
+        return replaceAttributeName(input, mapKeyToReplace);
     }
     
     /**
@@ -232,15 +258,19 @@ public with sharing class AdyenPaymentUtility {
     * @return output - the same json string with *_x added back in
     */
     public static String makeSalesforceCompatible(String input) {
-        String output = input;
         Map<String, String> mapKeyToReplace = new Map<String, String>{
             'recurring.recurringDetailReference' => 'recurring_recurringDetailReference',
             'currency' => 'currency_x',
             'number' => 'number_x',
             'group' => 'group_x'
         };
-        for (String key : mapKeyToReplace.keySet()) {
-            output = output.replace(key, mapKeyToReplace.get(key));
+        return replaceAttributeName(input, mapKeyToReplace);
+    }
+
+    private static String replaceAttributeName(String input, Map<String,String> fromKeyToValueMap) {
+        String output = input;
+        for (String key : fromKeyToValueMap.keySet()) {
+            output = output.replace(key, fromKeyToValueMap.get(key));
         }
         return output;
     }
@@ -292,18 +322,18 @@ public with sharing class AdyenPaymentUtility {
         ApplicationInfo info = new ApplicationInfo();
         
         ExternalPlatform exPlatform = new ExternalPlatform();
-        exPlatform.name = AdyenOMSConstants.EXTERNAL_PLATFORM_NAME_FOR_APPINFO;
+        exPlatform.name = AdyenOMSConstants.EXTERNAL_PLATFORM_NAME_FOR_APP_INFO;
         exPlatform.integrator = integratorName;
         info.externalPlatform = exPlatform;
         
         CommonField merchantApplication = new CommonField();
-        merchantApplication.name = AdyenOMSConstants.MERCHANT_APP_NAME_FOR_APPINFO;
-        merchantApplication.version = AdyenOMSConstants.MERCHANT_APP_VERSION_FOR_APPINFO;
+        merchantApplication.name = AdyenOMSConstants.MERCHANT_APP_NAME_FOR_APP_INFO;
+        merchantApplication.version = AdyenOMSConstants.MERCHANT_APP_VERSION_FOR_APP_INFO;
         info.merchantApplication = merchantApplication;
         
         CommonField adyenLibrary = new CommonField();
-        adyenLibrary.name = AdyenOMSConstants.ADYEN_LIBRARY_NAME_FOR_APPINFO;
-        adyenLibrary.version = AdyenOMSConstants.ADYEN_LIBRARY_VERSION_FOR_APPINFO;
+        adyenLibrary.name = AdyenOMSConstants.ADYEN_LIBRARY_NAME_FOR_APP_INFO;
+        adyenLibrary.version = AdyenOMSConstants.ADYEN_LIBRARY_VERSION_FOR_APP_INFO;
         info.adyenLibrary = adyenLibrary;
         
         return info;
@@ -389,11 +419,11 @@ public with sharing class AdyenPaymentUtility {
             Id recordId = paymentMethod.id;
             String sObjName = recordId.getSobjectType().getDescribe().getName(); //determine object name
 
-            if (sObjName == AdyenOMSConstants.CARD_PAYMENTMETHOD_OBJECT) {
+            if (sObjName == AdyenOMSConstants.CARD_PAYMENT_METHOD_OBJECT) {
                 //for CardPaymentMethod : Use GatewayTokenEncrypted field to retrieve token
                 CardPaymentMethod cpmRecord = [SELECT Id, GatewayTokenEncrypted FROM CardPaymentMethod WHERE Id = :recordId LIMIT 1];
                 adyenToken = cpmRecord.GatewayTokenEncrypted;
-            } else if (sObjName == AdyenOMSConstants.ALTERNATIVE_PAYMENTMETHOD_OBJECT) {
+            } else if (sObjName == AdyenOMSConstants.ALTERNATIVE_PAYMENT_METHOD_OBJECT) {
                 //for AlternativePaymentMethod : Use GatewayToken field to retrieve token
                 AlternativePaymentMethod apmRecord = [SELECT Id, GatewayToken FROM AlternativePaymentMethod WHERE Id = :recordId LIMIT 1];
                 adyenToken = apmRecord.GatewayToken;

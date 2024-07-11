@@ -7,7 +7,7 @@
  *  @see AdyenPaymentHelper
  *  @see AdyenClient
  */
-global with sharing class AdyenAsyncAdapter implements   CommercePayments.PaymentGatewayAdapter, CommercePayments.PaymentGatewayAsyncAdapter {
+global with sharing class AdyenAsyncAdapter implements CommercePayments.PaymentGatewayAdapter, CommercePayments.PaymentGatewayAsyncAdapter {
 
     global AdyenAsyncAdapter() {}
 
@@ -40,8 +40,7 @@ global with sharing class AdyenAsyncAdapter implements   CommercePayments.Paymen
     * @return CommercePayments.GatewayNotificationResponse
     */
     global CommercePayments.GatewayNotificationResponse processNotification(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext) {
-        String apexName = String.valueOf(this).substring(0, String.valueOf(this).indexOf(':'));
-        return AdyenPaymentHelper.handleAsyncNotificationCallback(gatewayNotificationContext, apexName);
+        return AdyenPaymentHelper.handleAsyncNotificationCallback(gatewayNotificationContext);
     }
 
     public class GatewayException extends Exception {}
