@@ -20,11 +20,7 @@
     </values>
     <values>
         <field>Merchant_Account__c</field>
-        <value xsi:type="xsd:string">MerchantAccountName</value>
-    </values>
-    <values>
-        <field>Package_Namespace__c</field>
-        <value xsi:type="xsd:string">adyen_payment</value>
+        <value xsi:type="xsd:string">Merchant_Account_Name</value>
     </values>
     <values>
         <field>Refund_Endpoint__c</field>
@@ -33,5 +29,9 @@
     <values>
         <field>System_Integrator_Name__c</field>
         <value xsi:nil="true"/>
+    </values>
+    <values>
+        <field>HMAC_Key__c</field>
+        <value xsi:type="xsd:string">Generated_HMAC_Key</value>
     </values>
 </CustomMetadata>
