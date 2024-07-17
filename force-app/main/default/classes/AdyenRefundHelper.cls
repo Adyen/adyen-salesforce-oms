@@ -15,13 +15,13 @@ public with sharing class AdyenRefundHelper {
         Payment payment = AdyenPaymentUtility.retrievePayment(refundRequest.paymentId);
 
         String errorMessage = null;
-        if(payment == null) {
+        if (payment == null) {
             errorMessage = 'Payment Info Missing';
         }
-        if(refundRequest.amount == null) {
+        if (refundRequest.amount == null) {
             errorMessage = 'Payment Amount Missing';
         }
-        if(errorMessage != null) {
+        if (errorMessage != null) {
             throw new AdyenAsyncAdapter.GatewayException(errorMessage);
         }
         // By Default, retrieve the metadata key from the order's sales channel
@@ -51,34 +51,20 @@ public with sharing class AdyenRefundHelper {
             modRequest.setLineItems(AdyenPaymentUtility.addCreditMemoData(payment.OrderPaymentSummary.OrderSummaryId));
         }
 
-        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
-        return processRefundResponse(adyenHttpResponse, refundRequest.amount);
+        CheckoutRefundResponse refundResponse = (CheckoutRefundResponse)AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
+        return processRefundResponse(refundResponse, refundRequest.amount);
     }
 
-    /**
-     * @param adyenHttpResponse: Response from Adyen's api after requesting a refund
-     * @param amount to be refunded
-     * @return CommercePayments.GatewayResponse with populated properties.
-    */
-    public static CommercePayments.GatewayResponse processRefundResponse(HttpResponse adyenHttpResponse, Decimal amount) {
+    public static CommercePayments.GatewayResponse processRefundResponse(CheckoutRefundResponse refundResponse, Decimal amount) {
         CommercePayments.ReferencedRefundResponse salesforceResponse = new CommercePayments.ReferencedRefundResponse();
-        CheckoutRefundResponse adyenResponse = (CheckoutRefundResponse)JSON.deserialize(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutRefundResponse.class);
         salesforceResponse.setAsync(true);
         salesforceResponse.setAmount(Double.valueOf(amount));
         salesforceResponse.setGatewayDate(System.now());
-        salesforceResponse.setGatewayReferenceDetails(adyenResponse.getReference());
-        salesforceResponse.setGatewayResultCode(adyenResponse.getStatus());
-
-        if (adyenResponse != null && adyenHttpResponse.getStatusCode() != AdyenConstants.HTTP_ERROR_CODE) { // HTTP connection with Adyen was successful
-           salesforceResponse.setGatewayReferenceNumber(adyenResponse.getPSPReference());
-           salesforceResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
-           if (adyenResponse.getStatus() == AdyenConstants.NOTIFICATION_RECEIVED_CHECKOUT) {
-            salesforceResponse.setGatewayMessage('[refund-received]');
-           }
-        } else {
-           salesforceResponse.setGatewayReferenceNumber(null);
-           salesforceResponse.setSalesforceResultCodeInfo(AdyenConstants.SYSTEM_ERROR_SALESFORCE_RESULT_CODE_INFO);
-        }
+        salesforceResponse.setGatewayReferenceDetails(refundResponse.getReference());
+        salesforceResponse.setGatewayResultCode(refundResponse.getStatus());
+        salesforceResponse.setGatewayReferenceNumber(refundResponse.getPSPReference());
+        salesforceResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
+        salesforceResponse.setGatewayMessage('[refund-received]');
         return salesforceResponse;
     }
 }

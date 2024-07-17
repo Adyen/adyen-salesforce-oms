@@ -9,6 +9,7 @@ public class TestDataFactory {
     public static final String GATEWAY_REF = '0000000000000000';
     public static final Double TEST_AMOUNT = 19.99;
     public static final String ACTIVE_CURRENCY = [SELECT IsoCode FROM CurrencyType WHERE IsActive = TRUE LIMIT 1].IsoCode;
+    public static final String ASSERT_PRICE_MESSAGE = 'For input price of ';
 
     public static AdyenAsyncAdapter adyenAdapter = new AdyenAsyncAdapter();
 

@@ -15,7 +15,7 @@ private class AdyenAsyncAdapterTest {
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-        CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+        CommercePayments.GatewayResponse captureResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
 
         Assert.isTrue(captureResponse.toString().contains('[capture-received]'));
@@ -30,10 +30,11 @@ private class AdyenAsyncAdapterTest {
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
-        CommercePayments.GatewayResponse captureResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+        CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
 
-        Assert.isTrue(captureResponse.toString().contains('SYSTEMERROR'));
+        Assert.isInstanceOfType(gatewayResponse, CommercePayments.GatewayErrorResponse.class);
+        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase('400'));
     }
     
     @IsTest
@@ -82,7 +83,7 @@ private class AdyenAsyncAdapterTest {
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-        CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+        CommercePayments.GatewayResponse refundResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
 
         Assert.isTrue(refundResponse.toString().contains('received'));
@@ -96,10 +97,11 @@ private class AdyenAsyncAdapterTest {
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
         CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
-        CommercePayments.GatewayResponse refundResponse = (CommercePayments.GatewayResponse) TestDataFactory.adyenAdapter.processRequest(context);
+        CommercePayments.GatewayResponse refundResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
 
-        Assert.isTrue(refundResponse.toString().contains('SYSTEMERROR'));
+        Assert.isInstanceOfType(refundResponse, CommercePayments.GatewayErrorResponse.class);
+        Assert.isTrue(refundResponse.toString().containsIgnoreCase('400'));
     }
     
     @IsTest

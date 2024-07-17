@@ -40,42 +40,26 @@ public with sharing class AdyenCaptureHelper {
 
         // Line items required for partial captures for Open Invoice methods
         if (AdyenPaymentUtility.checkIfOpenInvoiceFromAuthorization(pa)) {
-            // Get invoice id
-            String invoiceId = 'INVALID';
-            if (captureRequest.additionalData.containsKey('invoiceId')) {
-                invoiceId = captureRequest.additionalData.get('invoiceId');
+            String invoiceId = captureRequest.additionalData?.get('invoiceId');
+            if (String.isNotBlank(invoiceId)) {
+                modRequest.setLineItems(AdyenPaymentUtility.addInvoiceData(invoiceId));
             }
-            modRequest.setLineItems(AdyenPaymentUtility.addInvoiceData(invoiceId));
         }
 
-        HttpResponse adyenHttpResponse = AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
-        return processCaptureResponse(adyenHttpResponse, captureRequest.amount);
+        CheckoutCaptureResponse captureResponse = (CheckoutCaptureResponse)AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
+        return processCaptureResponse(captureResponse, captureRequest.amount);
     }
 
-     /**
-     * @param adyenHttpResponse: Response from Adyen's api after requesting a capture/refund
-     * @param amount capture amount
-     * @return CommercePayments.GatewayResponse with populated properties.
-     */
-    public static CommercePayments.GatewayResponse processCaptureResponse(HttpResponse adyenHttpResponse, Decimal amount) {
-        CheckoutCaptureResponse adyenResponse = (CheckoutCaptureResponse)JSON.deserialize(AdyenPaymentUtility.makeSalesforceCompatible(adyenHttpResponse.getBody()), CheckoutCaptureResponse.class);
+    public static CommercePayments.GatewayResponse processCaptureResponse(CheckoutCaptureResponse captureResponse, Decimal amount) {
         CommercePayments.CaptureResponse salesforceResponse = new CommercePayments.CaptureResponse();
         salesforceResponse.setAsync(true);
         salesforceResponse.setAmount(Double.valueOf(amount));
         salesforceResponse.setGatewayDate(System.now());
-        salesforceResponse.setGatewayReferenceDetails(adyenResponse.getReference());
-        salesforceResponse.setGatewayResultCode(adyenResponse.getStatus());
-
-        if (adyenHttpResponse.getStatusCode() != AdyenConstants.HTTP_ERROR_CODE) { // HTTP connection with Adyen was successful
-           salesforceResponse.setGatewayReferenceNumber(adyenResponse.getPSPReference());
-           salesforceResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
-           if (adyenResponse.getStatus() == AdyenConstants.NOTIFICATION_RECEIVED_CHECKOUT) {
-                salesforceResponse.setGatewayMessage('[capture-received]');
-           }
-        } else {
-           salesforceResponse.setGatewayReferenceNumber(null);
-           salesforceResponse.setSalesforceResultCodeInfo(AdyenConstants.SYSTEM_ERROR_SALESFORCE_RESULT_CODE_INFO);
-        }
+        salesforceResponse.setGatewayReferenceDetails(captureResponse.getReference());
+        salesforceResponse.setGatewayResultCode(captureResponse.getStatus());
+        salesforceResponse.setGatewayReferenceNumber(captureResponse.getPSPReference());
+        salesforceResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
+        salesforceResponse.setGatewayMessage('[capture-received]');
         return salesforceResponse;
     }
 }
