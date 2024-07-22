@@ -11,38 +11,35 @@ public with sharing class AdyenRefundHelper {
      * @see AdyenClient
     */
     public static CommercePayments.GatewayResponse refund(CommercePayments.ReferencedRefundRequest refundRequest) {
-        // Retrieve the Payment
         Payment payment = AdyenPaymentUtility.retrievePayment(refundRequest.paymentId);
 
         String errorMessage = null;
         if (payment == null) {
             errorMessage = 'Payment Info Missing';
-        }
-        if (refundRequest.amount == null) {
+        } else if (String.isBlank(payment.GatewayRefNumber)) {
+            errorMessage = 'PspReference Missing';
+        } else if (refundRequest.amount == null) {
             errorMessage = 'Payment Amount Missing';
         }
         if (errorMessage != null) {
             throw new AdyenAsyncAdapter.GatewayException(errorMessage);
         }
-        // By Default, retrieve the metadata key from the order's sales channel
-        String adapterName = payment?.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
-        // Override config for this specific Payment (i.e., a pre-capture) or inherit override from the original PaymentAuthorization
-        if (String.isNotBlank(payment?.adyenOverrideMerchantConfig__c)) {
-            adapterName = payment.adyenOverrideMerchantConfig__c;
-        }
-        if (String.isNotBlank(payment?.PaymentAuthorization?.adyenOverrideMerchantConfig__c)) {
-            adapterName = payment.PaymentAuthorization.adyenOverrideMerchantConfig__c;
-        }
-        if (String.isBlank(adapterName)) {
-            adapterName = AdyenConstants.DEFAULT_ADAPTER_NAME;
-        }
-        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
-        String pspReference = AdyenPaymentUtility.getRefundGatewayRefNumber(payment);
-        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(refundRequest, payment.CurrencyIsoCode, adyenAdapterMdt);
+
+        String pspReference = payment.PaymentAuthorization?.GatewayRefNumber != null ? payment.PaymentAuthorization.GatewayRefNumber : payment.GatewayRefNumber;
+        String merchantAccount = payment.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
+        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.chooseAdapterWithFallBack(merchantAccount);
+
+        CheckoutRefundRequest modRequest = createRefundRequest(refundRequest, payment, adyenAdapterMdt);
+        CheckoutRefundResponse refundResponse = (CheckoutRefundResponse)AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
+        return processRefundResponse(refundResponse, refundRequest.amount);
+    }
+
+    private static CheckoutRefundRequest createRefundRequest(CommercePayments.ReferencedRefundRequest refundRequest, Payment payment, Adyen_Adapter__mdt adyenAdapter) {
+        CheckoutRefundRequest modRequest = (CheckoutRefundRequest)AdyenPaymentUtility.createModificationRequest(refundRequest, payment.CurrencyIsoCode, adyenAdapter);
         //Only for Paypal Refunds - Capture reference must be a substring of refund reference
         if (String.isNotBlank(payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c)) {
             if (payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c.equalsIgnoreCase('Paypal') && String.isNotBlank(payment.GatewayRefDetails)) {
-                String refundReference = modRequest.getReference() + payment.GatewayRefDetails;     //payment.GatewayRefDetails has the capture reference
+                String refundReference = modRequest.getReference() + payment.GatewayRefDetails;
                 modRequest.setReference(refundReference);
             }
         }
@@ -51,11 +48,10 @@ public with sharing class AdyenRefundHelper {
             modRequest.setLineItems(AdyenPaymentUtility.addCreditMemoData(payment.OrderPaymentSummary.OrderSummaryId));
         }
 
-        CheckoutRefundResponse refundResponse = (CheckoutRefundResponse)AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
-        return processRefundResponse(refundResponse, refundRequest.amount);
+        return modRequest;
     }
 
-    public static CommercePayments.GatewayResponse processRefundResponse(CheckoutRefundResponse refundResponse, Decimal amount) {
+    private static CommercePayments.GatewayResponse processRefundResponse(CheckoutRefundResponse refundResponse, Decimal amount) {
         CommercePayments.ReferencedRefundResponse salesforceResponse = new CommercePayments.ReferencedRefundResponse();
         salesforceResponse.setAsync(true);
         salesforceResponse.setAmount(Double.valueOf(amount));

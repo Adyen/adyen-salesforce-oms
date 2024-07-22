@@ -7,20 +7,6 @@ public with sharing class AdyenPaymentUtility {
     private static final String NO_ADYEN_ADAPTER_BY_NAME = 'No Adyen adapter found with this name: ';
     @TestVisible
     private static final String NO_ADYEN_ADAPTER_BY_MERCHANT = 'No Adyen adapter found for this merchant account: ';
-
-    /**
-    * Looks for the Gateway ref number on the Payment record passed in. If not found gets its from
-    * the LastPaymentGateway log on the OrderPaymentSummary record.
-    *
-    * @param payment the Payment sObject.
-    * @return the GatewayRefNumber for the request.
-    */
-    public static String getRefundGatewayRefNumber(Payment payment) {
-        if (payment == null) {
-            throw new AdyenAsyncAdapter.GatewayException('Payment Info Missing');
-        }
-        return payment.PaymentAuthorization?.GatewayRefNumber != null ? payment.PaymentAuthorization.GatewayRefNumber : payment.GatewayRefNumber;
-    }
     
     /**
     * Retrieve Payment Info.
@@ -33,9 +19,8 @@ public with sharing class AdyenPaymentUtility {
             SELECT
                 Id, GatewayRefNumber, GatewayRefDetails,
                 PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
-                PaymentAuthorization.Adyen_Payment_Method__c, adyenOverrideMerchantConfig__c,
-                PaymentAuthorization.adyenOverrideMerchantConfig__c,CurrencyIsoCode,
-                OrderPaymentSummary.FullName, OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
+                PaymentAuthorization.Adyen_Payment_Method__c,CurrencyIsoCode, OrderPaymentSummary.FullName,
+                OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
             FROM
                 Payment
             WHERE
@@ -83,6 +68,14 @@ public with sharing class AdyenPaymentUtility {
         return adyenAdapters[0];
     }
 
+    public static Adyen_Adapter__mdt chooseAdapterWithFallBack(String merchantAccountName) {
+        if (String.isNotBlank(merchantAccountName)) {
+            return retrieveAdapterByMerchantAcct(merchantAccountName);
+        } else {
+            return retrieveGatewayMetadata(AdyenConstants.DEFAULT_ADAPTER_NAME);
+        }
+    }
+
     public static Boolean isValidNotification(NotificationRequestItem notificationRequestItem) {
         return AdyenOMSConstants.VALID_NOTIFICATION_TYPES.contains(notificationRequestItem.eventCode.toUpperCase())
             && isValidPspReference(notificationRequestItem.originalReference)
@@ -104,7 +97,7 @@ public with sharing class AdyenPaymentUtility {
     public static PaymentAuthorization retrievePaymentAuthorization(Id paymentAuthId) {
         List<PaymentAuthorization> paymentAuthorizations = [
             SELECT
-                Id, PaymentAuthorizationNumber, GatewayRefNumber, adyenOverrideMerchantConfig__c, Adyen_Payment_Method_Variant__c,
+                Id, PaymentAuthorizationNumber, GatewayRefNumber, Adyen_Payment_Method_Variant__c,
                 OrderPaymentSummary.LastPaymentGatewayLog.GatewayRefNumber,
                 OrderPaymentSummary.Id,
                 OrderPaymentSummary.FullName, CurrencyIsoCode,
@@ -130,7 +123,7 @@ public with sharing class AdyenPaymentUtility {
     public static Boolean checkIfOpenInvoiceFromAuthorization(PaymentAuthorization pa) {
         if (pa != null && pa.Adyen_Payment_Method_Variant__c != null) {
             for (String openInvoiceMethod : AdyenOMSConstants.OPEN_INVOICE_METHODS) {
-                 if(pa.Adyen_Payment_Method_Variant__c.containsIgnoreCase(openInvoiceMethod)) {
+                 if (pa.Adyen_Payment_Method_Variant__c.containsIgnoreCase(openInvoiceMethod)) {
                      return true;
                  }
             }
@@ -171,20 +164,6 @@ public with sharing class AdyenPaymentUtility {
         } else {
             return 100;
         }
-    }
-    
-    /**
-    * Looks for the Gateway ref number on the PaymentAuthorization record passed in. If not found gets its from
-    * the LastPaymentGateway log on the OrderPaymentSummary record.
-    *
-    * @param pa  The PaymentAuthorization sObject
-    * @return the GatewayRefNumber for the request.
-    */
-    public static String getCaptureGatewayRefNumber(PaymentAuthorization pa) {
-        if (pa == null) {
-            throw new AdyenAsyncAdapter.GatewayException('Payment Authorization Missing');
-        }
-        return pa.GatewayRefNumber != null ? pa.GatewayRefNumber : pa.OrderPaymentSummary?.LastPaymentGatewayLog?.GatewayRefNumber;
     }
     
     public static List<LineItem> addInvoiceData(Id invoiceId) {
@@ -333,38 +312,33 @@ public with sharing class AdyenPaymentUtility {
         
         return info;
     }
-    
-    /**
-    * Create a modification request by populating required properties (capture/refund)
-    *
-    * @param paymentRequest capture or refund request
-    * @param currencyCode string containing the currency ISO code
-    * @param adyenAdapter custom metadata type containing the configuration
-    * @return CheckoutModificationRequest to send to Adyen.
-    */
-    public static CheckoutModificationRequest createModificationRequest(CommercePayments.PaymentGatewayRequest paymentRequest, String currencyCode, Adyen_Adapter__mdt adyenAdapter) {
+
+    public static CheckoutModificationRequest createModificationRequest(CommercePayments.PaymentGatewayRequest paymentRequest, String currencyIsoCode, Adyen_Adapter__mdt adyenAdapter) {
         CheckoutModificationRequest modRequest;
         Decimal price;
         String reference;
+
         if (paymentRequest instanceof CommercePayments.CaptureRequest) {
-            modRequest = new CheckoutCaptureRequest();
             CommercePayments.CaptureRequest captureRequest = (CommercePayments.CaptureRequest)paymentRequest;
             price = captureRequest.amount;
-            reference = AdyenPaymentUtility.getReference(captureRequest);
+            modRequest = new CheckoutCaptureRequest();
+            reference = getReference(captureRequest);
         } else if (paymentRequest instanceof CommercePayments.ReferencedRefundRequest) {
-            modRequest = new CheckoutRefundRequest();
             CommercePayments.ReferencedRefundRequest refundRequest = (CommercePayments.ReferencedRefundRequest)paymentRequest;
+            modRequest = new CheckoutRefundRequest();
             price = refundRequest.amount;
-            reference = AdyenPaymentUtility.getRandomNumber(16);
+            reference = getRandomNumber(16);
         }
+
         Amount requestAmount = new Amount();
-        requestAmount.value = (price * AdyenPaymentUtility.getAmountMultiplier(currencyCode)).longValue();
-        requestAmount.currency_x = currencyCode;
+        requestAmount.value = (price * getAmountMultiplier(currencyIsoCode)).longValue();
+        requestAmount.currency_x = currencyIsoCode;
 
         modRequest.setAmount(requestAmount);
         modRequest.setReference(reference);
         modRequest.setMerchantAccount(adyenAdapter.Merchant_Account__c);
-        modRequest.setApplicationInfo(AdyenPaymentUtility.getApplicationInfo(adyenAdapter.System_Integrator_Name__c));
+        modRequest.setApplicationInfo(getApplicationInfo(adyenAdapter.System_Integrator_Name__c));
+
         return modRequest;
     }
     

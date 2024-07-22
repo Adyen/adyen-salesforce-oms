@@ -28,10 +28,14 @@ public with sharing class AdyenPaymentHelper {
         CommercePayments.PaymentGatewayNotificationRequest paymentGatewayNotificationRequest = Test.isRunningTest() ? null : gatewayNotificationContext.getPaymentGatewayNotificationRequest();
         NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest(paymentGatewayNotificationRequest);
         Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByMerchantAcct(notificationRequestItem.merchantAccountCode);
-        HMACValidator validator = new HMACValidator(notificationRequestItem, adyenAdapter.HMAC_Key__c);
-
-        if (!Test.isRunningTest() && !validator.validateHMAC()) {
-            return createAcceptedNotificationResponse('not a valid notification request');
+        HMACValidator validator;
+        try {
+            validator = new HMACValidator(notificationRequestItem, adyenAdapter.HMAC_Key__c);
+            if (!Test.isRunningTest() && !validator.validateHMAC()) {
+                return createAcceptedNotificationResponse('not a valid notification request');
+            }
+        } catch (HMACValidator.HmacValidationException hmacValidationException) {
+            return createAcceptedNotificationResponse(hmacValidationException.getMessage());
         }
 
         if (!AdyenPaymentUtility.isValidNotification(notificationRequestItem)) {

@@ -3,7 +3,7 @@
     <fullName>AdyenMerchantID__c</fullName>
     <deprecated>false</deprecated>
     <externalId>false</externalId>
-    <inlineHelpText>Must match the custom metadata record name.  The actual Adyen merchant ID is pulled from metadata config</inlineHelpText>
+    <inlineHelpText>The merchant account name for this Sales Channel. If left blank, the Adyen Default custom metadata record is used.</inlineHelpText>
     <label>Adyen Merchant Account</label>
     <length>50</length>
     <required>false</required>
