@@ -28,6 +28,18 @@
     </types>
     <types>
         <members>SalesChannel.AdyenMerchantID__c</members>
+        <members>Adyen_Adapter__mdt.Authorize_Endpoint__c</members>
+        <members>Adyen_Adapter__mdt.Capture_Endpoint__c</members>
+        <members>Adyen_Adapter__mdt.Endpoint_Api_Version__c</members>
+        <members>Adyen_Adapter__mdt.Endpoint_Path__c</members>
+        <members>Adyen_Adapter__mdt.HMAC_Key__c</members>
+        <members>Adyen_Adapter__mdt.Merchant_Account__c</members>
+        <members>Adyen_Adapter__mdt.Refund_Endpoint__c</members>
+        <members>Adyen_Adapter__mdt.System_Integrator_Name__c</members>
+        <members>Payment.Adyen_Payment_Method__c</members>
+        <members>Payment.Adyen_Payment_Method_Variant__c</members>
+        <members>PaymentAuthorization.Adyen_Payment_Method__c</members>
+        <members>PaymentAuthorization.Adyen_Payment_Method_Variant__c</members>
         <name>CustomField</name>
     </types>
     <types>
