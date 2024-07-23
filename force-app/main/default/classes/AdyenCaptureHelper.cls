@@ -6,51 +6,42 @@ public with sharing class AdyenCaptureHelper {
      * @return `CommercePayments.GatewayResponse`
      */
     public static CommercePayments.GatewayResponse capture(CommercePayments.CaptureRequest captureRequest) {
-        // Retrieve the PaymentAuthorization
-        PaymentAuthorization pa = AdyenPaymentUtility.retrievePaymentAuthorization(captureRequest.paymentAuthorizationId);
+        PaymentAuthorization paymentAuth = AdyenPaymentUtility.retrievePaymentAuthorization(captureRequest.paymentAuthorizationId);
 
-        String errorMessage = null;
-        if(pa == null) {
+        String errorMessage;
+        if (paymentAuth == null) {
             errorMessage = 'Payment Authorization Missing';
-        }
-        if(captureRequest.amount == null) {
+        } else if (String.isBlank(paymentAuth.GatewayRefNumber)) {
+            errorMessage = 'PspReference Missing';
+        } else if (captureRequest.amount == null) {
             errorMessage = 'Payment Amount Missing';
         }
-        String pspReference = AdyenPaymentUtility.getCaptureGatewayRefNumber(pa);
-        if(String.isBlank(pspReference)) {
-            errorMessage = 'PspReference Missing';
-        }
-        if(errorMessage != null) {
+        if (String.isNotBlank(errorMessage)) {
             throw new AdyenAsyncAdapter.GatewayException(errorMessage);
         }
 
-        // By Default, retrieve the metadata key from the order's sales channel
-        String adapterName = pa.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
+        String pspReference = paymentAuth.GatewayRefNumber;
+        String merchantAccount = paymentAuth.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
+        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.chooseAdapterWithFallBack(merchantAccount);
 
-        // Override config for this specific PaymentAuthorization
-        if (String.isNotBlank(pa.adyenOverrideMerchantConfig__c)) {
-            adapterName = pa.adyenOverrideMerchantConfig__c;
-        }
-        if (String.isBlank(adapterName)) {
-            adapterName = AdyenConstants.DEFAULT_ADAPTER_NAME;
-        }
+        CheckoutModificationRequest modRequest = createCaptureRequest(captureRequest, paymentAuth, adyenAdapterMdt);
+        CheckoutCaptureResponse captureResponse = (CheckoutCaptureResponse)AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
+        return processCaptureResponse(captureResponse, captureRequest.amount);
+    }
 
-        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(adapterName);
-        CheckoutModificationRequest modRequest = AdyenPaymentUtility.createModificationRequest(captureRequest, pa.CurrencyIsoCode, adyenAdapterMdt);
-
+    private static CheckoutCaptureRequest createCaptureRequest(CommercePayments.CaptureRequest captureRequest, PaymentAuthorization paymentAuth, Adyen_Adapter__mdt adyenAdapter) {
+        CheckoutCaptureRequest modRequest = (CheckoutCaptureRequest)AdyenPaymentUtility.createModificationRequest(captureRequest, paymentAuth.CurrencyIsoCode, adyenAdapter);
         // Line items required for partial captures for Open Invoice methods
-        if (AdyenPaymentUtility.checkIfOpenInvoiceFromAuthorization(pa)) {
+        if (AdyenPaymentUtility.checkIfOpenInvoiceFromAuthorization(paymentAuth)) {
             String invoiceId = captureRequest.additionalData?.get('invoiceId');
             if (String.isNotBlank(invoiceId)) {
                 modRequest.setLineItems(AdyenPaymentUtility.addInvoiceData(invoiceId));
             }
         }
-
-        CheckoutCaptureResponse captureResponse = (CheckoutCaptureResponse)AdyenPaymentUtility.sendModificationRequest(modRequest, adyenAdapterMdt, pspReference);
-        return processCaptureResponse(captureResponse, captureRequest.amount);
+        return modRequest;
     }
 
-    public static CommercePayments.GatewayResponse processCaptureResponse(CheckoutCaptureResponse captureResponse, Decimal amount) {
+    private static CommercePayments.GatewayResponse processCaptureResponse(CheckoutCaptureResponse captureResponse, Decimal amount) {
         CommercePayments.CaptureResponse salesforceResponse = new CommercePayments.CaptureResponse();
         salesforceResponse.setAsync(true);
         salesforceResponse.setAmount(Double.valueOf(amount));

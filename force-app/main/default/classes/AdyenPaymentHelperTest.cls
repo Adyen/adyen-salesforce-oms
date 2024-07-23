@@ -5,10 +5,10 @@ private class AdyenPaymentHelperTest {
         AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE, null);
 
         Test.startTest();
-        CommercePayments.GatewayNotificationResponse captureResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null);
+        CommercePayments.GatewayNotificationResponse notificationResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null);
         Test.stopTest();
 
-        Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
+        Assert.isFalse(notificationResponse.toString().containsIgnoreCase('error'));
     }
 
     @IsTest
@@ -16,10 +16,10 @@ private class AdyenPaymentHelperTest {
         AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE, TestDataFactory.GATEWAY_REF);
 
         Test.startTest();
-        CommercePayments.GatewayNotificationResponse captureResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null);
+        CommercePayments.GatewayNotificationResponse notificationResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null);
         Test.stopTest();
 
-        Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
+        Assert.isFalse(notificationResponse.toString().containsIgnoreCase('error'));
     }
 
     @IsTest
@@ -31,10 +31,10 @@ private class AdyenPaymentHelperTest {
         AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE, TestDataFactory.TEST_PSP_REFERENCE);
         // when
         Test.startTest();
-        CommercePayments.GatewayNotificationResponse captureResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null);
+        CommercePayments.GatewayNotificationResponse notificationResponse = AdyenPaymentHelper.handleAsyncNotificationCallback(null);
         Test.stopTest();
         // then
-        Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
+        Assert.isFalse(notificationResponse.toString().containsIgnoreCase('error'));
     }
 
     @IsTest
