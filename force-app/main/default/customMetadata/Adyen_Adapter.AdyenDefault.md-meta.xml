@@ -12,7 +12,7 @@
     </values>
     <values>
         <field>Endpoint_Api_Version__c</field>
-        <value xsi:type="xsd:string">/v70</value>
+        <value xsi:type="xsd:string">/v71</value>
     </values>
     <values>
         <field>Endpoint_Path__c</field>
