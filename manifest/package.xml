@@ -13,6 +13,8 @@
         <members>AdyenPaymentUtilityTest</members>
         <members>AdyenRefundHelper</members>
         <members>TestDataFactory</members>
+        <members>AdyenGatewayAdapter</members>
+        <members>AdyenGatewayAdapterTest</members>
         <name>ApexClass</name>
     </types>
     <types>

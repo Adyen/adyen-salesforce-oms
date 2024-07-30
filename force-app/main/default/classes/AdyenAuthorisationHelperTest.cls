@@ -90,7 +90,7 @@ private class AdyenAuthorisationHelperTest {
             AdyenAuthorisationHelper.authorise(TestDataFactory.createAuthorisationRequest(null));
             Assert.fail();
         } catch (Exception ex) {
-            Assert.isInstanceOfType(ex, AdyenAsyncAdapter.GatewayException.class);
+            Assert.isInstanceOfType(ex, AdyenGatewayAdapter.GatewayException.class);
             Assert.isTrue(ex.getMessage().containsIgnoreCase('400'));
         }
         Test.stopTest();

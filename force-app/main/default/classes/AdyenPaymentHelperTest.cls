@@ -61,7 +61,7 @@ private class AdyenPaymentHelperTest {
             AdyenPaymentHelper.createNotificationSaveResult(nri);
             Assert.fail();
         } catch (Exception ex) { // then
-            Assert.isInstanceOfType(ex, AdyenAsyncAdapter.GatewayException.class);
+            Assert.isInstanceOfType(ex, AdyenGatewayAdapter.GatewayException.class);
         }
     }
 }

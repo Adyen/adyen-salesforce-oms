@@ -17,7 +17,7 @@ public with sharing class AdyenCaptureHelper {
             errorMessage = 'Payment Amount Missing';
         }
         if (String.isNotBlank(errorMessage)) {
-            throw new AdyenAsyncAdapter.GatewayException(errorMessage);
+            throw new AdyenGatewayAdapter.GatewayException(errorMessage);
         }
 
         String pspReference = paymentAuth.GatewayRefNumber;

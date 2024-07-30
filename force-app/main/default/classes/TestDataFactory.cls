@@ -11,7 +11,7 @@ public class TestDataFactory {
     public static final String ACTIVE_CURRENCY = [SELECT IsoCode FROM CurrencyType WHERE IsActive = TRUE LIMIT 1].IsoCode;
     public static final String ASSERT_PRICE_MESSAGE = 'For input price of ';
 
-    public static AdyenAsyncAdapter adyenAdapter = new AdyenAsyncAdapter();
+    public static AdyenGatewayAdapter adyenAdapter = new AdyenGatewayAdapter();
 
     public static Account createAccount() {
         return new Account(Name = 'Test Account');

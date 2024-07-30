@@ -1,11 +1,6 @@
-/**
- *  This class is being deprecated after v2 due to the introduction of the payment gateway provider metadata.
- *  This way when upgrading the package conflicts will be avoided.
- *  The new one should be AdyenGatewayAdapter.
- */
-global with sharing class AdyenAsyncAdapter implements CommercePayments.PaymentGatewayAdapter, CommercePayments.PaymentGatewayAsyncAdapter {
+global with sharing class AdyenGatewayAdapter implements CommercePayments.PaymentGatewayAdapter, CommercePayments.PaymentGatewayAsyncAdapter {
 
-    global AdyenAsyncAdapter() {}
+    global AdyenGatewayAdapter() {}
 
     global CommercePayments.GatewayResponse processRequest(CommercePayments.PaymentGatewayContext paymentGatewayContext) {
         try {
