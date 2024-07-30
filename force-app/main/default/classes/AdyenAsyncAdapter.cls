@@ -1,10 +1,7 @@
 /**
- *  This adapter is called by the Payment Gateway.
- *  The http calls are delegated to the AdyenPaymentHelper Class.
- *
- *  This will process a CAPTURE and a REFUND Request as well as the corresponding Async callbacks.
- *
- *  @see AdyenPaymentHelper
+ *  This class is being deprecated after v2 due to the introduction of the payment gateway provider metadata.
+ *  This way when upgrading the package conflicts will be avoided.
+ *  The new one should be AdyenGatewayAdapter.
  */
 global with sharing class AdyenAsyncAdapter implements   CommercePayments.PaymentGatewayAdapter,
         CommercePayments.PaymentGatewayAsyncAdapter {
