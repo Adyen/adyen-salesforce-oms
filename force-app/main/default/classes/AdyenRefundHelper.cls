@@ -8,7 +8,6 @@ public with sharing class AdyenRefundHelper {
      * @param refundRequest   The CommercePayments.ReferencedRefundRequest Object.
      * @return refundResponse  The CommercePayments.ReferencedRefundResponse Object.
      *
-     * @see AdyenClient
     */
     public static CommercePayments.GatewayResponse refund(CommercePayments.ReferencedRefundRequest refundRequest) {
         Payment payment = AdyenPaymentUtility.retrievePayment(refundRequest.paymentId);
@@ -22,7 +21,7 @@ public with sharing class AdyenRefundHelper {
             errorMessage = 'Payment Amount Missing';
         }
         if (errorMessage != null) {
-            throw new AdyenAsyncAdapter.GatewayException(errorMessage);
+            throw new AdyenGatewayAdapter.GatewayException(errorMessage);
         }
 
         String pspReference = payment.PaymentAuthorization?.GatewayRefNumber != null ? payment.PaymentAuthorization.GatewayRefNumber : payment.GatewayRefNumber;

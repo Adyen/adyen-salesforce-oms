@@ -27,7 +27,7 @@ public with sharing class AdyenPaymentUtility {
                 Id = :paymentId
         ];
         if (payments.isEmpty()) {
-            throw new AdyenAsyncAdapter.GatewayException(NO_PAYMENT_FOUND_BY_ID + paymentId);
+            throw new AdyenGatewayAdapter.GatewayException(NO_PAYMENT_FOUND_BY_ID + paymentId);
         }
         return payments[0];
     }
@@ -48,7 +48,7 @@ public with sharing class AdyenPaymentUtility {
             WHERE DeveloperName = :developerName
         ];
         if (adyenAdapters.isEmpty()) {
-            throw new AdyenAsyncAdapter.GatewayException(NO_ADYEN_ADAPTER_BY_NAME + developerName);
+            throw new AdyenGatewayAdapter.GatewayException(NO_ADYEN_ADAPTER_BY_NAME + developerName);
         }
         return adyenAdapters[0];
     }
@@ -63,7 +63,7 @@ public with sharing class AdyenPaymentUtility {
             WHERE Merchant_Account__c = :merchantAccountName
         ];
         if (adyenAdapters.isEmpty()) {
-            throw new AdyenAsyncAdapter.GatewayException(NO_ADYEN_ADAPTER_BY_MERCHANT + merchantAccountName);
+            throw new AdyenGatewayAdapter.GatewayException(NO_ADYEN_ADAPTER_BY_MERCHANT + merchantAccountName);
         }
         return adyenAdapters[0];
     }
@@ -109,7 +109,7 @@ public with sharing class AdyenPaymentUtility {
                 Id = :paymentAuthId
         ];
         if (paymentAuthorizations.isEmpty()) {
-            throw new AdyenAsyncAdapter.GatewayException(NO_PAYMENT_AUTH_FOUND_BY_ID + paymentAuthId);
+            throw new AdyenGatewayAdapter.GatewayException(NO_PAYMENT_AUTH_FOUND_BY_ID + paymentAuthId);
         }
         return paymentAuthorizations[0];
     }
@@ -383,7 +383,7 @@ public with sharing class AdyenPaymentUtility {
         CommercePayments.PaymentsHttp paymentsHttp = new CommercePayments.PaymentsHttp();
         HttpResponse response = paymentsHttp.send(request);
         if (response.getStatusCode() != 200 && response.getStatusCode() != 201) {
-            throw new AdyenAsyncAdapter.GatewayException('Adyen Checkout API returned: ' + response.getStatusCode() + ', body: ' + response.getBody());
+            throw new AdyenGatewayAdapter.GatewayException('Adyen Checkout API returned: ' + response.getStatusCode() + ', body: ' + response.getBody());
         } else {
             return response;
         }

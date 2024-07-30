@@ -107,7 +107,7 @@ public with sharing class AdyenPaymentHelper {
             notification = new CommercePayments.ReferencedRefundNotification();
             gatewayMessageTemplate = '[refund-{0}] {1}';
         } else {
-            throw new AdyenAsyncAdapter.GatewayException('Notification of type ' + notificationRequestItem.eventCode + ' does not match criteria');
+            throw new AdyenGatewayAdapter.GatewayException('Notification of type ' + notificationRequestItem.eventCode + ' does not match criteria');
         }
 
         String result;
