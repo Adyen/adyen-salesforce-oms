@@ -1,7 +1,7 @@
 {
     "orgName": "Adyen_OMS",
     "edition": "Developer",
-    "features": ["EnableSetPasswordInApi", "OrderManagement", "MultiCurrency"],
+    "features": ["EnableSetPasswordInApi", "OrderManagement", "MultiCurrency", "OrderSaveBehaviorBoth"],
     "settings": {
         "lightningExperienceSettings": {
             "enableS1DesktopEnabled": true
