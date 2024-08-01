@@ -12,11 +12,7 @@
     </values>
     <values>
         <field>Endpoint_Api_Version__c</field>
-        <value xsi:type="xsd:string">/v70</value>
-    </values>
-    <values>
-        <field>Endpoint_Method__c</field>
-        <value xsi:type="xsd:string">POST</value>
+        <value xsi:type="xsd:string">/v71</value>
     </values>
     <values>
         <field>Endpoint_Path__c</field>
@@ -24,18 +20,18 @@
     </values>
     <values>
         <field>Merchant_Account__c</field>
-        <value xsi:type="xsd:string">MerchantAccountName</value>
+        <value xsi:type="xsd:string">Merchant_Account_Name</value>
     </values>
     <values>
         <field>Refund_Endpoint__c</field>
         <value xsi:type="xsd:string">/payments/{paymentPspReference}/refunds</value>
     </values>
     <values>
-        <field>Single_Currency_Code__c</field>
+        <field>System_Integrator_Name__c</field>
         <value xsi:nil="true"/>
     </values>
     <values>
-        <field>System_Integrator_Name__c</field>
-        <value xsi:nil="true"/>
+        <field>HMAC_Key__c</field>
+        <value xsi:type="xsd:string">Generated_HMAC_Key</value>
     </values>
 </CustomMetadata>

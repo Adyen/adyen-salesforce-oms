@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GatewayProviderPaymentMethodType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <gtwyProviderPaymentMethodType>AdyenComponent</gtwyProviderPaymentMethodType>
+    <masterLabel>Alternative Payment Method</masterLabel>
+    <paymentGatewayProvider>Adyen_OMS_Provider</paymentGatewayProvider>
+    <paymentMethodType>AlternativePaymentMethod</paymentMethodType>
+    <recordType>AlternativePaymentMethod.Alternative_Payment_Method</recordType>
+</GatewayProviderPaymentMethodType>

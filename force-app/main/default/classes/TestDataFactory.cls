@@ -2,20 +2,16 @@
 public class TestDataFactory {
     // constants
     public static final String TEST_PSP_REFERENCE = '853587067740652G';
-    public static final String TEST_PSP_REFERENCE_FAIL = '853587067740652F';
-    public static final String TEST_MERCHANT_ACCOUNT = 'TEST_MERCHANT_ACCOUNT';
-    public static final String TEST_MERCHANT_REFERENCE = 'TEST_MERCHANT_REFERENCE';
-    public static final String TEST_SHOPPER_REFERENCE = 'TEST_SHOPPER_REFERENCE';
-    public static final String TEST_CARD_SUCCESS = '4242424242424242';
     public static final String TEST_PAYMENT_TOKEN = 'TEST_PAYMENT_TOKEN';
     public static final String TEST_AUTH_CODE = 'TEST_AUTH_CODE';
     public static final String RESULT_CODE_SUCCESS = 'Authorised';
     public static final String RESULT_CODE_FAIL = 'Failure';
-    public static final String GATEWAY_REF = 'gatewayReference';
+    public static final String GATEWAY_REF = '0000000000000000';
     public static final Double TEST_AMOUNT = 19.99;
     public static final String ACTIVE_CURRENCY = [SELECT IsoCode FROM CurrencyType WHERE IsActive = TRUE LIMIT 1].IsoCode;
+    public static final String ASSERT_PRICE_MESSAGE = 'For input price of ';
 
-    public static AdyenAsyncAdapter adyenAdapter = new AdyenAsyncAdapter();
+    public static AdyenGatewayAdapter adyenAdapter = new AdyenGatewayAdapter();
 
     public static Account createAccount() {
         return new Account(Name = 'Test Account');
@@ -99,23 +95,26 @@ public class TestDataFactory {
         nri.eventCode = eventCode;
         nri.pspReference = GATEWAY_REF;
         nri.eventDate = String.valueOf(System.today());
-        nri.paymentpspReference = 'paymentpspref';
         nri.success = 'true';
-        nri.merchantAccountCode = 'merchant_account_code';
+        nri.merchantAccountCode = [SELECT Merchant_Account__c FROM Adyen_Adapter__mdt LIMIT 1].Merchant_Account__c;
         nri.originalReference = originalRef;
         return nri;
     }
 
     public static CommercePayments.AuthorizationRequest createAuthorisationRequest(Id payMethodId) {
-        CommercePayments.AuthorizationRequest authRequest = new CommercePayments.AuthorizationRequest(TEST_AMOUNT);
+        return createAuthorisationRequest(payMethodId, TEST_AMOUNT);
+    }
+
+    public static CommercePayments.AuthorizationRequest createAuthorisationRequest(Id payMethodId, Double price) {
+        CommercePayments.AuthorizationRequest authRequest = new CommercePayments.AuthorizationRequest(price);
         authRequest.currencyIsoCode = ACTIVE_CURRENCY;
-        
+
         CommercePayments.CardPaymentMethodRequest cardPayMeth = new CommercePayments.CardPaymentMethodRequest(CommercePayments.CardCategory.CreditCard);
         authRequest.paymentMethod = new CommercePayments.AuthApiPaymentMethodRequest(cardPayMeth);
         authRequest.paymentMethod.id = payMethodId;
 
-        CommercePayments.PaymentGatewayContext payGatecontext = new CommercePayments.PaymentGatewayContext(authRequest, CommercePayments.RequestType.Authorize);
-        CommercePayments.PaymentGatewayRequest paymentRequest = payGatecontext.getPaymentRequest();
+        CommercePayments.PaymentGatewayContext payGateContext = new CommercePayments.PaymentGatewayContext(authRequest, CommercePayments.RequestType.Authorize);
+        CommercePayments.PaymentGatewayRequest paymentRequest = payGateContext.getPaymentRequest();
         return (CommercePayments.AuthorizationRequest)paymentRequest;
     }
 
@@ -284,39 +283,41 @@ public class TestDataFactory {
             
             String endpoint = req.getEndpoint();
             Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
-            
-            if(endpoint.containsIgnoreCase('payment')) {
-                Map<String, Object> paymentMethod = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize((requestBody.get('paymentMethod'))));
-                Object spm = requestBody.get('storePaymentMethod');
+            if (endpoint.containsIgnoreCase('capture') || endpoint.containsIgnoreCase('refund')) {
+                amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
+            } else {
+                Map<String, Object> paymentMethod = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize((requestBody.get('paymentMethod'))));
                 responseBody.put('resultCode', RESULT_CODE_SUCCESS);
                 // Authorize
-                if(TEST_PAYMENT_TOKEN.equals(paymentMethod.get('storedPaymentMethodId'))) { // Successful Auth
+                if (TEST_PAYMENT_TOKEN.equals(paymentMethod.get('storedPaymentMethodId'))) { // Successful Auth
                     additionalData.put('authCode', TEST_AUTH_CODE);
-                    amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
+                    amount.put('value', Integer.valueOf(TEST_AMOUNT * 10));
                 } else { // Failed Auth
                     responseBody.put('resultCode', RESULT_CODE_FAIL);
                     res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
                 }
                 responseBody.put('additionalData', additionalData);
-            } else if(endpoint.containsIgnoreCase('capture')) {
-                // Capture
-                responseBody.put('reference', TEST_SHOPPER_REFERENCE);
-                if(requestBody.get('merchantAccount') != '' && requestBody.get('amount') != null) { // Successful Capture
-                    amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
-                } else { // Failed Capture
-                    res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
-                }
-            } else if(endpoint.containsIgnoreCase('refund')) {
-                // Refund
-                responseBody.put('reference', TEST_SHOPPER_REFERENCE);
-                if(requestBody.get('merchantAccount') != '' && requestBody.get('amount') != null) { // Successful Refund
-                    amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
-                } else { // Failed Refund
-                    res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);
-                }
             }
             res.setBody(JSON.serialize(responseBody));
             return res;
         }
+    }
+
+    public class FailureResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(genericErrorResponse(), 400);
+        }
+    }
+
+    public static HttpResponse mockHttpResponse(String body, Integer code) {
+        HttpResponse res = new HttpResponse();
+        res.setHeader('Content-Type', 'text/json');
+        res.setBody(body);
+        res.setStatusCode(code);
+        return res;
+    }
+
+    private static String genericErrorResponse() {
+        return '{"status": 400, "errorCode": "702", "message": "Empty input which would have resulted in a null result.", "errorType": "validation"}';
     }
 }
