@@ -14,6 +14,8 @@ public with sharing class AdyenPaymentHelper {
         
         if (paymentRequestType == CommercePayments.RequestType.Authorize) {
             return AdyenAuthorisationHelper.authorise((CommercePayments.AuthorizationRequest)paymentRequest);
+        } else if (paymentRequestType == CommercePayments.RequestType.AuthorizationReversal) {
+            return AdyenAuthorisationHelper.reverseAuth((CommercePayments.AuthorizationReversalRequest)paymentRequest);
         } else if (paymentRequestType == CommercePayments.RequestType.Capture) {
             return AdyenCaptureHelper.capture((CommercePayments.CaptureRequest)paymentRequest);
         } else if (paymentRequestType == CommercePayments.RequestType.ReferencedRefund) {
