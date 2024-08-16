@@ -137,7 +137,7 @@ public with sharing class AdyenAuthorisationHelper {
         CancelResponse cancelRequest = new CancelResponse();
         cancelRequest.merchantAccount = adyenAdapterMdt.Merchant_Account__c;
 //        cancelRequest.pspReference = pspReference;
-        String endpoint = 'v71/payments/'+pspReference+'/cancels';
+        String endpoint = '/v71/payments/'+pspReference+'/cancels';
 
         HttpResponse response = AdyenPaymentUtility.makePostRequest(endpoint, JSON.serialize(cancelRequest, true));
         String salesforceCompatibleBody = AdyenPaymentUtility.makeSalesforceCompatible(response.getBody());
