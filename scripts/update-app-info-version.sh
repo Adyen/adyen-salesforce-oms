@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # Extract version from branch name
-BRANCH_NAME=${GITHUB_REF##*/}
-VERSION=${BRANCH_NAME#release/}
+DESTINATION_BRANCH=$(jq -r .pull_request.base.ref < "${GITHUB_EVENT_PATH}")
+echo "Destination branch: $DESTINATION_BRANCH"
+
+VERSION=${DESTINATION_BRANCH#release/}
 
 # Remove the last number from the version (e.g., 3.0.0.1 -> 3.0.0)
 BRANCH_VERSION=${VERSION%.*}
