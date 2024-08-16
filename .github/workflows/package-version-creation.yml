@@ -42,7 +42,7 @@ jobs:
 
       - name: Create Package Version
         run: |
-          PACKAGE_VERSION_ID=$(sf package version create -p "Adyen Salesforce Order Management" -c -k Payments@Adyen -w 10 --json | jq -r '.result.Id')
+          PACKAGE_VERSION_ID=$(sf package version create -p "Adyen Salesforce Order Management" -c -k Payments@Adyen --json | jq -r '.result.Id')
           echo "PACKAGE_VERSION_ID=$PACKAGE_VERSION_ID" >> $GITHUB_ENV
 
       - name: Poll for Package Creation Status
