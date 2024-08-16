@@ -25,6 +25,9 @@ jobs:
       - name: Install jq
         run: sudo apt-get install jq
 
+      - name: Make script executable
+        run: chmod +x scripts/update-app-info-version.sh
+
       - name: Verify And Update App Version
         run: scripts/update-app-info-version.sh
 
