@@ -26,7 +26,7 @@ jobs:
         run: sudo apt-get install jq
 
       - name: Verify And Update App Version
-        run: ./script/update-app-info-version.sh
+        run: script/update-app-info-version.sh
 
       - name: Install Salesforce CLI
         run: npm install @salesforce/cli --global
