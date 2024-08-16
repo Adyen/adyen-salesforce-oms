@@ -1,10 +1,12 @@
-name: Salesforce CI/CD
+name: Run Unit Tests
 
 on:
   pull_request:
     branches:
       - '**'
-  workflow_dispatch:
+    branches-ignore:
+      - release/*
+      - Release/*
 
 jobs:
   build-and-deploy:
