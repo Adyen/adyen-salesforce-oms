@@ -8,7 +8,7 @@ VERSION=${BRANCH_NAME#release/}
 BRANCH_VERSION=${VERSION%.*}
 
 # Path to the AdyenOMSConstants.cls file
-APEX_FILE="../force-app/main/default/classes/AdyenOMSConstants.cls"
+APEX_FILE="force-app/main/default/classes/AdyenOMSConstants.cls"
 
 # Read version from sfdx-project.json
 PROJECT_OMS_VERSION=$(jq -r '.packageDirectories[] | select(.default == true) | .versionNumber' sfdx-project.json | sed 's/.NEXT//')
