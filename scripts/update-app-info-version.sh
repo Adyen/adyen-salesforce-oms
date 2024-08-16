@@ -4,7 +4,10 @@
 DESTINATION_BRANCH=$(jq -r .pull_request.base.ref < "${GITHUB_EVENT_PATH}")
 echo "Destination branch: $DESTINATION_BRANCH"
 
-VERSION=${DESTINATION_BRANCH#release/}
+# Convert the branch name to lowercase to handle case-insensitive 'release'/'Release'
+DESTINATION_BRANCH_LOWER=$(echo "$DESTINATION_BRANCH" | tr '[:upper:]' '[:lower:]')
+
+VERSION=${DESTINATION_BRANCH_LOWER#release/}
 
 # Remove the last number from the version (e.g., 3.0.0.1 -> 3.0.0)
 BRANCH_VERSION=${VERSION%.*}
