@@ -14,7 +14,7 @@ if [[ "$PACKAGE_VERSION_ID" == "null" || -z "$PACKAGE_VERSION_ID" ]]; then
 fi
 
 echo "Package version creation id: $PACKAGE_VERSION_ID";
-MAX_ATTEMPTS=${MAX_ATTEMPTS:-30}
+MAX_ATTEMPTS=${MAX_ATTEMPTS:-20}
 echo "Using MAX_ATTEMPTS: $MAX_ATTEMPTS"  # Max number of attempts (minutes) before giving up
 echo
 

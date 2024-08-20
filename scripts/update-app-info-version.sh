@@ -1,4 +1,6 @@
 #!/bin/bash
+# Simulate the GitHub environment variable
+#export GITHUB_HEAD_REF="refs/heads/release/3.0.1"
 
 # Source branch name (release/#.#.#)
 BRANCH_NAME=${GITHUB_HEAD_REF##*/}
@@ -36,14 +38,14 @@ UPDATE_LIBRARY=false
 # Update AdyenOMSConstants.cls only if needed
 if [ "$BRANCH_VERSION" != "$APEX_OMS_VERSION" ]; then
   echo "Updating AdyenOMSConstants.MERCHANT_APP_VERSION_FOR_APP_INFO to version $PROJECT_OMS_VERSION"
-  sed -i '' "s/\(MERCHANT_APP_VERSION_FOR_APP_INFO = '\)[^']*'/\1$PROJECT_OMS_VERSION'/" "$APEX_FILE"
+  sed -i "s/\(MERCHANT_APP_VERSION_FOR_APP_INFO = '\)[^']*'/\1$PROJECT_OMS_VERSION'/" "$APEX_FILE"
   UPDATE_OMS=true
 else
   echo "AdyenOMSConstants.MERCHANT_APP_VERSION_FOR_APP_INFO is already up to date."
 fi
 if [ "$PROJECT_LIBRARY_VERSION" != "$APEX_LIBRARY_VERSION" ]; then
   echo "Updating AdyenOMSConstants.ADYEN_LIBRARY_VERSION_FOR_APP_INFO to version $PROJECT_LIBRARY_VERSION"
-  sed -i '' "s/\(ADYEN_LIBRARY_VERSION_FOR_APP_INFO = '\)[^']*'/\1$PROJECT_LIBRARY_VERSION'/" "$APEX_FILE"
+  sed -i "s/\(ADYEN_LIBRARY_VERSION_FOR_APP_INFO = '\)[^']*'/\1$PROJECT_LIBRARY_VERSION'/" "$APEX_FILE"
   UPDATE_LIBRARY=true
 else
   echo "AdyenOMSConstants.ADYEN_LIBRARY_VERSION_FOR_APP_INFO is already up to date."
