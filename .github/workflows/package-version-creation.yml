@@ -62,4 +62,3 @@ jobs:
             git pull origin "${{ github.head_ref }}"
             git push origin "HEAD:${{ github.head_ref }}"
           fi
-          git status
