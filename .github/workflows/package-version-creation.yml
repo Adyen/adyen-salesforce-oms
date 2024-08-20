@@ -3,8 +3,7 @@ name: Release - Package Version Creation
 on:
   pull_request:
     branches:
-      - 'release/*'
-      - 'Release/*'
+      - 'main'
 
 jobs:
   build-and-deploy:
