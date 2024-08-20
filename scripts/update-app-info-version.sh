@@ -1,21 +1,16 @@
 #!/bin/bash
 
-# Extract version from branch name
-DESTINATION_BRANCH=$(jq -r .pull_request.base.ref < "${GITHUB_EVENT_PATH}")
-echo "Destination branch: $DESTINATION_BRANCH"
-
-# Convert the branch name to lowercase to handle case-insensitive 'release'/'Release'
-DESTINATION_BRANCH_LOWER=$(echo "$DESTINATION_BRANCH" | tr '[:upper:]' '[:lower:]')
-
+# Source branch name (release/#.#.#)
+BRANCH_NAME=${GITHUB_REF##*/}
 # Extract version from the branch name (e.g., release/3.0.0 -> 3.0.0)
-BRANCH_VERSION=${DESTINATION_BRANCH_LOWER#release/}
+BRANCH_VERSION=${BRANCH_NAME#release/}
 
 # Path to the AdyenOMSConstants.cls file
 APEX_FILE="force-app/main/default/classes/AdyenOMSConstants.cls"
 
 # Read version from sfdx-project.json
-PROJECT_OMS_VERSION=$(jq -r '.packageDirectories[] | select(.default == true) | .versionNumber' sfdx-project.json | sed 's/.NEXT//')
-PROJECT_LIBRARY_VERSION=$(jq -r '.packageDirectories[].dependencies[]? | select(.package | startswith("API Library Apex Adyen@")) | .package' sfdx-project.json | sed -E 's/.*@([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+PROJECT_OMS_VERSION=$(yq -r '.packageDirectories[] | select(.default == true) | .versionNumber' sfdx-project.json | sed 's/.NEXT//')
+PROJECT_LIBRARY_VERSION=$(yq -r '.packageDirectories[].dependencies[]? | select(.package | test("API Library Apex Adyen@")) | .package' sfdx-project.json | sed -E 's/.*@([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
 
 # Read version from AdyenOMSConstants.cls using awk for single quotes
 APEX_OMS_VERSION=$(awk -F"[']" '/MERCHANT_APP_VERSION_FOR_APP_INFO/ {print $2}' "$APEX_FILE")
@@ -56,10 +51,10 @@ fi
 
 # Commit changes if any updates were made
 if [ "$UPDATE_OMS" = true ] || [ "$UPDATE_LIBRARY" = true ]; then
+  echo "Adding $APEX_FILE to git"
   git config --global user.name 'GitHub Actions'
   git config --global user.email 'actions@github.com'
   git add "$APEX_FILE"
-  git commit -m "chore: Update AdyenOMSConstants.cls version to $PROJECT_OMS_VERSION and library version to $PROJECT_LIBRARY_VERSION"
 else
   echo "AdyenOMSConstants.cls is already up to date."
 fi

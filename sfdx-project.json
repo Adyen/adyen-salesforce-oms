@@ -6,7 +6,7 @@
       "package": "Adyen Salesforce Order Management",
       "definitionFile": "config/project-scratch-def.json",
       "versionName": "version 3.0",
-      "versionNumber": "3.0.0.NEXT",
+      "versionNumber": "3.0.1.NEXT",
       "ancestorVersion": "HIGHEST",
       "dependencies": [
         {
