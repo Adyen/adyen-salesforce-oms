@@ -53,5 +53,5 @@ jobs:
           git config --global user.email 'actions@github.com'
           git add sfdx-project.json
           git commit -m "Updating versions on sfdx-project.json and AdyenOMSConstants.cls if needed"
-          git push origin "$GITHUB_REF"
+          git push origin "HEAD:${{ github.head_ref }}"
           git status
