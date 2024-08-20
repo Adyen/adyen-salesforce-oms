@@ -5,8 +5,7 @@ on:
     branches:
       - '**'
     branches-ignore:
-      - release/*
-      - Release/*
+      - main
 
 jobs:
   build-and-deploy:

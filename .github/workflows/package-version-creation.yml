@@ -22,11 +22,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install jq
-        run: sudo apt-get install jq
+      - name: Install yq
+        run: sudo snap install yq
 
-      - name: Make script executable
-        run: chmod +x scripts/update-app-info-version.sh
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/update-app-info-version.sh
+          chmod +x scripts/create-new-package-version.sh
 
       - name: Verify And Update App Version
         run: scripts/update-app-info-version.sh
@@ -41,33 +43,12 @@ jobs:
         run: sf org login sfdx-url -f secret.json --set-default-dev-hub
 
       - name: Create Package Version
-        run: |
-          PACKAGE_VERSION_ID=$(sf package version create -p "Adyen Salesforce Order Management" -c -k Payments@Adyen --json | jq -r '.result.Id')
-          echo "PACKAGE_VERSION_ID=$PACKAGE_VERSION_ID" >> $GITHUB_ENV
-
-      - name: Poll for Package Creation Status
-        run: |
-          while true; do
-            STATUS=$(sf package version report --package "$PACKAGE_VERSION_ID" --json | jq -r '.result.Status')
-          
-            if [ "$STATUS" == "Success" ]; then
-              echo "Package creation completed successfully."
-              break
-            elif [ "$STATUS" == "Error" ]; then
-              echo "Package creation failed."
-              exit 1
-            else
-              echo "Package creation is in progress. Current status: $STATUS"
-            fi
-          
-            # Wait for 2 minutes before checking again
-            sleep 120
-          done
+        env:
+          MAX_ATTEMPTS: ${{ vars.MAX_ATTEMPTS }}
+        run: scripts/create-new-package-version.sh
 
       - name: Commit Modified Files
         run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
           git add sfdx-project.json
-          git commit -m "chore: Update sfdx-project.json with new package version id: $PACKAGE_VERSION_ID"
+          git commit -m "Update sfdx-project.json and "
           git push origin "$GITHUB_REF"
