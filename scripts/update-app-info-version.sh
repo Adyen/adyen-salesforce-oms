@@ -50,13 +50,3 @@ if [ "$PROJECT_LIBRARY_VERSION" != "$APEX_LIBRARY_VERSION" ]; then
 else
   echo "AdyenOMSConstants.ADYEN_LIBRARY_VERSION_FOR_APP_INFO is already up to date."
 fi
-
-# Commit changes if any updates were made
-if [ "$UPDATE_OMS" = true ] || [ "$UPDATE_LIBRARY" = true ]; then
-  echo "Adding $APEX_FILE to git"
-  git config --global user.name 'GitHub Actions'
-  git config --global user.email 'actions@github.com'
-  git add "$APEX_FILE"
-else
-  echo "AdyenOMSConstants.cls is already up to date."
-fi
