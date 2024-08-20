@@ -18,11 +18,16 @@ PROJECT_LIBRARY_VERSION=$(yq -r '.packageDirectories[].dependencies[]? | select(
 APEX_OMS_VERSION=$(awk -F"[']" '/MERCHANT_APP_VERSION_FOR_APP_INFO/ {print $2}' "$APEX_FILE")
 APEX_LIBRARY_VERSION=$(awk -F"[']" '/ADYEN_LIBRARY_VERSION_FOR_APP_INFO/ {print $2}' "$APEX_FILE")
 
-echo "Branch Version: $BRANCH_VERSION"
-echo "SFDX Project OMS Version: $PROJECT_OMS_VERSION"
-echo "SFDX Project Library Version: $PROJECT_LIBRARY_VERSION"
-echo "Apex Constant OMS Version: $APEX_OMS_VERSION"
-echo "Apex Constant Library Version: $APEX_LIBRARY_VERSION"
+# Print the branch name
+echo "Branch: $BRANCH_NAME"
+
+# Print the headers for better comparison
+printf "%-25s %-25s\n" "sfdx-project.json VERSION" "AdyenOMSConstants VERSION"
+printf "%-25s %-25s\n" "-------------------------" "-------------------------"
+
+# Print the OMS and Library versions in a pretty format
+printf "%-25s %-25s\n" "$PROJECT_OMS_VERSION (OMS)" "$APEX_OMS_VERSION (OMS)"
+printf "%-25s %-25s\n" "$PROJECT_LIBRARY_VERSION (Library)" "$APEX_LIBRARY_VERSION (Library)"
 
 # Check if BASE_VERSION matches PROJECT_OMS_VERSION
 if [ "$BRANCH_VERSION" != "$PROJECT_OMS_VERSION" ]; then
