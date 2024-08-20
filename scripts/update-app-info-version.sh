@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source branch name (release/#.#.#)
-BRANCH_NAME=${GITHUB_REF##*/}
+BRANCH_NAME=${GITHUB_HEAD_REF##*/}
 # Extract version from the branch name (e.g., release/3.0.0 -> 3.0.0)
 BRANCH_VERSION=${BRANCH_NAME#release/}
 
