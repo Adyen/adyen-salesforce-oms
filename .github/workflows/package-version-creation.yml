@@ -52,8 +52,8 @@ jobs:
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
           git config pull.rebase true
-          git pull origin "${{ github.head_ref }}"
           git add force-app/main/default/classes/AdyenOMSConstants.cls sfdx-project.json
+          git pull origin "${{ github.head_ref }}"
           # Check if any of the files have been modified before committing
           if git diff --cached --quiet; then
             echo "No changes detected. Skipping commit."
