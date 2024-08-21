@@ -52,3 +52,19 @@ while true; do
   # Wait for a minute before checking again
   sleep 60
 done
+
+SUBSCRIBER_PACKAGE_VERSION_ID=$(echo "$PACKAGE_CREATION_RESULT" | yq -r '.result[0].SubscriberPackageVersionId')
+VERSION_NUMBER=$(echo "$PACKAGE_CREATION_RESULT" | yq -r '.result[0].VersionNumber')
+
+# Modify VERSION_NUMBER to format it correctly (e.g., 3.0.1.1 -> 3.0.1-1)
+VERSION_ALIAS="Adyen Salesforce Order Management@${VERSION_NUMBER%.*}-${VERSION_NUMBER##*.}"
+echo "$VERSION_ALIAS: $SUBSCRIBER_PACKAGE_VERSION_ID"
+
+# Check if the entry already exists in sfdx-project.json
+if yq -e ".packageAliases[\"$VERSION_ALIAS\"]" sfdx-project.json > /dev/null 2>&1; then
+  echo "Entry $VERSION_ALIAS already exists in sfdx-project.json. Skipping addition."
+else
+  # Add the new alias entry to the packageAliases section if it doesn't exist
+  yq -i ".packageAliases[\"$VERSION_ALIAS\"] = \"$SUBSCRIBER_PACKAGE_VERSION_ID\"" sfdx-project.json
+  echo "Added $VERSION_ALIAS: $SUBSCRIBER_PACKAGE_VERSION_ID to sfdx-project.json"
+fi
