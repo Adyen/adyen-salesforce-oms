@@ -41,10 +41,10 @@ jobs:
       - name: Authenticate to Dev Hub
         run: sf org login sfdx-url -f secret.json --set-default-dev-hub
 
-#      - name: Create Package Version
-#        env:
-#          MAX_ATTEMPTS: ${{ vars.MAX_ATTEMPTS }}
-#        run: scripts/create-new-package-version.sh
+      - name: Create Package Version
+        env:
+          MAX_ATTEMPTS: ${{ vars.MAX_ATTEMPTS }}
+        run: scripts/create-new-package-version.sh
 
       - name: Commit Modified Files
         run: |
