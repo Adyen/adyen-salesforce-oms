@@ -4,6 +4,8 @@ on:
   pull_request:
     branches-ignore:
       - main
+    paths:
+      - 'force-app/main/default/**'
 
 jobs:
   build-and-deploy:
