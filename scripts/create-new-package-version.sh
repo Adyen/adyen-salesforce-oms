@@ -58,7 +58,6 @@ VERSION_NUMBER=$(echo "$PACKAGE_CREATION_RESULT" | yq -r '.result[0].VersionNumb
 
 # Modify VERSION_NUMBER to format it correctly (e.g., 3.0.1.1 -> 3.0.1-1)
 VERSION_ALIAS="Adyen Salesforce Order Management@${VERSION_NUMBER%.*}-${VERSION_NUMBER##*.}"
-echo "$VERSION_ALIAS: $SUBSCRIBER_PACKAGE_VERSION_ID"
 
 # Check if the entry already exists in sfdx-project.json
 if yq -e ".packageAliases[\"$VERSION_ALIAS\"]" sfdx-project.json > /dev/null 2>&1; then
