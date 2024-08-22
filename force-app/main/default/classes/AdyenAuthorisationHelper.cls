@@ -112,4 +112,47 @@ public with sharing class AdyenAuthorisationHelper {
         String endpoint = adyenAdapterMdt.Endpoint_Api_Version__c + adyenAdapterMdt.Authorize_Endpoint__c;
         return AdyenPaymentUtility.makePostRequest(endpoint, body);
     }
+
+    public static CommercePayments.GatewayResponse reverseAuth(CommercePayments.AuthorizationReversalRequest authReversalRequest) {
+        CommercePayments.AuthorizationReversalResponse authReversalResponse = new CommercePayments.AuthorizationReversalResponse();
+        PaymentAuthorization paymentAuth = AdyenPaymentUtility.retrievePaymentAuthorization(authReversalRequest.paymentAuthorizationId);
+
+        String errorMessage;
+        if (String.isBlank(paymentAuth.GatewayRefNumber)) {
+            errorMessage = 'PspReference Missing';
+        } else if (authReversalRequest.amount == null) {
+            errorMessage = 'Payment Amount Missing';
+        }
+        // TODO: check amount == available to capture from related order payment summary
+        if (String.isNotBlank(errorMessage)) {
+            throw new AdyenGatewayAdapter.GatewayException(errorMessage);
+        }
+
+
+        String pspReference = paymentAuth.GatewayRefNumber;
+        String merchantAccount = paymentAuth.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
+        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.chooseAdapterWithFallBack(merchantAccount);
+
+        // TODO: ApexLib should have model for cancellation request
+        CancelResponse cancelRequest = new CancelResponse();
+        cancelRequest.merchantAccount = adyenAdapterMdt.Merchant_Account__c;
+//        cancelRequest.pspReference = pspReference;
+        String endpoint = '/v71/payments/'+pspReference+'/cancels';
+
+        HttpResponse response = AdyenPaymentUtility.makePostRequest(endpoint, JSON.serialize(cancelRequest, true));
+        String salesforceCompatibleBody = AdyenPaymentUtility.makeSalesforceCompatible(response.getBody());
+        CancelResponse cancelResponse  = (CancelResponse)JSON.deserialize(salesforceCompatibleBody, CancelResponse.class);
+
+        System.debug('Response - success');
+//        authReversalResponse.setAsync(true);
+        authReversalResponse.setAmount(authReversalRequest.amount);
+        authReversalResponse.setGatewayDate(System.now());
+        authReversalResponse.setGatewayReferenceDetails('details for cancellation');
+        authReversalResponse.setGatewayResultCode(cancelResponse.status);
+        authReversalResponse.setGatewayReferenceNumber(cancelResponse.pspReference);
+        authReversalResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
+        authReversalResponse.setGatewayResultCodeDescription('Transaction Normal');
+        authReversalResponse.setGatewayMessage('[cancellation-received]');
+        return authReversalResponse;
+    }
 }
