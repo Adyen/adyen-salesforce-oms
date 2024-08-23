@@ -1,0 +1,89 @@
+name: Salesforce oms e2e test
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      B2B_E2E_AUTH_URL: ${{ secrets.OMS_E2E_AUTH_URL }}
+
+    steps:
+      - name: Checkout This Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install Salesforce CLI
+        run: npm install @salesforce/cli --global
+
+      - name: Create authentication file from secret
+        run: echo ${OMS_E2E_AUTH_URL} > secret.json
+
+      - name: Authenticate to E2E org
+        run: sf org login sfdx-url -f secret.json --set-default --alias e2eOrg
+
+      - name: Checkout Apex-Library Repository
+        uses: actions/checkout@v4
+        with:
+          repository: Adyen/adyen-apex-api-library
+          ref: develop
+          path: dependency-repo
+
+      - name: Push Apex Lib Source to the Org
+        run: |
+          cd dependency-repo
+          sf project deploy start --target-org e2eOrg
+
+      - name: Checkout This Repository Back
+        uses: actions/checkout@v4
+
+      - name: Install xmlstarlet
+        run: sudo apt-get install -y xmlstarlet
+
+      - name: Update customMetadata XML
+        run: |
+          chmod +x ./scripts/updateCustomMetadata.sh
+          ./scripts/updateCustomMetadata.sh
+        env:
+          MERCHANT_ACCOUNT: ${{ secrets.OMS_E2E_MERCHANT_ACCOUNT }}
+          HMAC_KEY: ${{ secrets.OMS_E2E_HMAC_KEY }}
+
+      - name: Deploy This Repository Code and run unit tests
+        run: sf project deploy start --target-org e2eOrg --test-level RunLocalTests --ignore-conflicts
+
+  e2e-testing:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        working-directory: ./e2e
+        run: npm ci
+
+      - name: Run e2e tests
+        working-directory: ./e2e
+        run: npm run test
+        env:
+          SALESFORCE_USERNAME: ${{ secrets.SALESFORCE_USERNAME }}
+          SALESFORCE_PASSWORD: ${{ secrets.SALESFORCE_PASSWORD }}
+          SFCC_HOSTNAME: ${{ secrets.SFCC_HOSTNAME }}
+          SFCC_STOREFRONT_USERNAME: ${{ secrets.SFCC_STOREFRONT_USERNAME }}
+          SFCC_STOREFRONT_PASSWORD: ${{ secrets.SFCC_STOREFRONT_PASSWORD }}
+          MAX_POLL_ATTEMPTS: ${{ vars.MAX_POLL_ATTEMPTS }}
