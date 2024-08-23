@@ -27,7 +27,7 @@ describe('E2E Order Creation and Payment Capture', () => {
   let orderNumber;
 
   beforeAll(async () => {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: false });
     const context = await browser.newContext({
       httpCredentials: {
         username: process.env.SFCC_STOREFRONT_USERNAME,
@@ -48,7 +48,6 @@ describe('E2E Order Creation and Payment Capture', () => {
     const orderNumberElement = await page.locator('span.summary-details.order-number');
     const orderNumberElementContent = await orderNumberElement.textContent();
 
-    console.log(`Order created`);
     orderNumber = orderNumberElementContent.trim();
 
     await browser.close();
@@ -114,7 +113,6 @@ describe('E2E Order Creation and Payment Capture', () => {
     let retryCount = 0;
     let orderSummaryQueryResult;
 
-    console.log('Polling for OrderSummary');
     while (retryCount < maxPollAttempts) {
       orderSummaryQueryResult = await sfConnection.query(
         `SELECT Id FROM OrderSummary WHERE OrderNumber = '${orderNumber}'`
@@ -134,7 +132,6 @@ describe('E2E Order Creation and Payment Capture', () => {
     let retryCount = 0;
     let gatewayLogQueryResult;
 
-    console.log(`Polling for ${gatewayMessage} gateway log`);
     while (retryCount < maxPollAttempts) {
       gatewayLogQueryResult = await sfConnection.query(
         `SELECT Id, GatewayMessage FROM PaymentGatewayLog WHERE OrderPaymentSummary.OrderSummaryId = '${orderSummaryId}' AND GatewayMessage = '${gatewayMessage}'`

@@ -17,6 +17,5 @@
         "playwright": "^1.46.0",
         "@playwright/test": "^1.38.0"
     },
-    "author": "Your Name",
     "license": "MIT"
 }

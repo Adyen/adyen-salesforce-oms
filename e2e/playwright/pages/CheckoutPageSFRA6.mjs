@@ -3,33 +3,16 @@ export default class CheckoutPageSFRA {
   constructor(page) {
     this.baseURL = `https://${process.env.SFCC_HOSTNAME}`;
     this.page = page;
-
     this.consentButton = page.locator('.affirm');
-    this.categoryLink = page.locator('.home-main-categories .category-tile');
-    this.productCard = page.locator('.product .image-container a');
-    this.colourSelector = page.locator('.color-attribute');
-    this.selectSize = page.locator('.select-size');
     this.addToCartButton = page.locator('.add-to-cart');
     this.successMessage = page.locator('.add-to-cart-messages');
     this.selectQuantity = page.locator('.quantity-select');
     this.checkoutUrl =
       `${this.baseURL}on/demandware.store/Sites-RefArch-Site/fr_FR/Checkout-Login`;
     this.checkoutGuest = page.locator('.submit-customer');
-
-    this.loginUrl = '/customer/account';
     this.emailInput = page.locator('#email');
-    this.passwordInput = page.locator('#pass');
-    this.submitButton = page.locator('#send2');
-    this.customerAccountPage = page.locator('.account.customer-account-index');
-
     this.customerInfoSection = page.locator('.customer-label');
-
     this.checkoutPageUserEmailInput = page.locator('#email-guest');
-    this.checkoutPageUserPasswordInput = page.locator(
-      'input[name="loginPassword"]',
-    );
-    this.checkoutPageLoginButton = page.locator('.login button[type="submit"]');
-
     this.checkoutPageUserFirstNameInput = page.locator(
       '#shippingFirstNamedefault',
     );
@@ -55,51 +38,15 @@ export default class CheckoutPageSFRA {
     this.checkoutPageUserTelephoneInput = page.locator(
       '#shippingPhoneNumberdefault',
     );
-
     this.shippingSubmit = page.locator("button[value='submit-shipping']");
-
     this.submitPaymentButton = page.locator("button[value='submit-payment']");
     this.placeOrderButton = page.locator("button[value='place-order']");
-
-    this.errorMessage = page.locator('.error-message-text');
-    this.giftCardWarning = page.locator('#giftCardWarningMessage')
     this.thankYouMessage = page.locator('.order-thank-you-msg');
-
-    this.voucherCode = page.locator('#voucherResult');
-
-    this.qrLoader = this.page.locator('.adyen-checkout__qr-loader');
-    this.qrLoaderAmount = this.qrLoader.locator(
-      '.adyen-checkout__qr-loader__payment_amount',
-    );
-
-    this.qrImg = this.qrLoader.locator('//img[contains(@alt,"QR")]');
-
-    this.signInSectionButton = page.locator(
-      'a[aria-label="Login to your account"]',
-    );
-    this.emailField = page.locator('#login-form-email');
-    this.passwordField = page.locator('#login-form-password');
-    this.loginButton = page.locator('.login button[type="submit"]');
-
-    this.paymentModal = page.locator("#action-modal #adyenModalDialog");
-
-    this.donationAmountButton = page.locator('.adyen-checkout__button').nth(0);
-    this.donationButton = page.locator('.adyen-checkout__button--donate');
-    this.givingThankyouMessage = page.locator('.adyen-checkout__status__text');
-  }
-
-  isPaymentModalShown = async (imgAltValue) => {
-    await expect(this.paymentModal.locator(`img[alt='${imgAltValue}']`))
-      .toBeVisible({ timeout: 20000 });
   }
 
   navigateToCheckout = async (locale) => {
     await this.page.goto(this.getCheckoutUrl(locale));
   };
-
-  navigateToCart = async (locale) => {
-    await this.page.goto(this.getCartUrl(locale));
-  }
 
   goToCheckoutPageWithFullCart = async (locale, itemCount = 1) => {
     await this.addProductToCart(locale, itemCount);
@@ -113,10 +60,6 @@ export default class CheckoutPageSFRA {
   getCheckoutUrl(locale) {
     return `${this.baseURL}/on/demandware.store/Sites-RefArch-Site/${locale}/Checkout-Begin`;
   }
-
-  getCartUrl(locale) {
-    return `${this.baseURL}/s/RefArch/cart?lang=${locale}`;
-  };
 
   addProductToCart = async (locale, itemCount = 1) => {
     await this.consentButton.click();
@@ -202,20 +145,10 @@ export default class CheckoutPageSFRA {
       }
     }
   };
-  
-  completeCheckoutLoggedInUser = async () => {
-    await this.completeCheckout();
-  };
 
   completeCheckout = async () => {
     await this.submitPayment();
     await this.placeOrder();
-  };
-
-  goBackAndSubmitShipping = async () => {
-    await this.page.waitForNavigation('load', { timeout: 20000 });
-    await this.navigateBack();
-    await this.submitShipping();
   };
 
   expectSuccess = async () => {
@@ -224,9 +157,5 @@ export default class CheckoutPageSFRA {
       timeout: 20000,
     });
     await expect(this.thankYouMessage).toBeVisible({ timeout: 20000 });
-  };
-
-  navigateBack = async () => {
-    await this.page.goBack();
   };
 }
