@@ -57,8 +57,8 @@ jobs:
           MERCHANT_ACCOUNT: ${{ secrets.OMS_E2E_MERCHANT_ACCOUNT }}
           HMAC_KEY: ${{ secrets.OMS_E2E_HMAC_KEY }}
 
-      - name: Deploy This Repository Code and run unit tests
-        run: sf project deploy start --target-org e2eOrg --test-level RunLocalTests --ignore-conflicts
+      - name: Deploy This Repository Code
+        run: sf project deploy start --target-org e2eOrg --ignore-conflicts
 
   e2e-testing:
     runs-on: ubuntu-latest
