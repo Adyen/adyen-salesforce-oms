@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - '**'
+    paths:
+      - 'force-app/main/default/**'
   workflow_dispatch:
 
 jobs:
