@@ -1,0 +1,22 @@
+{
+    "name": "salesforce-e2e-test",
+    "version": "1.0.0",
+    "description": "Salesforce e2e test",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "test": "npx playwright install --with-deps && jest --config jest.config.mjs"
+    },
+    "dependencies": {
+        "jsforce": "^3.2.2"
+    },
+    "devDependencies": {
+        "@babel/preset-env": "^7.25.3",
+        "babel-jest": "^29.7.0",
+        "jest": "^29.0.0",
+        "playwright": "^1.46.0",
+        "@playwright/test": "^1.38.0"
+    },
+    "author": "Your Name",
+    "license": "MIT"
+}
