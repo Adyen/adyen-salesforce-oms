@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      B2B_E2E_AUTH_URL: ${{ secrets.OMS_E2E_AUTH_URL }}
+      OMS_E2E_AUTH_URL: ${{ secrets.OMS_E2E_AUTH_URL }}
 
     steps:
       - name: Checkout This Repository
