@@ -6,6 +6,7 @@ on:
       - '**'
     paths:
       - 'force-app/main/default/**'
+      - 'e2e/**'
   workflow_dispatch:
 
 jobs:
