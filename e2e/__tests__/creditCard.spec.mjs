@@ -27,7 +27,7 @@ describe('E2E Order Creation and Payment Capture', () => {
   let orderNumber;
 
   beforeAll(async () => {
-    const browser = await chromium.launch({ headless: false });
+    const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
       httpCredentials: {
         username: process.env.SFCC_STOREFRONT_USERNAME,
