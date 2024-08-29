@@ -105,7 +105,7 @@ public with sharing class AdyenAuthorisationHelper {
     *
     * @param authRequest to be sent to Adyen
     * @param adyenAdapterMdt custom metadata used
-    * @return response from adyen platform.
+    * @return response from adyen platform..
     */
     public static HttpResponse sendAuthorisationRequest(AuthorisationRequest authRequest, Adyen_Adapter__mdt adyenAdapterMdt) {
         String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(authRequest, true));
