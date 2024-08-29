@@ -16,5 +16,10 @@ public with sharing class AdyenOMSConstants {
     public static final String ALTERNATIVE_PAYMENT_METHOD_OBJECT = 'AlternativePaymentMethod';
 
     public static final Set<String> OPEN_INVOICE_METHODS = new Set<String>{'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay'};
-    public static final Set<String> VALID_NOTIFICATION_TYPES = new Set<String>{AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE, AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND, AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED, AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND_FAILED};
+    public static final Set<String> VALID_NOTIFICATION_TYPES = new Set<String>{
+            AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE,
+            AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND,
+            AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED,
+            AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND_FAILED
+    };
 }

@@ -3,7 +3,7 @@ private class AdyenAuthorisationHelperTest {
     @IsTest
     static void createAuthorisationRequestTest() {
         // given
-        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(AdyenConstants.DEFAULT_ADAPTER_NAME);
+        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
         AuthorisationRequest adyenAuthRequest;
         Double price;
         CommercePayments.AuthorizationRequest authRequest;
@@ -94,5 +94,63 @@ private class AdyenAuthorisationHelperTest {
             Assert.isTrue(ex.getMessage().containsIgnoreCase('400'));
         }
         Test.stopTest();
+    }
+
+    @IsTest(SeeAllData = true)
+    static void reverseAuthTest() {
+        // given
+        Account acct = TestDataFactory.createAccount();
+        insert acct;
+        Order order = TestDataFactory.insertOrderAndRelatedRecords(acct.Id, 33.42, 0.96);
+        OrderPaymentSummary orderPaymentSummary = TestDataFactory.createOrderSummaryRecords(order.Id);
+        Double price = [SELECT AvailableToCaptureAmount FROM OrderPaymentSummary WHERE Id = :orderPaymentSummary.Id].AvailableToCaptureAmount;
+        TestDataFactory.insertBasicPaymentRecords(acct.Id, orderPaymentSummary.Id);
+        PaymentAuthorization payAuth = [SELECT Id, GatewayRefNumber FROM PaymentAuthorization WHERE OrderPaymentSummaryId = :orderPaymentSummary.Id];
+        CommercePayments.AuthorizationReversalRequest authReversalRequest = new CommercePayments.AuthorizationReversalRequest(price, payAuth.Id);
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.CancelsMockResponse());
+        // when
+        Test.startTest();
+        CommercePayments.GatewayResponse gatewayResponse = AdyenAuthorisationHelper.reverseAuth(authReversalRequest);
+        Test.stopTest();
+        // then
+        Assert.isTrue(gatewayResponse.toString().containsIgnoreCase('cancellation-received'));
+    }
+
+    @IsTest(SeeAllData = true)
+    static void reverseAuthValidationErrorTest() {
+        // no PA with gateway reference
+        Account acct = TestDataFactory.createAccount();
+        insert acct;
+        Order order = TestDataFactory.insertOrderAndRelatedRecords(acct.Id, 33.42, 0.96);
+        OrderPaymentSummary orderPaymentSummary = TestDataFactory.createOrderSummaryRecords(order.Id);
+        PaymentAuthorization payAuth = TestDataFactory.createPaymentAuthorization(acct.Id, null, null, orderPaymentSummary.Id, null);
+        insert payAuth;
+        CommercePayments.AuthorizationReversalRequest authReversalRequest = new CommercePayments.AuthorizationReversalRequest(Double.valueOf(1.99), payAuth.Id);
+        try {
+            AdyenAuthorisationHelper.reverseAuth(authReversalRequest);
+            Assert.fail();
+        } catch (Exception ex) {
+            Assert.areEqual(ex.getMessage(), AdyenAuthorisationHelper.PSP_MISSING_ERROR);
+        }
+        // Authorization Amount is null
+        payAuth = TestDataFactory.createPaymentAuthorization(acct.Id, null, null, orderPaymentSummary.Id, TestDataFactory.TEST_PSP_REFERENCE);
+        insert payAuth;
+        authReversalRequest = new CommercePayments.AuthorizationReversalRequest(null, payAuth.Id);
+        try {
+            AdyenAuthorisationHelper.reverseAuth(authReversalRequest);
+            Assert.fail();
+        } catch (Exception ex) {
+            Assert.areEqual(ex.getMessage(), AdyenAuthorisationHelper.AMOUNT_MISSING_ERROR);
+        }
+        // Amount mismatch
+        Decimal availableToCapture = [SELECT AvailableToCaptureAmount FROM OrderPaymentSummary WHERE Id = :orderPaymentSummary.Id].AvailableToCaptureAmount;
+        Double price = availableToCapture - 1;
+        authReversalRequest = new CommercePayments.AuthorizationReversalRequest(price, payAuth.Id);
+        try {
+            AdyenAuthorisationHelper.reverseAuth(authReversalRequest);
+            Assert.fail();
+        } catch (Exception ex) {
+            Assert.areEqual(ex.getMessage(), String.format(AdyenAuthorisationHelper.AMOUNT_MISMATCH_ERROR, new List<Object>{price,availableToCapture}));
+        }
     }
 }
