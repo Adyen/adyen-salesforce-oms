@@ -156,47 +156,40 @@ private class AdyenPaymentUtilityTest {
 
     @IsTest
     static void retrieveAdapterByDeveloperNameTest() {
-        // given default adapter name, when retrieving - then
         Assert.isNotNull(AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME));
-        // given wrong name
         String notADeveloperName = '123';
-        try { // when
+        try {
             AdyenPaymentUtility.retrieveAdapterByDeveloperName(notADeveloperName);
             Assert.fail();
-        } catch (Exception ex) { // then
+        } catch (Exception ex) {
             Assert.areEqual(ex.getMessage(), AdyenPaymentUtility.NO_ADYEN_ADAPTER_BY_NAME + notADeveloperName);
         }
     }
 
     @IsTest
     static void retrieveAdapterByMerchantAcctTest() {
-        // given default merchant name
         Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
-        // when retrieving - then
         Assert.isNotNull(AdyenPaymentUtility.retrieveAdapterByMerchantAcct(adyenAdapter.Merchant_Account__c));
-        // given wrong merchant account name
         String notAMerchantAcct = '123';
-        try { // when
+        try {
             AdyenPaymentUtility.retrieveAdapterByMerchantAcct(notAMerchantAcct);
             Assert.fail();
-        } catch (Exception ex) { //then
+        } catch (Exception ex) {
             Assert.areEqual(ex.getMessage(), AdyenPaymentUtility.NO_ADYEN_ADAPTER_BY_MERCHANT + notAMerchantAcct);
         }
     }
 
     @IsTest(SeeAllData=true)
     static void retrieveOrderPaymentSummaryTest() {
-        // given order payment summary Id
         Account acct = TestDataFactory.createAccount();
         insert acct;
         Order order = TestDataFactory.insertOrderAndRelatedRecords(acct.Id, 33.42, 0.96);
         OrderPaymentSummary orderPaymentSummary = TestDataFactory.createOrderSummaryRecords(order.Id);
-        // when retrieving - then
         Assert.isNotNull(AdyenPaymentUtility.retrieveOrderPaymentSummary(orderPaymentSummary.Id));
-        try { // given wrong id - when
+        try {
             AdyenPaymentUtility.retrieveOrderPaymentSummary(acct.Id);
             Assert.fail();
-        } catch (Exception ex) { // then
+        } catch (Exception ex) {
             Assert.areEqual(ex.getMessage(), AdyenPaymentUtility.NO_ORDER_PAY_SUM_FOUND_BY_ID + acct.Id);
         }
     }
