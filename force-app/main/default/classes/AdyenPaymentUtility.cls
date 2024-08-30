@@ -1,12 +1,14 @@
 public with sharing class AdyenPaymentUtility {
     @TestVisible
-    private static final String NO_PAYMENT_FOUND_BY_ID = 'No Payment found with this id: ';
+    private static final String NO_PAYMENT_FOUND_BY_ID = 'No Payment found with id: ';
     @TestVisible
-    private static final String NO_PAYMENT_AUTH_FOUND_BY_ID = 'No payment authorization found with this id: ';
+    private static final String NO_ORDER_PAY_SUM_FOUND_BY_ID = 'No Order Payment Summary found with id: ';
     @TestVisible
-    private static final String NO_ADYEN_ADAPTER_BY_NAME = 'No Adyen adapter found with this name: ';
+    private static final String NO_PAYMENT_AUTH_FOUND_BY_ID = 'No payment authorization found with id: ';
     @TestVisible
-    private static final String NO_ADYEN_ADAPTER_BY_MERCHANT = 'No Adyen adapter found for this merchant account: ';
+    private static final String NO_ADYEN_ADAPTER_BY_NAME = 'No Adyen adapter found with name: ';
+    @TestVisible
+    private static final String NO_ADYEN_ADAPTER_BY_MERCHANT = 'No Adyen adapter found for merchant account: ';
     
     /**
     * Retrieve Payment Info.
@@ -31,49 +33,47 @@ public with sharing class AdyenPaymentUtility {
         }
         return payments[0];
     }
-    
-    
-    /**
-    *  Retrieves custom meta data associated with Adyen (Endpoint info) pulls all fields.
-    *  @param developerName name of the custom metadata type with Adyen configuration
-    *  @return Adyen_Adapter__mdt for the passed metadata type with all fields.
-    */
-    public static Adyen_Adapter__mdt retrieveGatewayMetadata(String developerName) {
-        List<Adyen_Adapter__mdt> adyenAdapters = [
-            SELECT
-                DeveloperName, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
-                System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c,
-                Authorize_Endpoint__c, HMAC_Key__c
-            FROM Adyen_Adapter__mdt
-            WHERE DeveloperName = :developerName
+
+    public static OrderPaymentSummary retrieveOrderPaymentSummary(Id orderPaySummaryId) {
+        List<OrderPaymentSummary> orderPaymentSummaries = [
+            SELECT Id, AvailableToCaptureAmount
+            FROM OrderPaymentSummary
+            WHERE Id = :orderPaySummaryId
         ];
-        if (adyenAdapters.isEmpty()) {
-            throw new AdyenGatewayAdapter.GatewayException(NO_ADYEN_ADAPTER_BY_NAME + developerName);
+        if (orderPaymentSummaries.isEmpty()) {
+            throw new AdyenGatewayAdapter.GatewayException(NO_ORDER_PAY_SUM_FOUND_BY_ID + orderPaySummaryId);
         }
-        return adyenAdapters[0];
+        return orderPaymentSummaries[0];
+    }
+
+    public static Adyen_Adapter__mdt retrieveAdapterByDeveloperName(String developerName) {
+        return retrieveAdapter('DeveloperName', developerName, NO_ADYEN_ADAPTER_BY_NAME);
     }
 
     public static Adyen_Adapter__mdt retrieveAdapterByMerchantAcct(String merchantAccountName) {
-        List<Adyen_Adapter__mdt> adyenAdapters = [
-            SELECT
-                DeveloperName, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c,
-                System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c,
-                Authorize_Endpoint__c, HMAC_Key__c
-            FROM Adyen_Adapter__mdt
-            WHERE Merchant_Account__c = :merchantAccountName
-        ];
-        if (adyenAdapters.isEmpty()) {
-            throw new AdyenGatewayAdapter.GatewayException(NO_ADYEN_ADAPTER_BY_MERCHANT + merchantAccountName);
-        }
-        return adyenAdapters[0];
+        return retrieveAdapter('Merchant_Account__c', merchantAccountName, NO_ADYEN_ADAPTER_BY_MERCHANT);
     }
 
     public static Adyen_Adapter__mdt chooseAdapterWithFallBack(String merchantAccountName) {
         if (String.isNotBlank(merchantAccountName)) {
             return retrieveAdapterByMerchantAcct(merchantAccountName);
         } else {
-            return retrieveGatewayMetadata(AdyenConstants.DEFAULT_ADAPTER_NAME);
+            return retrieveAdapter('DeveloperName', AdyenConstants.DEFAULT_ADAPTER_NAME, NO_ADYEN_ADAPTER_BY_NAME);
         }
+    }
+
+    private static Adyen_Adapter__mdt retrieveAdapter(String fieldName, String fieldValue, String errorMessage) {
+        String query = 'SELECT DeveloperName, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c, ' +
+                'System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c, ' +
+                'Authorize_Endpoint__c, HMAC_Key__c, Cancel_Endpoint__c ' +
+                'FROM Adyen_Adapter__mdt WHERE ' + fieldName + ' = :fieldValue';
+
+        List<Adyen_Adapter__mdt> adyenAdapters = Database.query(query);
+
+        if (adyenAdapters.isEmpty()) {
+            throw new AdyenGatewayAdapter.GatewayException(errorMessage + fieldValue);
+        }
+        return adyenAdapters[0];
     }
 
     public static Boolean isValidNotification(NotificationRequestItem notificationRequestItem) {

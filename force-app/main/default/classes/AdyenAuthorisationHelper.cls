@@ -1,4 +1,7 @@
 public with sharing class AdyenAuthorisationHelper {
+    public static final String PSP_MISSING_ERROR = 'PspReference Missing';
+    public static final String AMOUNT_MISSING_ERROR = 'Payment Amount Missing';
+    public static final String AMOUNT_MISMATCH_ERROR = 'Authorization reversal amount of {0} does not match available to capture amount left of: {1}';
 
     /**
     * Calls Adyen service to post an AUTH request to Adyen.
@@ -6,7 +9,7 @@ public with sharing class AdyenAuthorisationHelper {
     * @return authResponse
     */
     public static CommercePayments.GatewayResponse authorise(CommercePayments.AuthorizationRequest authRequest) {
-        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(AdyenConstants.DEFAULT_ADAPTER_NAME);
+        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
 
         AuthorisationRequest adyenAuthorisationRequest = createAuthorisationRequest(authRequest, adyenAdapterMdt);
         HttpResponse adyenHttpResponse = sendAuthorisationRequest(adyenAuthorisationRequest, adyenAdapterMdt);
@@ -111,5 +114,50 @@ public with sharing class AdyenAuthorisationHelper {
         String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(authRequest, true));
         String endpoint = adyenAdapterMdt.Endpoint_Api_Version__c + adyenAdapterMdt.Authorize_Endpoint__c;
         return AdyenPaymentUtility.makePostRequest(endpoint, body);
+    }
+
+    public static CommercePayments.GatewayResponse reverseAuth(CommercePayments.AuthorizationReversalRequest authReversalRequest) {
+        PaymentAuthorization paymentAuth = AdyenPaymentUtility.retrievePaymentAuthorization(authReversalRequest.paymentAuthorizationId);
+        OrderPaymentSummary orderPaymentSummary = AdyenPaymentUtility.retrieveOrderPaymentSummary(paymentAuth.OrderPaymentSummaryId);
+
+        String errorMessage;
+        if (String.isBlank(paymentAuth.GatewayRefNumber)) {
+            errorMessage = PSP_MISSING_ERROR;
+        } else if (authReversalRequest.amount == null) {
+            errorMessage = AMOUNT_MISSING_ERROR;
+        } else if (orderPaymentSummary.AvailableToCaptureAmount != authReversalRequest.amount) {
+            errorMessage = String.format(AMOUNT_MISMATCH_ERROR, new List<Object>{authReversalRequest.amount, orderPaymentSummary.AvailableToCaptureAmount});
+        }
+        if (String.isNotBlank(errorMessage)) {
+            throw new AdyenGatewayAdapter.GatewayException(errorMessage);
+        }
+
+        String pspReference = paymentAuth.GatewayRefNumber;
+        String merchantAccount = paymentAuth.OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c;
+        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.chooseAdapterWithFallBack(merchantAccount);
+
+        CancelRequest cancelRequest = new CancelRequest();
+        cancelRequest.merchantAccount = adyenAdapterMdt.Merchant_Account__c;
+        cancelRequest.reference = paymentAuth.PaymentAuthorizationNumber;
+        cancelRequest.applicationInfo = AdyenPaymentUtility.getApplicationInfo(adyenAdapterMdt.System_Integrator_Name__c);
+        String endpoint = adyenAdapterMdt.Endpoint_Api_Version__c + adyenAdapterMdt.Cancel_Endpoint__c;
+        endpoint = endpoint.replace('{paymentPspReference}', pspReference);
+
+        HttpResponse response = AdyenPaymentUtility.makePostRequest(endpoint, JSON.serialize(cancelRequest, true));
+        String salesforceCompatibleBody = AdyenPaymentUtility.makeSalesforceCompatible(response.getBody());
+        CancelResponse cancelResponse  = (CancelResponse)JSON.deserialize(salesforceCompatibleBody, CancelResponse.class);
+        return processCancelResponse(cancelResponse, authReversalRequest.amount);
+    }
+
+    private static CommercePayments.GatewayResponse processCancelResponse(CancelResponse cancelResponse, Double amount) {
+        CommercePayments.AuthorizationReversalResponse authReversalResponse = new CommercePayments.AuthorizationReversalResponse();
+        authReversalResponse.setAmount(amount);
+        authReversalResponse.setGatewayDate(System.now());
+        authReversalResponse.setGatewayReferenceDetails(cancelResponse.reference);
+        authReversalResponse.setGatewayResultCode(cancelResponse.status);
+        authReversalResponse.setGatewayReferenceNumber(cancelResponse.pspReference);
+        authReversalResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
+        authReversalResponse.setGatewayMessage('[cancellation-received]');
+        return authReversalResponse;
     }
 }

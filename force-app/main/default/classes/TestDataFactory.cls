@@ -37,12 +37,12 @@ public class TestDataFactory {
         );
     }
 
-    public static PaymentAuthorization createPaymentAuthorization(Id acctId, Id cardPayMetId, Id payGatId, Id orderPaySummaryId) {
+    public static PaymentAuthorization createPaymentAuthorization(Id acctId, Id cardPayMetId, Id payGatId, Id orderPaySummaryId, String pspReference) {
         return new PaymentAuthorization(
             AccountId = acctId,
             PaymentMethodId = cardPayMetId,
             Amount = TEST_AMOUNT,
-            GatewayRefNumber = TEST_PSP_REFERENCE,
+            GatewayRefNumber = pspReference,
             Status = 'Processed',
             ProcessingMode = 'External',
             PaymentGatewayId = payGatId,
@@ -70,7 +70,7 @@ public class TestDataFactory {
         CardPaymentMethod cardPayMeth = createCardPaymentMethod();
         insert cardPayMeth;
         
-        PaymentAuthorization payAuth = createPaymentAuthorization(accId, cardPayMeth.Id, null, orderPaySummaryId);
+        PaymentAuthorization payAuth = createPaymentAuthorization(accId, cardPayMeth.Id, null, orderPaySummaryId, TEST_PSP_REFERENCE);
         insert payAuth;
         
         Payment payment = createPayment(accId, cardPayMeth.Id, null, payAuth.Id, orderPaySummaryId);
@@ -309,6 +309,12 @@ public class TestDataFactory {
         }
     }
 
+    public class CancelsMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(cancelResponse(), 200);
+        }
+    }
+
     public static HttpResponse mockHttpResponse(String body, Integer code) {
         HttpResponse res = new HttpResponse();
         res.setHeader('Content-Type', 'text/json');
@@ -319,5 +325,9 @@ public class TestDataFactory {
 
     private static String genericErrorResponse() {
         return '{"status": 400, "errorCode": "702", "message": "Empty input which would have resulted in a null result.", "errorType": "validation"}';
+    }
+
+    private static String cancelResponse() {
+        return '{"merchantAccount":"PluginDemo_Danilo_TEST","paymentPspReference":"NWQTRSVVQ8Q94875","pspReference":"M4CV9RJFPT4CZX65","reference":"PA-000000037","status":"received"}';
     }
 }
