@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { test, expect } from '@playwright/test';
 import jsforce from 'jsforce';
 import CheckoutPage from '../playwright/pages/CheckoutPageSFRA6.mjs';
 import { Cards } from '../playwright/paymentFlows/cards.mjs';
@@ -13,7 +13,7 @@ let checkoutPage;
 let cards;
 const baseURL = `https://${process.env.SFCC_HOSTNAME}`;
 
-beforeAll(async () => {
+test.beforeAll(async () => {
   sfConnection = new jsforce.Connection({
     loginUrl: 'https://login.salesforce.com',
   });
@@ -23,11 +23,10 @@ beforeAll(async () => {
   );
 });
 
-describe('E2E Order Creation and Payment Capture', () => {
+test.describe('E2E Order Creation and Payment Capture', () => {
   let orderNumber;
 
-  beforeAll(async () => {
-    const browser = await chromium.launch({ headless: true });
+  test.beforeAll(async ({ browser }) => {
     const context = await browser.newContext({
       httpCredentials: {
         username: process.env.SFCC_STOREFRONT_USERNAME,
