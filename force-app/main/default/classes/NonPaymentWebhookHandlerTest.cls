@@ -71,10 +71,10 @@ private class NonPaymentWebhookHandlerTest {
         PaymentAuthorization payAuth = TestDataFactory.createPaymentAuthorization(acct.Id, null, null, orderPaymentSummary.Id, '101010101010ABCD');
         insert payAuth;
 
-        String validWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL, '123456789012ABCD', '101010101010ABCD', '999999', true);
-        RestRequest req = createRestRequest();
-        req.requestBody = Blob.valueOf(validWebhook);
-        RestContext.request = req;
+        String successWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL, '123456789012ABCD', '101010101010ABCD', '999999', true);
+        RestRequest successWebhookRequest = createRestRequest();
+        successWebhookRequest.requestBody = Blob.valueOf(successWebhook);
+        RestContext.request = successWebhookRequest;
 
         // when
         Test.startTest();
@@ -82,11 +82,10 @@ private class NonPaymentWebhookHandlerTest {
         Test.stopTest();
 
         // then
-        Assert.isNotNull(response, 'Response should not be null');
         Assert.areEqual('[accepted]', response, 'Expected accepted response');
-        PaymentGatewayLog log = [SELECT Id, InteractionStatus, OrderPaymentSummaryId FROM PaymentGatewayLog WHERE ReferencedEntityId = :payAuth.Id LIMIT 1];
-        Assert.areEqual('Success', log.InteractionStatus, 'Expected interaction status to be Success.');
-        Assert.areEqual(orderPaymentSummary.Id, log.OrderPaymentSummaryId, 'PaymentGatewayLog should be related to OrderPaymentSummary');
+        PaymentGatewayLog successGatewayLog = [SELECT Id, InteractionStatus, OrderPaymentSummaryId FROM PaymentGatewayLog WHERE ReferencedEntityId = :payAuth.Id LIMIT 1];
+        Assert.areEqual('Success', successGatewayLog.InteractionStatus, 'Expected interaction status to be Success.');
+        Assert.areEqual(orderPaymentSummary.Id, successGatewayLog.OrderPaymentSummaryId, 'successGatewayLog should be related to OrderPaymentSummary');
     }
 
     @IsTest(SeeAllData = true)
@@ -99,10 +98,10 @@ private class NonPaymentWebhookHandlerTest {
             PaymentAuthorization payAuth = TestDataFactory.createPaymentAuthorization(acct.Id, null, null, orderPaymentSummary.Id, '101010101010ABCD');
             insert payAuth;
     
-            String validWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL, '123456789012ABCD', '101010101010ABCD', '999999', false);
-            RestRequest req = createRestRequest();
-            req.requestBody = Blob.valueOf(validWebhook);
-            RestContext.request = req;
+            String failedWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL, '123456789012ABCD', '101010101010ABCD', '999999', false);
+            RestRequest failedWebhookRequest = createRestRequest();
+            failedWebhookRequest.requestBody = Blob.valueOf(failedWebhook);
+            RestContext.request = failedWebhookRequest;
     
             // when
             Test.startTest();
@@ -110,11 +109,10 @@ private class NonPaymentWebhookHandlerTest {
             Test.stopTest();
     
             // then
-            Assert.isNotNull(response, 'Response should not be null');
             Assert.areEqual('[accepted]', response, 'Expected accepted response');
-            PaymentGatewayLog log = [SELECT Id, InteractionStatus, OrderPaymentSummaryId FROM PaymentGatewayLog WHERE ReferencedEntityId = :payAuth.Id LIMIT 1];
-            Assert.areEqual('Failed', log.InteractionStatus, 'Expected interaction status to be Failed.');
-            Assert.areEqual(orderPaymentSummary.Id, log.OrderPaymentSummaryId, 'PaymentGatewayLog should be related to OrderPaymentSummary');
+            PaymentGatewayLog failedGatewayLog = [SELECT Id, InteractionStatus, OrderPaymentSummaryId FROM PaymentGatewayLog WHERE ReferencedEntityId = :payAuth.Id LIMIT 1];
+            Assert.areEqual('Failed', failedGatewayLog.InteractionStatus, 'Expected interaction status to be Failed.');
+            Assert.areEqual(orderPaymentSummary.Id, failedGatewayLog.OrderPaymentSummaryId, 'failedGatewayLog should be related to OrderPaymentSummary');
     }
 
     @IsTest
