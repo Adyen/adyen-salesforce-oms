@@ -15,7 +15,9 @@
         <members>AdyenGatewayAdapter</members>
         <members>AdyenGatewayAdapterTest</members>
         <members>NonPaymentWebhookHandler</members>
+        <members>NonPaymentWebhookHandlerTest</members>
         <members>WebhookUtils</members>
+        <members>WebhookUtilsTest</members>
         <name>ApexClass</name>
     </types>
     <types>

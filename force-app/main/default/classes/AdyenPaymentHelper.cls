@@ -45,6 +45,10 @@ public with sharing class AdyenPaymentHelper {
             return createAcceptedNotificationResponse('no valid psp reference found or webhook type was ignored');
         }
 
+        if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL.equalsIgnoreCase(notificationRequestItem.eventCode)) {
+            return createAcceptedNotificationResponse('webhook type was ignored');
+        }
+
         if (!AdyenPaymentUtility.relatedPaymentFound(notificationRequestItem.originalReference)) {
             return createAcceptedNotificationResponse('no related payment record found');
         }

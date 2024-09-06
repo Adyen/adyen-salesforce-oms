@@ -1,5 +1,8 @@
 public with sharing class WebhookUtils {
     public static NotificationRequestItem parseAdyenNotificationRequest(String notificationRequestBody) {
+        if (String.isBlank(notificationRequestBody)) {
+            throw new AdyenGatewayAdapter.GatewayException('Notification Request Body is invalid');
+        }
         String notificationRequestCompatibleBody = AdyenPaymentUtility.makeSalesforceCompatible(notificationRequestBody);
         AdyenNotification adyenNotification  = (AdyenNotification) JSON.deserialize(notificationRequestCompatibleBody, AdyenNotification.class);
         NotificationRequestItem notificationRequestItem = new NotificationRequestItem();

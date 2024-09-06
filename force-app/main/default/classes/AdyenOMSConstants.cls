@@ -20,6 +20,7 @@ public with sharing class AdyenOMSConstants {
             AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE,
             AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND,
             AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED,
-            AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND_FAILED
+            AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND_FAILED,
+            AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL
     };
 }
