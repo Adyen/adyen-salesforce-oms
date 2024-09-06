@@ -330,4 +330,9 @@ public class TestDataFactory {
     private static String cancelResponse() {
         return '{"merchantAccount":"PluginDemo_Danilo_TEST","paymentPspReference":"NWQTRSVVQ8Q94875","pspReference":"M4CV9RJFPT4CZX65","reference":"PA-000000037","status":"received"}';
     }
+
+    public static String mockWebhookRequest(String eventCode, String pspReference, String originalReference, String merchantRef, Boolean success) {
+        String merchantAccountName = [SELECT Merchant_Account__c FROM Adyen_Adapter__mdt LIMIT 1].Merchant_Account__c;
+        return '{"live": "false", "notificationItems": [{"NotificationRequestItem": {"additionalData": {"hmacSignature": "testsignature"}, "amount": {"currency": "'+ ACTIVE_CURRENCY +'", "value": 1000}, "eventCode": "' + eventCode + '", "eventDate": "2024-01-01T01:00:00+01:00", "merchantAccountCode": "' + merchantAccountName + '", "merchantReference": "' + merchantRef + '", "paymentMethod": "visa", "pspReference": "' + pspReference + '", "originalReference": "' + originalReference + '", "reason": "null", "success": "' + success + '"}}]}';
+    }
 }
