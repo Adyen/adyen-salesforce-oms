@@ -1,10 +1,11 @@
-name: Salesforce CI/CD
+name: Run Unit Tests
 
 on:
   pull_request:
-    branches:
-      - '**'
-  workflow_dispatch:
+    branches-ignore:
+      - main
+    paths:
+      - 'force-app/main/default/**'
 
 jobs:
   build-and-deploy:

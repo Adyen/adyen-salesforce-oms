@@ -6,7 +6,7 @@ private class AdyenPaymentUtilityTest {
         CommercePayments.CaptureRequest captureRequest;
         String currencyCode = 'USD';
         Double price; // request comes as Double value
-        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveGatewayMetadata(AdyenConstants.DEFAULT_ADAPTER_NAME);
+        Adyen_Adapter__mdt adyenAdapterMdt = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
         Decimal expectedPrice;
         CheckoutCaptureRequest modificationRequest;
         for (Integer i = 0; i < 10; i++) {
@@ -154,6 +154,46 @@ private class AdyenPaymentUtilityTest {
         Assert.areNotEqual(reference1, reference2);
     }
 
+    @IsTest
+    static void retrieveAdapterByDeveloperNameTest() {
+        Assert.isNotNull(AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME));
+        String notADeveloperName = '123';
+        try {
+            AdyenPaymentUtility.retrieveAdapterByDeveloperName(notADeveloperName);
+            Assert.fail();
+        } catch (Exception ex) {
+            Assert.areEqual(ex.getMessage(), AdyenPaymentUtility.NO_ADYEN_ADAPTER_BY_NAME + notADeveloperName);
+        }
+    }
+
+    @IsTest
+    static void retrieveAdapterByMerchantAcctTest() {
+        Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
+        Assert.isNotNull(AdyenPaymentUtility.retrieveAdapterByMerchantAcct(adyenAdapter.Merchant_Account__c));
+        String notAMerchantAcct = '123';
+        try {
+            AdyenPaymentUtility.retrieveAdapterByMerchantAcct(notAMerchantAcct);
+            Assert.fail();
+        } catch (Exception ex) {
+            Assert.areEqual(ex.getMessage(), AdyenPaymentUtility.NO_ADYEN_ADAPTER_BY_MERCHANT + notAMerchantAcct);
+        }
+    }
+
+    @IsTest(SeeAllData=true)
+    static void retrieveOrderPaymentSummaryTest() {
+        Account acct = TestDataFactory.createAccount();
+        insert acct;
+        Order order = TestDataFactory.insertOrderAndRelatedRecords(acct.Id, 33.42, 0.96);
+        OrderPaymentSummary orderPaymentSummary = TestDataFactory.createOrderSummaryRecords(order.Id);
+        Assert.isNotNull(AdyenPaymentUtility.retrieveOrderPaymentSummary(orderPaymentSummary.Id));
+        try {
+            AdyenPaymentUtility.retrieveOrderPaymentSummary(acct.Id);
+            Assert.fail();
+        } catch (Exception ex) {
+            Assert.areEqual(ex.getMessage(), AdyenPaymentUtility.NO_ORDER_PAY_SUM_FOUND_BY_ID + acct.Id);
+        }
+    }
+
     private static OrderPaymentSummary createInvoiceAndRelatedRecords(Decimal price, Decimal taxValue) {
         Account acct = TestDataFactory.createAccount();
         insert acct;
@@ -174,6 +214,4 @@ private class AdyenPaymentUtilityTest {
         Id creditMemoId = TestDataFactory.createCreditMemo(orderSummaryId, changeOrderId);
         return creditMemoId;
     }
-
-
 }

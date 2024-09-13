@@ -14,6 +14,8 @@ public with sharing class AdyenPaymentHelper {
         
         if (paymentRequestType == CommercePayments.RequestType.Authorize) {
             return AdyenAuthorisationHelper.authorise((CommercePayments.AuthorizationRequest)paymentRequest);
+        } else if (paymentRequestType == CommercePayments.RequestType.AuthorizationReversal) {
+            return AdyenAuthorisationHelper.reverseAuth((CommercePayments.AuthorizationReversalRequest)paymentRequest);
         } else if (paymentRequestType == CommercePayments.RequestType.Capture) {
             return AdyenCaptureHelper.capture((CommercePayments.CaptureRequest)paymentRequest);
         } else if (paymentRequestType == CommercePayments.RequestType.ReferencedRefund) {
@@ -26,7 +28,8 @@ public with sharing class AdyenPaymentHelper {
     
     public static CommercePayments.GatewayNotificationResponse handleAsyncNotificationCallback(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext) {
         CommercePayments.PaymentGatewayNotificationRequest paymentGatewayNotificationRequest = Test.isRunningTest() ? null : gatewayNotificationContext.getPaymentGatewayNotificationRequest();
-        NotificationRequestItem notificationRequestItem = parseAdyenNotificationRequest(paymentGatewayNotificationRequest);
+        String adyenNotificationRequestPayload = Test.isRunningTest() ? TEST_NOTIFICATION_REQUEST_BODY : paymentGatewayNotificationRequest.getRequestBody().toString();
+        NotificationRequestItem notificationRequestItem = WebhookUtils.parseAdyenNotificationRequest(adyenNotificationRequestPayload);
         Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByMerchantAcct(notificationRequestItem.merchantAccountCode);
         HMACValidator validator;
         try {
@@ -40,6 +43,10 @@ public with sharing class AdyenPaymentHelper {
 
         if (!AdyenPaymentUtility.isValidNotification(notificationRequestItem)) {
             return createAcceptedNotificationResponse('no valid psp reference found or webhook type was ignored');
+        }
+
+        if (AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL.equalsIgnoreCase(notificationRequestItem.eventCode)) {
+            return createAcceptedNotificationResponse('webhook type was ignored');
         }
 
         if (!AdyenPaymentUtility.relatedPaymentFound(notificationRequestItem.originalReference)) {
@@ -60,27 +67,6 @@ public with sharing class AdyenPaymentHelper {
         gatewayNotificationResponse.setResponseBody(Blob.valueOf(responseMessage));
         gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
         return gatewayNotificationResponse;
-    }
-    
-    /**
-    * Take the http request from the async notification callback and deserializes it into AdyenNotificationResponse.
-    *
-    * @param notificationRequest The body of the Adyen notification request.
-    * @return AdyenNotificationRequest  The deserialized version of the Adyen notification request.
-    *
-    */
-    public static NotificationRequestItem parseAdyenNotificationRequest(CommercePayments.PaymentGatewayNotificationRequest notificationRequest) {
-        String adyenNotificationRequestPayload = Test.isRunningTest() ? TEST_NOTIFICATION_REQUEST_BODY : AdyenPaymentUtility.makeSalesforceCompatible(notificationRequest.getRequestBody().toString());
-        AdyenNotification adyenNotification  = (AdyenNotification) JSON.deserialize(adyenNotificationRequestPayload, AdyenNotification.class);
-        NotificationRequestItem notificationRequestItem = new NotificationRequestItem();
-        if (adyenNotification != null) {
-            for (NotificationItems notificationItem : adyenNotification.notificationItems) {
-                if (notificationItem.NotificationRequestItem != null) {
-                    notificationRequestItem = notificationItem.NotificationRequestItem;
-                }
-            }
-        }
-        return notificationRequestItem;
     }
 
     /**

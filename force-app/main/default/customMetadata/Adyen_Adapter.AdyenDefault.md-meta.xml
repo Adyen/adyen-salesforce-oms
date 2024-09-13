@@ -7,6 +7,10 @@
         <value xsi:type="xsd:string">/payments</value>
     </values>
     <values>
+        <field>Cancel_Endpoint__c</field>
+        <value xsi:type="xsd:string">/payments/{paymentPspReference}/cancels</value>
+    </values>
+    <values>
         <field>Capture_Endpoint__c</field>
         <value xsi:type="xsd:string">/payments/{paymentPspReference}/captures</value>
     </values>
