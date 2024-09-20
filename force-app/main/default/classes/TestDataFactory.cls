@@ -315,6 +315,12 @@ public class TestDataFactory {
         }
     }
 
+    public class PBLMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(pblResponse(), 201);
+        }
+    }
+
     public static HttpResponse mockHttpResponse(String body, Integer code) {
         HttpResponse res = new HttpResponse();
         res.setHeader('Content-Type', 'text/json');
@@ -329,6 +335,10 @@ public class TestDataFactory {
 
     private static String cancelResponse() {
         return '{"merchantAccount":"PluginDemo_Danilo_TEST","paymentPspReference":"NWQTRSVVQ8Q94875","pspReference":"M4CV9RJFPT4CZX65","reference":"PA-000000037","status":"received"}';
+    }
+
+    private static String pblResponse() {
+        return '{ "url": "https://test.payment.link", "expiresAt": "2024-01-01T12:00:00+00:00" }';
     }
 
     public static String mockWebhookRequest(String eventCode, String pspReference, String originalReference, String merchantRef, Boolean success) {

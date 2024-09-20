@@ -27,6 +27,18 @@
         <value xsi:type="xsd:string">Merchant_Account_Name</value>
     </values>
     <values>
+        <field>Named_Credential__c</field>
+        <value xsi:type="xsd:string">AdyenCheckout</value>
+    </values>
+    <values>
+        <field>Package_Namespace__c</field>
+        <value xsi:type="xsd:string">adyen_payment</value>
+    </values>
+    <values>
+        <field>Payment_Link_Endpoint__c</field>
+        <value xsi:type="xsd:string">/paymentLinks</value>
+    </values>
+    <values>
         <field>Refund_Endpoint__c</field>
         <value xsi:type="xsd:string">/payments/{paymentPspReference}/refunds</value>
     </values>
