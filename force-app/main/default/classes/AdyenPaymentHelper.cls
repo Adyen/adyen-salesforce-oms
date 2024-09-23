@@ -129,7 +129,7 @@ public with sharing class AdyenPaymentHelper {
         Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
 
         Amount amount = new Amount();
-        amount.value = (postAuthRequestInput.amount * AdyenPaymentUtility.getAmountMultiplier(postAuthRequestInput.currencyIsoCode)).intValue();
+        amount.value = (postAuthRequestInput.amount * AdyenPaymentUtility.getAmountMultiplier(postAuthRequestInput.currencyIsoCode)).round(System.RoundingMode.HALF_UP);
         amount.currency_x = postAuthRequestInput.currencyIsoCode;
 
         PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, postAuthRequestInput.accountId);
@@ -145,17 +145,17 @@ public with sharing class AdyenPaymentHelper {
 
         ConnectApi.AlternativePaymentMethod apmRequest = new ConnectApi.AlternativePaymentMethod();
         apmRequest.gatewayToken = paymentLinkResponse.id;
-        apmRequest.gatewayTokenDetails = 'PBL Id';
+        apmRequest.gatewayTokenDetails = AdyenOMSConstants.PBL_GATEWAY_TOKEN_DETAILS;
         postAuthRequest.paymentMethod.alternativePaymentMethod = apmRequest;
         postAuthRequest.paymentMethod.alternativePaymentMethod.accountId = postAuthRequestInput.accountId;
-        postAuthRequest.paymentMethod.alternativePaymentMethod.name = 'pbl';
+        postAuthRequest.paymentMethod.alternativePaymentMethod.name = AdyenOMSConstants.PBL_PAYMENT_METHOD_NAME;
 
         postAuthRequest.paymentGroup = new ConnectApi.PaymentGroupRequest();
         postAuthRequest.paymentGroup.createPaymentGroup = true;
         postAuthRequest.paymentGroup.currencyIsoCode = postAuthRequestInput.currencyIsoCode;
 
         Map<String, String> additionalData = new Map<String, String> {
-            'pblId' => paymentLinkResponse.id
+            AdyenOMSConstants.PBL_ID_KEY => paymentLinkResponse.id
         };
         postAuthRequest.additionalData = additionalData;
 
@@ -173,7 +173,7 @@ public with sharing class AdyenPaymentHelper {
     private static ConnectApi.PostAuthorizationResponse mockPostAuthResponse() {
         ConnectApi.PostAuthorizationResponse postAuthorizationResponse = new ConnectApi.PostAuthorizationResponse();
         postAuthorizationResponse.gatewayResponse = new ConnectApi.PostAuthGatewayResponse();
-        postAuthorizationResponse.gatewayResponse.gatewayResultCode = 'success';
+        postAuthorizationResponse.gatewayResponse.gatewayResultCode = AdyenOMSConstants.GATEWAY_RESULT_SUCCESS;
         postAuthorizationResponse.paymentGroup = new ConnectApi.PaymentGroupResponse();
         postAuthorizationResponse.paymentMethod = new ConnectApi.PaymentMethodResponse();
         return postAuthorizationResponse;
@@ -190,7 +190,7 @@ public with sharing class AdyenPaymentHelper {
         public String currencyIsoCode;
         
         @InvocableVariable(required=true)
-        public Double amount;
+        public Decimal amount;
     }
 
     public class PBLPostAuthResponse {

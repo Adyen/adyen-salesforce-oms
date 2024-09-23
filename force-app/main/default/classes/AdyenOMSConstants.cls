@@ -23,4 +23,10 @@ public with sharing class AdyenOMSConstants {
             AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND_FAILED,
             AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL
     };
+
+    public static final String PBL_GATEWAY_TOKEN_DETAILS = 'PBL Id';
+    public static final String PBL_PAYMENT_METHOD_NAME = 'pbl';
+    public static final String PBL_ID_KEY = 'pblId';
+    public static final String GATEWAY_RESULT_SUCCESS = 'success';
+    public static final String GATEWAY_RESULT_SUCCESS_DESCRIPTION = 'Transaction Normal';
 }

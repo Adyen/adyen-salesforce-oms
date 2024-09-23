@@ -163,13 +163,13 @@ public with sharing class AdyenAuthorisationHelper {
 
     public static CommercePayments.GatewayResponse createPostAuthResponse(CommercePayments.PostAuthorizationRequest postAuthRequest) {
         CommercePayments.PostAuthorizationResponse postAuthorizationResponse = new CommercePayments.PostAuthorizationResponse();
-        String pblId = postAuthRequest.additionalData?.get('pblId');
+        String pblId = postAuthRequest.additionalData?.get(AdyenOMSConstants.PBL_ID_KEY);
        
         if (postAuthRequest.amount != null) {
             postAuthorizationResponse.setAmount(postAuthRequest.amount);
         }
-        postAuthorizationResponse.setGatewayResultCode('success');
-        postAuthorizationResponse.setGatewayResultCodeDescription('Transaction Normal');
+        postAuthorizationResponse.setGatewayResultCode(AdyenOMSConstants.GATEWAY_RESULT_SUCCESS);
+        postAuthorizationResponse.setGatewayResultCodeDescription(AdyenOMSConstants.GATEWAY_RESULT_SUCCESS_DESCRIPTION);
         postAuthorizationResponse.setGatewayReferenceNumber(pblId);
         postAuthorizationResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
         postAuthorizationResponse.setGatewayDate(System.now());
