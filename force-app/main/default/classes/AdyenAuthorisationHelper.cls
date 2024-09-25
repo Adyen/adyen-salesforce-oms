@@ -165,9 +165,7 @@ public with sharing class AdyenAuthorisationHelper {
         CommercePayments.PostAuthorizationResponse postAuthorizationResponse = new CommercePayments.PostAuthorizationResponse();
         String pblId = postAuthRequest.additionalData?.get(AdyenOMSConstants.PBL_ID_KEY);
        
-        if (postAuthRequest.amount != null) {
-            postAuthorizationResponse.setAmount(postAuthRequest.amount);
-        }
+        postAuthorizationResponse.setAmount(postAuthRequest.amount);
         postAuthorizationResponse.setGatewayResultCode(AdyenOMSConstants.GATEWAY_RESULT_SUCCESS);
         postAuthorizationResponse.setGatewayResultCodeDescription(AdyenOMSConstants.GATEWAY_RESULT_SUCCESS_DESCRIPTION);
         postAuthorizationResponse.setGatewayReferenceNumber(pblId);
