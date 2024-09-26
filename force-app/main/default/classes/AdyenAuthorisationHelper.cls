@@ -160,4 +160,19 @@ public with sharing class AdyenAuthorisationHelper {
         authReversalResponse.setGatewayMessage('[cancellation-received]');
         return authReversalResponse;
     }
+
+    public static CommercePayments.GatewayResponse createPostAuthResponse(CommercePayments.PostAuthorizationRequest postAuthRequest) {
+        CommercePayments.PostAuthorizationResponse postAuthorizationResponse = new CommercePayments.PostAuthorizationResponse();
+        String pblId = postAuthRequest.additionalData?.get(AdyenOMSConstants.PBL_ID_KEY);
+       
+        postAuthorizationResponse.setAmount(postAuthRequest.amount);
+        postAuthorizationResponse.setGatewayResultCode(AdyenOMSConstants.GATEWAY_RESULT_SUCCESS);
+        postAuthorizationResponse.setGatewayResultCodeDescription(AdyenOMSConstants.GATEWAY_RESULT_SUCCESS_DESCRIPTION);
+        postAuthorizationResponse.setGatewayReferenceNumber(pblId);
+        postAuthorizationResponse.setSalesforceResultCodeInfo(AdyenConstants.SUCCESS_SALESFORCE_RESULT_CODE_INFO);
+        postAuthorizationResponse.setGatewayDate(System.now());
+        postAuthorizationResponse.setAsync(true);
+
+        return postAuthorizationResponse;
+    }
 }
