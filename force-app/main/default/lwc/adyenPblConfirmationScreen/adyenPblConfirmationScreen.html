@@ -1,0 +1,110 @@
+<template>
+    <lightning-card class="slds-align_absolute-center">
+        <template lwc:if={isPblPaymentMode}>
+            <div class="slds-text-align_center slds-var-p-around_medium">
+                <lightning-icon class="slds-m-around_medium" icon-name="action:approval" alternative-text="Success" size="xx-small"></lightning-icon>
+                <h1 class="slds-text-heading_large">Link generated!</h1>
+                <div class="slds-align_absolute-center slds-m-around_medium">Copy the payment link below to send it to {shopperName}. You can also find the link at any time from the order details page.</div>
+            </div>
+    
+            <div class="slds-var-p-around_medium">
+                <div class="slds-grid slds-grid_vertical">
+                    
+                    <div class="slds-grid slds-m-around_x-small">
+                        <div class="slds-col slds-size_1-of-2">
+                            <p class="slds-text-title_bold">Payment link</p>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-grid slds-float_right">
+                                <p class="slds-truncate">{paymentLink}</p>
+                                <lightning-button-icon 
+                                    icon-name="utility:copy" 
+                                    alternative-text="Copy payment link" 
+                                    onclick={copyPaymentLink}
+                                    variant="bare"
+                                    class="slds-m-left_x-small">
+                                </lightning-button-icon>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="slds-grid slds-m-around_x-small">
+                        <div class="slds-col slds-size_1-of-2">
+                            <p class="slds-text-title_bold">Directed to</p>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-grid slds-float_right">
+                                <p class="slds-truncate">{shopperEmail}</p>
+                                <lightning-button-icon 
+                                    icon-name="utility:copy" 
+                                    alternative-text="Copy email" 
+                                    onclick={copyShopperEmail}
+                                    variant="bare"
+                                    class="slds-m-left_x-small">
+                                </lightning-button-icon>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="slds-grid slds-m-around_x-small">
+                        <div class="slds-col slds-size_1-of-2">
+                            <p class="slds-text-title_bold">Order reference</p>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-grid slds-float_right">
+                                <p class="slds-truncate">{orderReference}</p>
+                                <lightning-button-icon 
+                                    icon-name="utility:open" 
+                                    alternative-text="Go to order details" 
+                                    onclick={openOrderSummary}
+                                    variant="bare"
+                                    class="slds-m-left_x-small">
+                                </lightning-button-icon>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="slds-grid slds-m-around_x-small">
+                        <div class="slds-col slds-size_1-of-2">
+                            <p class="slds-text-title_bold">Pay before</p>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-grid slds-float_right">
+                                <p class="slds-truncate">{linkExpiryDate}</p>
+                            </div>
+                        </div>
+                    </div>
+    
+                </div>
+            </div>
+        </template>
+
+        <template lwc:if={isCardPaymentMode}>
+            <div class="slds-text-align_center">
+                <lightning-icon class="slds-m-around_medium" icon-name="action:approval" alternative-text="Success" size="xx-small"></lightning-icon>
+                <h1 class="slds-text-heading_large">Success!</h1>
+                <div class="slds-align_absolute-center slds-m-around_medium">Your Order has been created and Card has been charged {currencyIsoCode} {amount}</div>
+            </div>
+
+                <div class="slds-grid slds-grid_vertical"> 
+                    <div class="slds-grid slds-m-around_x-small">
+                        <div class="slds-col slds-size_1-of-2">
+                            <p class="slds-text-title_bold">Order reference</p>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-grid slds-float_right">
+                                <p class="slds-truncate">{orderReference}</p>
+                                <lightning-button-icon 
+                                    icon-name="utility:open" 
+                                    alternative-text="Go to order details" 
+                                    onclick={openOrderSummary}
+                                    variant="bare"
+                                    class="slds-m-left_x-small">
+                                </lightning-button-icon>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </template>
+    </lightning-card>
+</template>

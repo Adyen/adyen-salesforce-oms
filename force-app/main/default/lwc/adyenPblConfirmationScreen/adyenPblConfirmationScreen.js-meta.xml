@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>61.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__FlowScreen</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__FlowScreen">
+            <property name="shopperName" type="String" label="shopperName" />
+            <property name="paymentLink" type="String" label="Payment Link" />
+            <property name="orderReference" type="String" label="Order Reference" />
+            <property name="linkExpiryDate" type="String" label="Link Exipry Date" />
+            <property name="shopperEmail" type="String" label="Shopper Email" />
+            <property name="paymentMode" type="String" label="Payment Mode" />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
