@@ -7,7 +7,7 @@
     </targets>
     <targetConfigs>
         <targetConfig targets="lightning__FlowScreen">
-            <property name="shopperName" type="String" label="shopperName" />
+            <property name="shopperName" type="String" label="shopper Name" />
             <property name="paymentLink" type="String" label="Payment Link" />
             <property name="orderReference" type="String" label="Order Reference" />
             <property name="linkExpiryDate" type="String" label="Link Exipry Date" />

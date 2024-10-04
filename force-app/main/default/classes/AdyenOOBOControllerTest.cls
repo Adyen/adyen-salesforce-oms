@@ -28,8 +28,8 @@ public class AdyenOOBOControllerTest {
         // When
         Test.startTest();
         try {
-            Id result = AdyenOOBOController.getOrderSummaryIdByOrderNumber('NON_EXISTING_ORDER_NUMBER');
-            Assert.isTrue(false, 'An Exception should have been thrown.');
+            AdyenOOBOController.getOrderSummaryIdByOrderNumber('NON_EXISTING_ORDER_NUMBER');
+            Assert.fail('An Exception should have been thrown.');
         } catch (AuraHandledException e) {
             // Then
             Assert.areEqual(
