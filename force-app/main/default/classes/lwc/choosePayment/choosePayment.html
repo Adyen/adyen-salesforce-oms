@@ -1,0 +1,30 @@
+<template>
+    <lightning-layout horizontal-align="space">
+        <lightning-layout-item flexibility="auto, no-grow" padding="around-small">
+            <lightning-button-group>
+                <lightning-button icon-name="utility:send" label="Payment link" onclick={handlePblButtonClick} variant={pblButtonVariant}></lightning-button>
+                <lightning-button icon-name="utility:text_template" label="Manual card entry" onclick={handleCardButtonClick} variant={cardButtonVariant}></lightning-button>
+            </lightning-button-group>
+        </lightning-layout-item>
+    </lightning-layout>
+    <lightning-spinner lwc:if={isLoading}></lightning-spinner>
+    <template lwc:else>
+        <lightning-layout multiple-rows lwc:if={pblSelected}>
+            <lightning-layout-item size="12" padding="horizontal-small">
+                <lightning-input disabled type="email" label="Sent to" value={shopperEmail}></lightning-input>
+            </lightning-layout-item>
+            <lightning-layout-item size="12" padding="horizontal-small">
+                <div class="slds-var-p-around_medium slds-text-align_center" style="background-color: #D8E6FE; color: #0B5CAB">
+                    <p>By submitting this order you will generate a payment link that needs to be paid in <b>{expirationDays} day(s).</b></p>
+                </div>
+            </lightning-layout-item>
+        </lightning-layout>
+        <lightning-layout multiple-rows lwc:else>
+            <lightning-layout-item size="12" padding="horizontal-small">
+                <div class="slds-var-p-around_medium slds-text-align_center" style="background-color: #D8E6FE; color: #0B5CAB">
+                    <p>We are working on it! =)</p>
+                </div>
+            </lightning-layout-item>
+        </lightning-layout>
+    </template>
+</template>
