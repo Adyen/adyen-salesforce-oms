@@ -5,6 +5,8 @@
         <members>AdyenAuthorisationHelper</members>
         <members>AdyenAuthorisationHelperTest</members>
         <members>AdyenCaptureHelper</members>
+        <members>AdyenOOBOController</members>
+        <members>AdyenOOBOControllerTest</members>
         <members>AdyenOMSConstants</members>
         <members>AdyenPaymentHelper</members>
         <members>AdyenPaymentHelperTest</members>
@@ -76,5 +78,9 @@
         <members>AlternativePaymentMethod.Alternative_Payment_Method</members>
         <name>RecordType</name>
     </types>
+    <types>
+		<members>adyenPblConfirmationScreen</members>
+		<name>LightningComponentBundle</name>
+	</types>
     <version>60.0</version>
 </Package>
