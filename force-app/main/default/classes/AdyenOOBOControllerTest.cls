@@ -1,4 +1,3 @@
-@IsTest
 public class AdyenOOBOControllerTest {
 
     @IsTest(SeeAllData=true)
