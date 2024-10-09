@@ -180,16 +180,16 @@ public with sharing class AdyenPaymentHelper {
     }
     
     public class PBLPostAuthRequest {
-        @InvocableVariable(required=true)
+        @InvocableVariable(Required=true)
         public String paymentGatewayId;
         
-        @InvocableVariable(required=true)
+        @InvocableVariable(Required=true)
         public String accountId;
         
-        @InvocableVariable(required=true)
+        @InvocableVariable(Required=true)
         public String currencyIsoCode;
         
-        @InvocableVariable(required=true)
+        @InvocableVariable(Required=true)
         public Decimal amount;
     }
 

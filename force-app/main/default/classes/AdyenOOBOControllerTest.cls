@@ -1,4 +1,4 @@
-@isTest
+@IsTest
 public class AdyenOOBOControllerTest {
 
     @IsTest(SeeAllData=true)
@@ -39,5 +39,37 @@ public class AdyenOOBOControllerTest {
             );
         }
         Test.stopTest();
+    }
+
+    @IsTest
+    static void getExpiryDurationTest() {
+        // given
+        // when
+        Decimal expireDays = AdyenOOBOController.getExpiryDuration();
+        // then
+        Assert.areEqual(1, expireDays);
+    }
+
+    @IsTest
+    static void getAccountEmailAndNameTest() {
+        // given
+        Contact newContact = TestDataFactory.insertAccountWithContact();
+        newContact = [SELECT Name, Email, AccountId FROM Contact WHERE Id = :newContact.Id];
+        // when
+        AdyenOOBOController.AccountEmailAndName acctInfo = AdyenOOBOController.getAccountEmailAndName(newContact.AccountId);
+        // then
+        Assert.areEqual(newContact.Email, acctInfo.email);
+        Assert.areEqual(newContact.Name, acctInfo.name);
+    }
+
+    @IsTest
+    static void getAccountEmailAndNameErrorTest() {
+        // given - no account
+        try { // when
+            AdyenOOBOController.getAccountEmailAndName(null);
+            Assert.fail();
+        } catch (Exception ex) { // then
+            Assert.isInstanceOfType(ex, AuraHandledException.class);
+        }
     }
 }

@@ -1,10 +1,17 @@
-import { LightningElement, wire } from 'lwc';
-import getExpirationDays from '@salesforce/apex/NonPaymentWebhookHandler.getExpiryDuration';
+import { LightningElement, api } from 'lwc';
+import getExpirationDays from '@salesforce/apex/AdyenOOBOController.getExpiryDuration';
+import getAccountNameAndEmail from '@salesforce/apex/AdyenOOBOController.getAccountEmailAndName';
+import { PAYMENT_MODES } from 'c/payByLinkUtils';
 
 export default class ChoosePayment extends LightningElement {
     pblSelected = true;
     expirationDays;
-    shopperEmail = "danilo.cardoso@adyen.com";
+    error;
+    isLoading;
+    @api accountId;
+    @api shopperEmail;
+    @api shopperName;
+    @api paymentMode;
 
     get pblButtonVariant() {
         return this.pblSelected ? "brand" : "neutral";
@@ -14,28 +21,38 @@ export default class ChoosePayment extends LightningElement {
         return this.pblSelected ? "neutral" : "brand";
     }
 
-    get isLoading() {
-        if (this.pblSelected) {
-            return this.expirationDays == null;
-        } else {
-            return false;
+    async connectedCallback() {
+        this.isLoading = true;
+        this.handlePblButtonClick(); // initializing values
+        try {
+            await Promise.all([
+                this.fetchExpirationDays(),
+                this.fetchShopperInfo(),
+            ]);
+        } catch (error) {
+            this.error = error;
+        } finally {
+            this.isLoading = false;
         }
     }
 
-    @wire(getExpirationDays)
-    wiredExpirationDays({ error, data }) {
-        if (data) {
-            this.expirationDays = data;
-        } else if (error) {
-            console.error('Error fetching expiration days', error);
-        }
+    async fetchExpirationDays() {
+        this.expirationDays = await getExpirationDays();
+    }
+
+    async fetchShopperInfo() {
+        const shopperInfo = await  getAccountNameAndEmail({ accountId: this.accountId });
+        this.shopperName = shopperInfo.name;
+        this.shopperEmail = shopperInfo.email;
     }
 
     handlePblButtonClick () {
         this.pblSelected = true;
+        this.paymentMode = PAYMENT_MODES.PBL;
     }
 
     handleCardButtonClick () {
         this.pblSelected = false;
+        this.paymentMode = PAYMENT_MODES.CARD;
     }
 }

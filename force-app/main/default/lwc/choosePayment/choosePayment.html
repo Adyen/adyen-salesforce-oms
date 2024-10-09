@@ -8,10 +8,13 @@
         </lightning-layout-item>
     </lightning-layout>
     <lightning-spinner lwc:if={isLoading}></lightning-spinner>
+    <template lwc:elseif={error}>
+        <c-error-panel errors={error}></c-error-panel>
+    </template>
     <template lwc:else>
         <lightning-layout multiple-rows lwc:if={pblSelected}>
             <lightning-layout-item size="12" padding="horizontal-small">
-                <lightning-input disabled type="email" label="Sent to" value={shopperEmail}></lightning-input>
+                <lightning-input disabled type="email" label="Shopper email" value={shopperEmail}></lightning-input>
             </lightning-layout-item>
             <lightning-layout-item size="12" padding="horizontal-small">
                 <div class="slds-var-p-around_medium slds-text-align_center" style="background-color: #D8E6FE; color: #0B5CAB">

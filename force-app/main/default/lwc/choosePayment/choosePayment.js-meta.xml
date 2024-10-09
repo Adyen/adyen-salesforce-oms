@@ -11,5 +11,13 @@
         <target>lightningCommunity__Page</target>
         <target>lightningCommunity__Default</target>
     </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__FlowScreen">
+            <property name="accountId" type="String" label="Account Id" />
+            <property name="shopperName" type="String" label="Shopper Name" />
+            <property name="shopperEmail" type="String" label="Shopper Email" />
+            <property name="paymentMode" type="String" label="Payment Mode" />
+        </targetConfig>
+    </targetConfigs>
     <masterLabel>Choose Payment</masterLabel>
 </LightningComponentBundle>
