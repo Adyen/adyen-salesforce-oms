@@ -27,11 +27,9 @@ export default class AdyenPblConfirmationScreen extends NavigationMixin(Lightnin
     }
 
     get isPblPaymentMode() {
-        return this.paymentMode === PAYMENT_MODES.PBL;
     }
 
     get isCardPaymentMode() {
-        return this.paymentMode === PAYMENT_MODES.CARD;
     }
 
     async openOrderSummary() {
