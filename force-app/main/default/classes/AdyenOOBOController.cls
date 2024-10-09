@@ -1,5 +1,6 @@
 public with sharing class AdyenOOBOController {
 
+    @AuraEnabled(cacheable=true)
     public static Id getOrderSummaryIdByOrderNumber(String orderNumber) {
         try {
             List<OrderSummary> orderSummaries = [
