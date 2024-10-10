@@ -390,4 +390,8 @@ public with sharing class AdyenPaymentUtility {
             return response;
         }
     }
+
+    public static Boolean personAccountsEnabled() {
+        return Schema.SObjectType.Account.fields.getMap().containsKey( 'isPersonAccount' );
+    }
 }

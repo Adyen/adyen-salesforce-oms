@@ -17,6 +17,14 @@ public class TestDataFactory {
         return new Account(Name = 'Test Account');
     }
 
+    public static Contact insertAccountWithContact() {
+        Account newAccount = createAccount();
+        insert newAccount;
+        Contact newContact = new Contact(FirstName = 'Test', LastName = 'last', AccountId = newAccount.Id, Email = 'test@email.com');
+        insert newContact;
+        return newContact;
+    }
+
     public static CardPaymentMethod createCardPaymentMethod() {
         return new CardPaymentMethod(
             GatewayToken = TEST_PAYMENT_TOKEN,

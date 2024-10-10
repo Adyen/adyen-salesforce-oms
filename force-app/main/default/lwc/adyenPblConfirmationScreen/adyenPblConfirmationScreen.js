@@ -1,13 +1,10 @@
 import { LightningElement, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { NavigationMixin } from 'lightning/navigation';
+import { PAYMENT_MODES } from 'c/payByLinkUtils';
 import getOrderSummaryIdByOrderNumber from '@salesforce/apex/AdyenOOBOController.getOrderSummaryIdByOrderNumber';
-export default class AdyenPblConfirmationScreen extends NavigationMixin(LightningElement) {
-    PAYMENT_MODES = {
-        PBL: 'pbl',
-        CARD: 'card',
-    };
 
+export default class AdyenPblConfirmationScreen extends NavigationMixin(LightningElement) {
     @api shopperName;
     @api paymentLink;
     @api orderReference;
@@ -18,7 +15,9 @@ export default class AdyenPblConfirmationScreen extends NavigationMixin(Lightnin
     @api currencyIsoCode;
 
     connectedCallback() {
-        this.linkExpiryDate = this.formatDate(this.linkExpiryDate);
+        if (this.isPblPaymentMode) {
+            this.linkExpiryDate = this.formatDate(this.linkExpiryDate);
+        }
     }
 
     copyPaymentLink() {
@@ -30,11 +29,11 @@ export default class AdyenPblConfirmationScreen extends NavigationMixin(Lightnin
     }
 
     get isPblPaymentMode() {
-        return this.paymentMode === this.PAYMENT_MODES.PBL;
+        return this.paymentMode === PAYMENT_MODES.PBL;
     }
 
     get isCardPaymentMode() {
-        return this.paymentMode === this.PAYMENT_MODES.CARD;
+        return this.paymentMode === PAYMENT_MODES.CARD;
     }
 
     async openOrderSummary() {

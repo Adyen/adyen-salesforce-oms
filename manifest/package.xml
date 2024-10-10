@@ -20,6 +20,8 @@
         <members>NonPaymentWebhookHandlerTest</members>
         <members>WebhookUtils</members>
         <members>WebhookUtilsTest</members>
+        <members>AdyenPBLHelper</members>
+        <members>AdyenPBLHelperTest</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -79,8 +81,12 @@
         <name>RecordType</name>
     </types>
     <types>
-		<members>adyenPblConfirmationScreen</members>
-		<name>LightningComponentBundle</name>
-	</types>
-    <version>60.0</version>
+        <members>adyenPblConfirmationScreen</members>
+        <members>choosePayment</members>
+        <members>payByLinkUtils</members>
+        <members>ldsUtils</members>
+        <members>errorPanel</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <version>61.0</version>
 </Package>
