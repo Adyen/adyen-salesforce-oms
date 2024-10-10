@@ -15,7 +15,9 @@ export default class AdyenPblConfirmationScreen extends NavigationMixin(Lightnin
     @api currencyIsoCode;
 
     connectedCallback() {
-        this.linkExpiryDate = this.formatDate(this.linkExpiryDate);
+        if (this.isPblPaymentMode) {
+            this.linkExpiryDate = this.formatDate(this.linkExpiryDate);
+        }
     }
 
     copyPaymentLink() {
@@ -27,9 +29,11 @@ export default class AdyenPblConfirmationScreen extends NavigationMixin(Lightnin
     }
 
     get isPblPaymentMode() {
+        return this.paymentMode === PAYMENT_MODES.PBL;
     }
 
     get isCardPaymentMode() {
+        return this.paymentMode === PAYMENT_MODES.CARD;
     }
 
     async openOrderSummary() {
