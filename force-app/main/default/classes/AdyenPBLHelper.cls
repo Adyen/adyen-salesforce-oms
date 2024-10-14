@@ -1,4 +1,5 @@
 public with sharing class AdyenPBLHelper {
+    public static final List<String> ALLOWED_PAYMENT_METHODS = new List<String>{'ideal', 'scheme', 'paypal', 'applepay'};
 
     public static PaymentLinkRequest buildPaymentLinkRequest(Adyen_Adapter__mdt adyenAdapter, Amount amount, String reference) {
         PaymentLinkRequest paymentLinkRequest = new PaymentLinkRequest();
@@ -8,6 +9,7 @@ public with sharing class AdyenPBLHelper {
         paymentLinkRequest.applicationInfo = AdyenPaymentUtility.getApplicationInfo(adyenAdapter.System_Integrator_Name__c);
         paymentLinkRequest.returnUrl = adyenAdapter.Payment_Link_Return_Url__c;
         paymentLinkRequest.themeId = adyenAdapter.Payment_Link_Theme_Id__c;
+        paymentLinkRequest.allowedPaymentMethods = ALLOWED_PAYMENT_METHODS;
         paymentLinkRequest.expiresAt = adyenAdapter.Payment_Link_Expiry_Duration__c != null 
             ? getLinkExpiryDate(adyenAdapter.Payment_Link_Expiry_Duration__c.intValue()) 
             : null;

@@ -132,7 +132,7 @@ public with sharing class AdyenPaymentHelper {
         amount.value = (postAuthRequestInput.amount * AdyenPaymentUtility.getAmountMultiplier(postAuthRequestInput.currencyIsoCode)).round(System.RoundingMode.HALF_UP);
         amount.currency_x = postAuthRequestInput.currencyIsoCode;
 
-        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, postAuthRequestInput.accountId);
+        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, postAuthRequestInput.cartId);
         PaymentLinkResponse paymentLinkResponse = AdyenPBLHelper.generatePaymentLink(adyenAdapter, paymentLinkRequest);
 
         ConnectApi.PostAuthRequest postAuthRequest = new ConnectApi.PostAuthRequest();
@@ -169,7 +169,7 @@ public with sharing class AdyenPaymentHelper {
         return new List<PBLPostAuthResponse> { postAuthResponse };
     }
 
-     @TestVisible
+    @TestVisible
     private static ConnectApi.PostAuthorizationResponse mockPostAuthResponse() {
         ConnectApi.PostAuthorizationResponse postAuthorizationResponse = new ConnectApi.PostAuthorizationResponse();
         postAuthorizationResponse.gatewayResponse = new ConnectApi.PostAuthGatewayResponse();
@@ -191,6 +191,9 @@ public with sharing class AdyenPaymentHelper {
         
         @InvocableVariable(Required=true)
         public Decimal amount;
+
+        @InvocableVariable(Required=true)
+        public String cartId;
     }
 
     public class PBLPostAuthResponse {
