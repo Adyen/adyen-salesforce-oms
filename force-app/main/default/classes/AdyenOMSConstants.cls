@@ -17,11 +17,14 @@ public with sharing class AdyenOMSConstants {
 
     public static final Set<String> OPEN_INVOICE_METHODS = new Set<String>{'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay'};
     public static final Set<String> VALID_NOTIFICATION_TYPES = new Set<String>{
-            AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE,
-            AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND,
-            AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED,
-            AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND_FAILED,
-            AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE,
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND,
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED,
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND_FAILED
+    };
+    public static final Set<String> VALID_WEBHOOK_TYPES = new Set<String>{
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE,
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL
     };
 
     public static final String PBL_GATEWAY_TOKEN_DETAILS = 'PBL Id';

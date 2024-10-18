@@ -16,7 +16,7 @@ private class NonPaymentWebhookHandlerTest {
 
         // then
         Assert.isNotNull(response);
-        Assert.istrue(response.containsIgnoreCase('webhook type was ignored'));
+        Assert.isTrue(response.containsIgnoreCase(NonPaymentWebhookHandler.INVALID_WEBHOOK));
     }
 
     @IsTest
@@ -34,7 +34,7 @@ private class NonPaymentWebhookHandlerTest {
 
         // then
         Assert.isNotNull(response);
-        Assert.istrue(response.containsIgnoreCase('no valid psp reference found'));
+        Assert.isTrue(response.containsIgnoreCase(NonPaymentWebhookHandler.INVALID_WEBHOOK));
     }
 
     @IsTest(SeeAllData=true)
@@ -58,7 +58,7 @@ private class NonPaymentWebhookHandlerTest {
 
         // then
         Assert.isNotNull(response);
-        Assert.istrue(response.containsIgnoreCase('no related payment record found'));
+        Assert.isTrue(response.containsIgnoreCase(NonPaymentWebhookHandler.NO_PAYMENT_FOUND));
     }
 
     @IsTest(SeeAllData = true)
@@ -82,7 +82,7 @@ private class NonPaymentWebhookHandlerTest {
         Test.stopTest();
 
         // then
-        Assert.areEqual('[accepted]', response, 'Expected accepted response');
+        Assert.areEqual(NonPaymentWebhookHandler.ACCEPTED_RESPONSE, response, 'Expected accepted response');
         PaymentGatewayLog successGatewayLog = [SELECT Id, InteractionStatus, OrderPaymentSummaryId FROM PaymentGatewayLog WHERE ReferencedEntityId = :payAuth.Id LIMIT 1];
         Assert.areEqual('Success', successGatewayLog.InteractionStatus, 'Expected interaction status to be Success.');
         Assert.areEqual(orderPaymentSummary.Id, successGatewayLog.OrderPaymentSummaryId, 'successGatewayLog should be related to OrderPaymentSummary');
@@ -90,29 +90,29 @@ private class NonPaymentWebhookHandlerTest {
 
     @IsTest(SeeAllData = true)
     static void failedCancellationNotificationTest() {
-            // given failed cancellation with a related PaymentAuthorization
-            Account acct = TestDataFactory.createAccount();
-            insert acct;
-            Order order = TestDataFactory.insertOrderAndRelatedRecords(acct.Id, 33.42, 0.96);
-            OrderPaymentSummary orderPaymentSummary = TestDataFactory.createOrderSummaryRecords(order.Id);
-            PaymentAuthorization payAuth = TestDataFactory.createPaymentAuthorization(acct.Id, null, null, orderPaymentSummary.Id, '101010101010ABCD');
-            insert payAuth;
-    
-            String failedWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL, '123456789012ABCD', '101010101010ABCD', '999999', false);
-            RestRequest failedWebhookRequest = createRestRequest();
-            failedWebhookRequest.requestBody = Blob.valueOf(failedWebhook);
-            RestContext.request = failedWebhookRequest;
-    
-            // when
-            Test.startTest();
-            String response = NonPaymentWebhookHandler.doPost();
-            Test.stopTest();
-    
-            // then
-            Assert.areEqual('[accepted]', response, 'Expected accepted response');
-            PaymentGatewayLog failedGatewayLog = [SELECT Id, InteractionStatus, OrderPaymentSummaryId FROM PaymentGatewayLog WHERE ReferencedEntityId = :payAuth.Id LIMIT 1];
-            Assert.areEqual('Failed', failedGatewayLog.InteractionStatus, 'Expected interaction status to be Failed.');
-            Assert.areEqual(orderPaymentSummary.Id, failedGatewayLog.OrderPaymentSummaryId, 'failedGatewayLog should be related to OrderPaymentSummary');
+        // given failed cancellation with a related PaymentAuthorization
+        Account acct = TestDataFactory.createAccount();
+        insert acct;
+        Order order = TestDataFactory.insertOrderAndRelatedRecords(acct.Id, 33.42, 0.96);
+        OrderPaymentSummary orderPaymentSummary = TestDataFactory.createOrderSummaryRecords(order.Id);
+        PaymentAuthorization payAuth = TestDataFactory.createPaymentAuthorization(acct.Id, null, null, orderPaymentSummary.Id, '101010101010ABCD');
+        insert payAuth;
+
+        String failedWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL, '123456789012ABCD', '101010101010ABCD', '999999', false);
+        RestRequest failedWebhookRequest = createRestRequest();
+        failedWebhookRequest.requestBody = Blob.valueOf(failedWebhook);
+        RestContext.request = failedWebhookRequest;
+
+        // when
+        Test.startTest();
+        String response = NonPaymentWebhookHandler.doPost();
+        Test.stopTest();
+
+        // then
+        Assert.areEqual(NonPaymentWebhookHandler.ACCEPTED_RESPONSE, response, 'Expected accepted response');
+        PaymentGatewayLog failedGatewayLog = [SELECT Id, InteractionStatus, OrderPaymentSummaryId FROM PaymentGatewayLog WHERE ReferencedEntityId = :payAuth.Id LIMIT 1];
+        Assert.areEqual('Failed', failedGatewayLog.InteractionStatus, 'Expected interaction status to be Failed.');
+        Assert.areEqual(orderPaymentSummary.Id, failedGatewayLog.OrderPaymentSummaryId, 'failedGatewayLog should be related to OrderPaymentSummary');
     }
 
     @IsTest

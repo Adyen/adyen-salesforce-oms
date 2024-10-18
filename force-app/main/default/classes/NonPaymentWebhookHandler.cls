@@ -1,48 +1,57 @@
 @RestResource(UrlMapping='/nonPaymentWebhook/v1/*')
 global without sharing class NonPaymentWebhookHandler {
-
-    private static final String ACCEPTED_RESPONSE = '[accepted]';
+    public static final String ACCEPTED_RESPONSE = '[accepted]';
+    public static final String INVALID_NOTIFICATION = 'but not a valid notification request';
+    public static final String INVALID_WEBHOOK = 'but no valid psp reference found or webhook type was ignored';
+    public static final String NO_PAYMENT_FOUND = 'but no related payment record found';
+    public static final String EXCEPTION_OCCURRED = 'but an exception happened: ';
+    public static final Map<String,String> INTERACTION_TYPE_MAP = new Map<String,String>{
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL => 'AuthorizationReversal',
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE => 'Authorization'
+    };
 
     @HttpPost
     global static String doPost() {
-        PaymentAuthorization paymentAuthorization;
-        NotificationRequestItem notificationRequestItem;
-        RestRequest req = RestContext.request;
-        String requestBody = req.requestBody.toString();
-        String acceptedResponse = '[accepted]';
+        String requestBody = RestContext.request.requestBody.toString();
         try {
-            notificationRequestItem = WebhookUtils.parseAdyenNotificationRequest(requestBody);
+            NotificationRequestItem notificationRequestItem = WebhookUtils.parseAdyenNotificationRequest(requestBody);
             Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByMerchantAcct(notificationRequestItem.merchantAccountCode);
-            HMACValidator validator = new HMACValidator(notificationRequestItem, adyenAdapter.HMAC_Key__c);
-            if (!Test.isRunningTest() && !validator.validateHMAC()) {
-                return ACCEPTED_RESPONSE + ', but not a valid notification request';
+            if (!isValidRequest(notificationRequestItem, adyenAdapter)) {
+                return responseWithReason(INVALID_NOTIFICATION);
             }
-            if (!AdyenPaymentUtility.isValidNotification(notificationRequestItem)) {
-                return ACCEPTED_RESPONSE + ', but no valid psp reference found or webhook type was ignored';
+            if (!AdyenPaymentUtility.isValidNonPaymentWebhook(notificationRequestItem)) {
+                return responseWithReason(INVALID_WEBHOOK);
             }
-            if (notificationRequestItem.eventCode.toUpperCase() != AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL) {
-                return ACCEPTED_RESPONSE + ', but webhook type was ignored';
+            PaymentAuthorization paymentAuthorization = findPaymentAuthorization(notificationRequestItem);
+            if (paymentAuthorization == null) {
+                return responseWithReason(NO_PAYMENT_FOUND);
             }
-            if (!AdyenPaymentUtility.relatedPaymentFound(notificationRequestItem.originalReference)) {
-                return ACCEPTED_RESPONSE + ', but no related payment record found';
-            }
-
-            paymentAuthorization = findPaymentAuthorization(notificationRequestItem.originalReference);
+            processNotification(paymentAuthorization, notificationRequestItem);
             createGatewayLog(paymentAuthorization, notificationRequestItem, requestBody);
-            return acceptedResponse;
+            return ACCEPTED_RESPONSE;
+        } catch (HMACValidator.HmacValidationException ex) {
+            return responseWithReason(INVALID_NOTIFICATION);
         } catch (Exception ex) {
-            if (ex instanceof HMACValidator.HmacValidationException) {
-                return ACCEPTED_RESPONSE + ', but not valid notification request';
-            } else {
-                return ACCEPTED_RESPONSE + ', but an exception happened: ' + ex.getMessage();
-            }
+            return responseWithReason(EXCEPTION_OCCURRED + ex.getMessage());
         }
     }
 
+    private static Boolean isValidRequest(NotificationRequestItem notificationRequestItem, Adyen_Adapter__mdt adyenAdapter) {
+        HMACValidator validator = new HMACValidator(notificationRequestItem, adyenAdapter.HMAC_Key__c);
+        return Test.isRunningTest() || validator.validateHMAC();
+    }
+
+    private static String responseWithReason(String reason) {
+        return ACCEPTED_RESPONSE + ', ' + reason;
+    }
+
     private static void createGatewayLog(PaymentAuthorization paymentAuthorization, NotificationRequestItem notificationRequestItem, String requestBody) {
-        PaymentGatewayLog paymentGatewayLog = new PaymentGatewayLog();
         String interactionStatus = notificationRequestItem.success == 'true' ? 'Success' : 'Failed';
-        String gatewayMessage = notificationRequestItem.success == 'true' ? '[cancellation-completed]' : '[cancellation-failed]';
+        String event = notificationRequestItem.eventCode.toLowerCase();
+        String gatewayMessage = notificationRequestItem.success == 'true' ? '[' + event + '-completed]' : '[' + event + '-failed]';
+        String interactionType = INTERACTION_TYPE_MAP.get(notificationRequestItem.eventCode);
+
+        PaymentGatewayLog paymentGatewayLog = new PaymentGatewayLog();
         paymentGatewayLog.IsNotification = 'Yes';
         paymentGatewayLog.ReferencedEntityId = paymentAuthorization?.Id;
         paymentGatewayLog.OrderPaymentSummaryId = paymentAuthorization?.OrderPaymentSummaryId;
@@ -54,16 +63,49 @@ global without sharing class NonPaymentWebhookHandler {
         paymentGatewayLog.Request = requestBody;
         paymentGatewayLog.GatewayMessage = gatewayMessage;
         paymentGatewayLog.Response = ACCEPTED_RESPONSE;
-        paymentGatewayLog.InteractionType = 'AuthorizationReversal';
+        paymentGatewayLog.InteractionType = interactionType;
         paymentGatewayLog.InteractionStatus = interactionStatus;
+
         insert paymentGatewayLog;
     }
 
-    private static PaymentAuthorization findPaymentAuthorization(String pspReference) {
+    private static void processNotification(PaymentAuthorization payAuth, NotificationRequestItem requestItem) {
+        if (requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE) {
+            if (requestItem.success == 'true' && payAuth.Status.equalsIgnoreCase('Pending')) {
+                payAuth.GatewayRefNumber = requestItem.pspReference;
+                payAuth.Status = 'Processed';
+                update payAuth;
+            }
+        }
+    }
+
+    private static PaymentAuthorization findPaymentAuthorization(NotificationRequestItem requestItem) {
+        if (requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE) {
+            return findPendingPayAuthByCartId(requestItem.merchantReference);
+        } else {
+            return findPayAuthByGatewayRef(requestItem.originalReference);
+        }
+    }
+
+    private static PaymentAuthorization findPayAuthByGatewayRef(String gatewayReference) {
         List<PaymentAuthorization> paymentAuthorizations = [
             SELECT Status, OrderPaymentSummaryId, PaymentGatewayId
             FROM PaymentAuthorization
-            WHERE GatewayRefNumber = :pspReference AND OrderPaymentSummaryId != NULL
+            WHERE GatewayRefNumber = :gatewayReference AND OrderPaymentSummaryId != NULL
+            LIMIT 1
+        ];
+        return paymentAuthorizations.isEmpty() ? null : paymentAuthorizations[0];
+    }
+
+    private static PaymentAuthorization findPendingPayAuthByCartId(String cartId) {
+        List<WebCart> webCarts = [SELECT PaymentGroupId FROM WebCart WHERE Id = :cartId];
+        if (webCarts.isEmpty()) {
+            return null;
+        }
+        List<PaymentAuthorization> paymentAuthorizations = [
+            SELECT Status, OrderPaymentSummaryId, PaymentGatewayId
+            FROM PaymentAuthorization
+            WHERE PaymentGroupId = :webCarts[0].PaymentGroupId AND OrderPaymentSummaryId != NULL
             LIMIT 1
         ];
         return paymentAuthorizations.isEmpty() ? null : paymentAuthorizations[0];
