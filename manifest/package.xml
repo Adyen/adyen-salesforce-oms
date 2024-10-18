@@ -88,9 +88,5 @@
         <members>errorPanel</members>
         <name>LightningComponentBundle</name>
     </types>
-    <types>
-        <members>OOBO_Card_and_PBL</members>
-        <name>Flow</name>
-    </types>
     <version>61.0</version>
 </Package>
