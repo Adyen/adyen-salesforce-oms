@@ -3,6 +3,11 @@ import getExpirationDays from '@salesforce/apex/AdyenOOBOController.getExpiryDur
 import getAccountNameAndEmail from '@salesforce/apex/AdyenOOBOController.getAccountEmailAndName';
 import { PAYMENT_MODES } from 'c/payByLinkUtils';
 
+const BUTTON_VARIANT = {
+    BRAND: 'brand',
+    NEUTRAL: 'neutral',
+};
+
 export default class ChoosePayment extends LightningElement {
     pblSelected = true;
     expirationDays;
@@ -14,11 +19,11 @@ export default class ChoosePayment extends LightningElement {
     @api paymentMode;
 
     get pblButtonVariant() {
-        return this.pblSelected ? "brand" : "neutral";
+        return this.pblSelected ? BUTTON_VARIANT.BRAND : BUTTON_VARIANT.NEUTRAL;
     }
 
     get cardButtonVariant() {
-        return this.pblSelected ? "neutral" : "brand";
+        return this.pblSelected ? BUTTON_VARIANT.NEUTRAL : BUTTON_VARIANT.BRAND;
     }
 
     async connectedCallback() {
