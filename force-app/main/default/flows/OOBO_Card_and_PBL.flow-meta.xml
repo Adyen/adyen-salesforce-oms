@@ -161,6 +161,12 @@
             </value>
         </inputParameters>
         <inputParameters>
+            <name>cartId</name>
+            <value>
+                <elementReference>Create_Cart.cartSummary.cartId</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
             <name>currencyIsoCode</name>
             <value>
                 <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
