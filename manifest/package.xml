@@ -22,6 +22,7 @@
         <members>WebhookUtilsTest</members>
         <members>AdyenPBLHelper</members>
         <members>AdyenPBLHelperTest</members>
+        <members>AdyenNotificationHandler</members>
         <name>ApexClass</name>
     </types>
     <types>
