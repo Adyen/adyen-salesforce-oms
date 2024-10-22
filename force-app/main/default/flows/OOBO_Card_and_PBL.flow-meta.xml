@@ -161,6 +161,12 @@
             </value>
         </inputParameters>
         <inputParameters>
+            <name>cartId</name>
+            <value>
+                <elementReference>Create_Cart.cartSummary.cartId</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
             <name>currencyIsoCode</name>
             <value>
                 <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
@@ -169,7 +175,7 @@
         <inputParameters>
             <name>paymentGatewayId</name>
             <value>
-                <elementReference>Payment_Gateway.Integration</elementReference>
+                <elementReference>Payment_Gateway.Id</elementReference>
             </value>
         </inputParameters>
         <nameSegment>AdyenPaymentHelper</nameSegment>
@@ -824,7 +830,7 @@
             <assignToReference>Auth.paymentGatewayId</assignToReference>
             <operator>Assign</operator>
             <value>
-                <elementReference>Payment_Gateway.Integration</elementReference>
+                <elementReference>Payment_Gateway.Id</elementReference>
             </value>
         </assignmentItems>
         <assignmentItems>
@@ -1786,21 +1792,14 @@
         </connector>
         <filterLogic>and</filterLogic>
         <filters>
-            <field>StoreId</field>
+            <field>PaymentGatewayName</field>
             <operator>EqualTo</operator>
             <value>
-                <elementReference>selectedWebstore.Id</elementReference>
-            </value>
-        </filters>
-        <filters>
-            <field>ServiceProviderType</field>
-            <operator>EqualTo</operator>
-            <value>
-                <stringValue>Payment</stringValue>
+                <stringValue>Adyen</stringValue>
             </value>
         </filters>
         <getFirstRecordOnly>true</getFirstRecordOnly>
-        <object>StoreIntegratedService</object>
+        <object>PaymentGateway</object>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
     <recordRollbacks>
