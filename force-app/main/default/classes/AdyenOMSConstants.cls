@@ -16,6 +16,7 @@ public with sharing class AdyenOMSConstants {
     public static final String ALTERNATIVE_PAYMENT_METHOD_OBJECT = 'AlternativePaymentMethod';
 
     public static final Set<String> OPEN_INVOICE_METHODS = new Set<String>{'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay'};
+
     public static final Set<String> VALID_NOTIFICATION_TYPES = new Set<String>{
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE,
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND,
@@ -26,6 +27,15 @@ public with sharing class AdyenOMSConstants {
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE,
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL
     };
+
+    public static final Map<String,String> INTERACTION_TYPE_MAP = new Map<String,String>{
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL => 'AuthorizationReversal',
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE => 'Authorization'
+    };
+    public enum PaymentAuthorizationStatus { DRAFT, CANCELED, PENDING, PROCESSED, FAILED }
+    public enum PaymentGatewayLogStatus { NOOP, INITIATED, SUCCESS, FAILED, TIMEOUT }
+    public enum ProcessingMode { EXTERNAL, SALESFORCE }
+    public enum PaymentType { CAPTURE, SALE }
 
     public static final String PBL_GATEWAY_TOKEN_DETAILS = 'PBL Id';
     public static final String PBL_PAYMENT_METHOD_NAME = 'pbl';
