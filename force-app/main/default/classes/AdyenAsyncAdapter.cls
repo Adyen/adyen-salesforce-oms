@@ -34,7 +34,7 @@ global with sharing class AdyenAsyncAdapter implements   CommercePayments.Paymen
      * @return CommercePayments.GatewayNotificationResponse
      */
     public CommercePayments.GatewayNotificationResponse processNotification(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext) {
-        return AdyenPaymentHelper.handleAsyncNotificationCallback(gatewayNotificationContext);
+        return AdyenNotificationHandler.handleAsyncNotificationCallback(gatewayNotificationContext);
     }
 
     public class GatewayException extends Exception {}

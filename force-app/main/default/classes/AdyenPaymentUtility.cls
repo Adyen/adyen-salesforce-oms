@@ -80,11 +80,22 @@ public with sharing class AdyenPaymentUtility {
 
     public static Boolean isValidNotification(NotificationRequestItem notificationRequestItem) {
         return AdyenOMSConstants.VALID_NOTIFICATION_TYPES.contains(notificationRequestItem.eventCode.toUpperCase())
-            && isValidPspReference(notificationRequestItem.originalReference)
-            && isValidPspReference(notificationRequestItem.pspReference);
+            && isValidPspReference(notificationRequestItem.pspReference)
+            && hasValidOriginalReference(notificationRequestItem);
     }
 
-    // The Adyen PSP Reference number is a alphanumeric value containing 16 characters
+    public static Boolean isValidNonPaymentWebhook(NotificationRequestItem notificationRequestItem) {
+        return AdyenOMSConstants.VALID_WEBHOOK_TYPES.contains(notificationRequestItem.eventCode.toUpperCase())
+            && isValidPspReference(notificationRequestItem.pspReference)
+            && hasValidOriginalReference(notificationRequestItem);
+    }
+
+    public static Boolean hasValidOriginalReference(NotificationRequestItem notificationRequestItem) {
+        return notificationRequestItem.eventCode.endsWithIgnoreCase(AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE)
+            || isValidPspReference(notificationRequestItem.originalReference);
+    }
+
+    // The Adyen PSP Reference number is an alphanumeric value containing 16 characters
     private static Boolean isValidPspReference(String pspReference) {
         return String.isNotBlank(pspReference) && pspReference.isAlphanumeric() && pspReference.length() == 16;
     }
@@ -132,31 +143,27 @@ public with sharing class AdyenPaymentUtility {
         }
         return false;
     }
-    
-    /**
-    * Retrieve apex adapter id from the gateway reference number.
-    *
-    * @param gatewayRefNumber original payment gateway reference number as received in the notification
-    * @return apex class id for the payment gateway adapter.
-    */
+
     public static Boolean relatedPaymentFound(String gatewayRefNumber) {
         // Prioritize the payment authorization record if it exists
         List<PaymentAuthorization> paymentAuthorizations = [
-            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+            SELECT Status, GatewayRefNumber, PaymentGatewayId, OrderPaymentSummaryId
             FROM PaymentAuthorization
-            WHERE GatewayRefNumber = :gatewayRefNumber
+            WHERE GatewayRefNumber = :gatewayRefNumber AND OrderPaymentSummaryId != NULL
         ];
         if (!paymentAuthorizations.isEmpty()) {
             return true;
         }
         // Fall back to a payment record for pre-captured transactions
         List<Payment> payments = [
-            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+            SELECT Status, GatewayRefNumber, PaymentGatewayId, OrderPaymentSummaryId
             FROM Payment
-            WHERE GatewayRefNumber = :gatewayRefNumber
+            WHERE GatewayRefNumber = :gatewayRefNumber AND OrderPaymentSummaryId != NULL
         ];
         return !payments.isEmpty();
     }
+
+
     
     public static Integer getAmountMultiplier(String currencyCode) {
         if (AdyenOMSConstants.THREE_DECIMAL_CURRENCIES.contains(currencyCode)) {

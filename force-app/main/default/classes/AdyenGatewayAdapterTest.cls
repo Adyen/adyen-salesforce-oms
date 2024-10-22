@@ -13,7 +13,7 @@ private class AdyenGatewayAdapterTest {
 
         Test.startTest();
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
-        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, authId);
+        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_PRICE_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
         CommercePayments.GatewayResponse captureResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
@@ -28,7 +28,7 @@ private class AdyenGatewayAdapterTest {
 
         Test.startTest();
         Id authId = [SELECT Id FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1].Id;
-        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, authId);
+        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_PRICE_AMOUNT, authId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
         CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
@@ -42,7 +42,7 @@ private class AdyenGatewayAdapterTest {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
 
         Test.startTest();
-        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_AMOUNT, null);
+        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_PRICE_AMOUNT, null);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(captureRequest, CommercePayments.RequestType.Capture);
         CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
@@ -65,23 +65,12 @@ private class AdyenGatewayAdapterTest {
     }
 
     @IsTest
-    static void testCaptureInboundSuccess() {
-        AdyenPaymentHelper.TEST_NOTIFICATION_REQUEST_BODY = TestDataFactory.createNotificationRequestBody('CAPTURE', TestDataFactory.TEST_PSP_REFERENCE);
-
-        Test.startTest();
-        CommercePayments.GatewayNotificationResponse captureResponse = TestDataFactory.adyenAdapter.processNotification(null);
-        Test.stopTest();
-
-        Assert.isFalse(captureResponse.toString().containsIgnoreCase('error'));
-    }
-
-    @IsTest
     static void testRefundOutboundSuccess() {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
 
         Test.startTest();
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
-        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, paymentId);
+        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_PRICE_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
         CommercePayments.GatewayResponse refundResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
@@ -95,7 +84,7 @@ private class AdyenGatewayAdapterTest {
 
         Test.startTest();
         Id paymentId = [SELECT Id FROM Payment ORDER BY CreatedDate DESC LIMIT 1].Id;
-        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, paymentId);
+        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_PRICE_AMOUNT, paymentId);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
         CommercePayments.GatewayResponse refundResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();
@@ -108,7 +97,7 @@ private class AdyenGatewayAdapterTest {
     static void testRefundOutboundMissingPayment() {
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.EchoHttpMock());
         Test.startTest();
-        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_AMOUNT, null);
+        CommercePayments.ReferencedRefundRequest refundRequest = new CommercePayments.ReferencedRefundRequest(TestDataFactory.TEST_PRICE_AMOUNT, null);
         CommercePayments.PaymentGatewayContext context = new CommercePayments.PaymentGatewayContext(refundRequest, CommercePayments.RequestType.ReferencedRefund);
         CommercePayments.GatewayResponse gatewayResponse = TestDataFactory.adyenAdapter.processRequest(context);
         Test.stopTest();

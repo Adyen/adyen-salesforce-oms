@@ -168,7 +168,7 @@ private class AdyenAuthorisationHelperTest {
         CommercePayments.GatewayResponse response = AdyenAuthorisationHelper.createPostAuthResponse(postAuthRequest);
 
         // Then
-        Assert.isTrue(response.toString().contains('success'));
+        Assert.isTrue(response.toString().containsIgnoreCase('success'));
         Assert.isTrue(response.toString().contains('testPblId123'));
     }
 }
