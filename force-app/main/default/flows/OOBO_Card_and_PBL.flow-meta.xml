@@ -693,7 +693,7 @@
             </value>
         </assignmentItems>
         <connector>
-            <targetReference>Confirmation_Screen</targetReference>
+            <targetReference>Save_Payment_Link</targetReference>
         </connector>
     </assignments>
     <assignments>
@@ -1676,6 +1676,65 @@
         </inputAssignments>
         <object>Product2</object>
     </recordCreates>
+    <recordCreates>
+        <name>Save_Payment_Link</name>
+        <label>Save Payment Link</label>
+        <locationX>2426</locationX>
+        <locationY>6578</locationY>
+        <connector>
+            <targetReference>Confirmation_Screen</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Amount__c</field>
+            <value>
+                <elementReference>cartSummaryTotals.grandTotalAmount</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>CurrencyIsoCode</field>
+            <value>
+                <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Expire_Date__c</field>
+            <value>
+                <elementReference>Post_Authorize_Payment.expirationDateTime</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Name</field>
+            <value>
+                <elementReference>Post_Authorize_Payment.paymentLinkId</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Order_Number__c</field>
+            <value>
+                <elementReference>orderReferenceNumber</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Shopper_Email__c</field>
+            <value>
+                <elementReference>paymentSelector.shopperEmail</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Status__c</field>
+            <value>
+                <stringValue>Active</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>URL__c</field>
+            <value>
+                <elementReference>Post_Authorize_Payment.paymentLink</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Payment_Link__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
     <recordLookups>
         <description>Get Account for the record Id passed</description>
         <name>Get_Account</name>
@@ -1982,7 +2041,7 @@
         <name>Confirmation_Screen</name>
         <label>Confirmation Screen</label>
         <locationX>2426</locationX>
-        <locationY>6578</locationY>
+        <locationY>6686</locationY>
         <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>false</allowPause>
