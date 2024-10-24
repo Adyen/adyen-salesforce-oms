@@ -96,7 +96,7 @@ private class AdyenPBLHelperTest {
         Integer days = 5;
 
         // When
-        String expectedDate = Datetime.now().addDays(days).formatGMT('yyyy-MM-dd\'T\'HH:mm:ss');
+        String expectedDate = Datetime.now().addDays(days).format('yyyy-MM-dd\'T\'HH:mm:ssXXX');
         String expiryDate = AdyenPBLHelper.getLinkExpiryDate(days);
 
         // Then
