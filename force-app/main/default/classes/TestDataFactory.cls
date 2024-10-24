@@ -346,7 +346,7 @@ public class TestDataFactory {
     }
 
     private static String pblResponse() {
-        return '{ "url": "https://test.payment.link", "expiresAt": "2024-01-01T12:00:00+00:00" }';
+        return '{ "url": "https://test.payment.link", "expiresAt": "2024-01-01T12:00:00+00:00", "id":"PLE5B4575C5A026A2B2"}';
     }
 
     public static String mockWebhookRequest(String eventCode, String pspReference, String originalReference, String merchantRef, Boolean success) {

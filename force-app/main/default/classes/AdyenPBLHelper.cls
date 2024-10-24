@@ -60,15 +60,23 @@ public with sharing class AdyenPBLHelper {
     private static String getLinkExpiryDate(Integer days) {
         Datetime currentDateTime = Datetime.now();
         Datetime expiryDateTime = currentDateTime.addDays(days);
-
-        return formatDateTimeToISO8601(expiryDateTime);
+        return expiryDateTime.format('yyyy-MM-dd\'T\'HH:mm:ssXXX');
     }
 
-    private static String formatDateTimeToISO8601(Datetime dt) {
-        String iso8601Date = dt.formatGmt('yyyy-MM-dd\'T\'HH:mm:ss');
-        String timeZoneOffset = Datetime.now().format('Z');
-        String formattedOffset = timeZoneOffset.substring(0, 3) + ':' + timeZoneOffset.substring(3);
+    public static Datetime parseDateTime(String dateTimeStr) {
+        String[] parts = dateTimeStr.split('\\+');
+        String dateTimePart = parts[0]; // example: '2024-10-25T09:38:49'
+        String timeZoneOffset = parts[1]; // example: '02:00'
 
-        return iso8601Date + formattedOffset;
+        dateTimePart = dateTimePart.replace('T', ' ');
+        Datetime dt = Datetime.valueOf(dateTimePart);
+
+        Integer offsetHours = Integer.valueOf(timeZoneOffset.substring(0, 2));
+        Integer offsetMinutes = Integer.valueOf(timeZoneOffset.substring(3, 5));
+        // Adjust DateTime by subtracting the offset to store it as UTC
+        dt = dt.addHours(-offsetHours);
+        dt = dt.addMinutes(-offsetMinutes);
+
+        return dt;
     }
 }
