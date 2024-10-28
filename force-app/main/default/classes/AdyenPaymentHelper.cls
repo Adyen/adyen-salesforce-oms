@@ -68,6 +68,8 @@ public with sharing class AdyenPaymentHelper {
         postAuthResponse.paymentGroupId = postAuthorizationResponse.paymentGroup.id;
         postAuthResponse.paymentLink = paymentLinkResponse.url;
         postAuthResponse.linkExpiresAt = paymentLinkResponse.expiresAt;
+        postAuthResponse.expirationDateTime = AdyenPBLHelper.parseDateTime(paymentLinkResponse.expiresAt);
+        postAuthResponse.paymentLinkId = paymentLinkResponse.id;
         return new List<PBLPostAuthResponse> { postAuthResponse };
     }
 
@@ -110,5 +112,11 @@ public with sharing class AdyenPaymentHelper {
 
         @InvocableVariable
         public String linkExpiresAt;
+
+        @InvocableVariable
+        public Datetime expirationDateTime;
+
+        @InvocableVariable
+        public String paymentLinkId;
     }
 }
