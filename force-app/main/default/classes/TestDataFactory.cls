@@ -7,7 +7,8 @@ public class TestDataFactory {
     public static final String RESULT_CODE_SUCCESS = 'Authorised';
     public static final String RESULT_CODE_FAIL = 'Failure';
     public static final String GATEWAY_REF = '0000000000000000';
-    public static final Double TEST_AMOUNT = 19.99;
+    public static final Double TEST_PRICE_AMOUNT = 19.99;
+    public static final Double TEST_TAX_AMOUNT = TEST_PRICE_AMOUNT * 0.05;
     public static final String ACTIVE_CURRENCY = [SELECT IsoCode FROM CurrencyType WHERE IsActive = TRUE LIMIT 1].IsoCode;
     public static final String ASSERT_PRICE_MESSAGE = 'For input price of ';
 
@@ -32,7 +33,7 @@ public class TestDataFactory {
             CardHolderName = 'Test Cardholder',
             Email = 'test@asdf.com',
             Status = 'Active',
-            ProcessingMode = 'External'
+            ProcessingMode = AdyenOMSConstants.ProcessingMode.EXTERNAL.name()
         );
     }
 
@@ -41,18 +42,22 @@ public class TestDataFactory {
             GatewayToken = TEST_PAYMENT_TOKEN,
             Email = 'test@asdf.com',
             Status = 'Active',
-            ProcessingMode = 'External'
+            ProcessingMode = AdyenOMSConstants.ProcessingMode.EXTERNAL.name()
         );
     }
 
     public static PaymentAuthorization createPaymentAuthorization(Id acctId, Id cardPayMetId, Id payGatId, Id orderPaySummaryId, String pspReference) {
+        return createPaymentAuthorizationWithStatus(acctId, cardPayMetId, payGatId, orderPaySummaryId, pspReference, AdyenOMSConstants.PaymentAuthorizationStatus.PROCESSED.name());
+    }
+
+    public static PaymentAuthorization createPaymentAuthorizationWithStatus(Id acctId, Id cardPayMetId, Id payGatId, Id orderPaySummaryId, String pspReference, String status) {
         return new PaymentAuthorization(
             AccountId = acctId,
             PaymentMethodId = cardPayMetId,
-            Amount = TEST_AMOUNT,
+            Amount = TEST_PRICE_AMOUNT,
             GatewayRefNumber = pspReference,
-            Status = 'Processed',
-            ProcessingMode = 'External',
+            Status = status,
+            ProcessingMode = AdyenOMSConstants.ProcessingMode.EXTERNAL.name(),
             PaymentGatewayId = payGatId,
             CurrencyIsoCode = ACTIVE_CURRENCY,
             OrderPaymentSummaryId = orderPaySummaryId
@@ -63,11 +68,11 @@ public class TestDataFactory {
         return new Payment(
             AccountId = acctId,
             PaymentMethodId = cardPayMetId,
-            Amount = TEST_AMOUNT,
+            Amount = TEST_PRICE_AMOUNT,
             GatewayRefNumber = TEST_PSP_REFERENCE,
-            Status = 'Processed',
-            ProcessingMode = 'External',
-            Type = 'Capture',
+            Status = AdyenOMSConstants.PaymentAuthorizationStatus.PROCESSED.name(),
+            ProcessingMode = AdyenOMSConstants.ProcessingMode.EXTERNAL.name(),
+            Type = AdyenOMSConstants.PaymentType.CAPTURE.name(),
             PaymentGatewayId = payGatId,
             PaymentAuthorizationId = payAuthId,
             OrderPaymentSummaryId = orderPaySummaryId
@@ -98,7 +103,7 @@ public class TestDataFactory {
         NotificationRequestItem nri = new NotificationRequestItem();
         Amount a = new Amount();
         a.currency_x = ACTIVE_CURRENCY;
-        a.value = (Long)Integer.valueOf(TEST_AMOUNT*10);
+        a.value = (Long)Integer.valueOf(TEST_PRICE_AMOUNT *10);
         nri.amount = a;
         nri.eventCode = eventCode;
         nri.pspReference = GATEWAY_REF;
@@ -110,7 +115,7 @@ public class TestDataFactory {
     }
 
     public static CommercePayments.AuthorizationRequest createAuthorisationRequest(Id payMethodId) {
-        return createAuthorisationRequest(payMethodId, TEST_AMOUNT);
+        return createAuthorisationRequest(payMethodId, TEST_PRICE_AMOUNT);
     }
 
     public static CommercePayments.AuthorizationRequest createAuthorisationRequest(Id payMethodId, Double price) {
@@ -124,6 +129,34 @@ public class TestDataFactory {
         CommercePayments.PaymentGatewayContext payGateContext = new CommercePayments.PaymentGatewayContext(authRequest, CommercePayments.RequestType.Authorize);
         CommercePayments.PaymentGatewayRequest paymentRequest = payGateContext.getPaymentRequest();
         return (CommercePayments.AuthorizationRequest)paymentRequest;
+    }
+
+    public static OrderPaymentSummary insertAccountAndOrderPaymentSummary() {
+        Account acct = createAccount();
+        insert acct;
+        Order order = insertOrderAndRelatedRecords(acct.Id, TEST_PRICE_AMOUNT, TEST_TAX_AMOUNT);
+        return createOrderSummaryRecords(order.Id);
+    }
+
+    public static PaymentAuthorization insertAccountOrderAndPayAuth(String status) {
+        OrderPaymentSummary orderPaymentSummary = TestDataFactory.insertAccountAndOrderPaymentSummary();
+        Id accountId = [SELECT OrderSummary.AccountId FROM OrderPaymentSummary WHERE Id = :orderPaymentSummary.Id].OrderSummary.AccountId;
+        PaymentAuthorization payAuth = TestDataFactory.createPaymentAuthorizationWithStatus(accountId, null, null, orderPaymentSummary.Id, TEST_PSP_REFERENCE, status);
+        insert payAuth;
+        return payAuth;
+    }
+
+    public static PaymentAuthorization insertCartAndRelatedPA() {
+        CartExtension.Cart cartObject = CartExtension.CartTestUtil.createCart(CartExtension.WebStoreTypeEnum.B2CE);
+        PaymentGroup testPaymentGroup = new PaymentGroup();
+        insert testPaymentGroup;
+        WebCart testCart = [SELECT Id, PaymentGroupId FROM WebCart WHERE Id = :cartObject.getId()];
+        testCart.PaymentGroupId = testPaymentGroup.Id;
+        update testCart;
+        PaymentAuthorization payAuth = TestDataFactory.insertAccountOrderAndPayAuth(AdyenOMSConstants.PaymentAuthorizationStatus.PENDING.name());
+        payAuth.PaymentGroupId = testPaymentGroup.Id;
+        update payAuth;
+        return payAuth;
     }
 
     public static Order insertOrderAndRelatedRecords(Id acctId, Decimal productUnitPrice, Decimal prodTaxAmount) {        
@@ -292,14 +325,14 @@ public class TestDataFactory {
             String endpoint = req.getEndpoint();
             Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
             if (endpoint.containsIgnoreCase('capture') || endpoint.containsIgnoreCase('refund')) {
-                amount.put('value', Integer.valueOf(TEST_AMOUNT*10));
+                amount.put('value', Integer.valueOf(TEST_PRICE_AMOUNT *10));
             } else {
                 Map<String, Object> paymentMethod = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize((requestBody.get('paymentMethod'))));
                 responseBody.put('resultCode', RESULT_CODE_SUCCESS);
                 // Authorize
                 if (TEST_PAYMENT_TOKEN.equals(paymentMethod.get('storedPaymentMethodId'))) { // Successful Auth
                     additionalData.put('authCode', TEST_AUTH_CODE);
-                    amount.put('value', Integer.valueOf(TEST_AMOUNT * 10));
+                    amount.put('value', Integer.valueOf(TEST_PRICE_AMOUNT * 10));
                 } else { // Failed Auth
                     responseBody.put('resultCode', RESULT_CODE_FAIL);
                     res.setStatusCode(AdyenConstants.HTTP_ERROR_CODE);

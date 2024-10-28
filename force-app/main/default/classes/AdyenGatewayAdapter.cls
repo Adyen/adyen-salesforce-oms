@@ -11,7 +11,7 @@ global with sharing class AdyenGatewayAdapter implements CommercePayments.Paymen
     }
 
     global CommercePayments.GatewayNotificationResponse processNotification(CommercePayments.PaymentGatewayNotificationContext gatewayNotificationContext) {
-        return AdyenPaymentHelper.handleAsyncNotificationCallback(gatewayNotificationContext);
+        return AdyenNotificationHandler.handleAsyncNotificationCallback(gatewayNotificationContext);
     }
 
     public class GatewayException extends Exception {}
