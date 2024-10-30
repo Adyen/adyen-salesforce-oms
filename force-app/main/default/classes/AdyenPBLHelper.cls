@@ -23,37 +23,13 @@ public with sharing class AdyenPBLHelper {
         }
 
         try {
-            String endpoint = buildEndpoint(adyenAdapter, 'Payment_Link_Endpoint__c');
-            String body = AdyenPaymentUtility.makeAdyenCompatible(JSON.serialize(paymentLinkRequest, true));
-
-            HttpRequest request = new HttpRequest();
-            request.setEndpoint(endpoint);
-            request.setMethod('POST');
-            request.setHeader('Content-Type', 'application/json');
-            request.setBody(body);
-
-            HttpResponse response = new Http().send(request);
-
-            if (response.getStatusCode() != 201) {
-                throw new AdyenGatewayAdapter.GatewayException('Adyen Checkout API returned: ' + response.getStatusCode() + ', body: ' + response.getBody());
-            } else {
-                String salesforceCompatibleBody = AdyenPaymentUtility.makeSalesforceCompatible(response.getBody());
-                PaymentLinkResponse paymentLinkResponse = (PaymentLinkResponse)JSON.deserialize(salesforceCompatibleBody, PaymentLinkResponse.class);
-                return paymentLinkResponse;
-            }
+            String body = JSON.serialize(paymentLinkRequest, true);
+            String salesforceCompatibleBody = sendPostLinkRequest(adyenAdapter, body);
+            PaymentLinkResponse paymentLinkResponse = (PaymentLinkResponse)JSON.deserialize(salesforceCompatibleBody, PaymentLinkResponse.class);
+            return paymentLinkResponse;
         } catch (Exception e) {
             throw new AdyenGatewayAdapter.GatewayException('Error generating payment link: ' + e.getMessage());
         }
-    }
-
-    private static String buildEndpoint(Adyen_Adapter__mdt adyenAdapter, String endpointFieldName) {
-        String namedCredential = adyenAdapter.Named_Credential__c;
-        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
-        String endpointUrl = 'callout:' + namespace + namedCredential;
-        String apiVersion = adyenAdapter.Endpoint_Api_Version__c;
-        String endpointPath = (String) adyenAdapter.get(endpointFieldName);
-
-        return endpointUrl + apiVersion + endpointPath;
     }
     
     @TestVisible
@@ -78,5 +54,44 @@ public with sharing class AdyenPBLHelper {
         dt = dt.addMinutes(-offsetMinutes);
 
         return dt;
+    }
+
+    public static String sendLinkPatchRequest(Adyen_Adapter__mdt adyenAdapter, String linkId, String body) {
+        String endpoint = buildEndpoint(adyenAdapter, 'Payment_Link_Endpoint__c') + '/' + linkId;
+        return sendHttpRequest('PATCH', endpoint, body);
+    }
+
+    public static String sendPostLinkRequest(Adyen_Adapter__mdt adyenAdapter, String body) {
+        String endpoint = buildEndpoint(adyenAdapter, 'Payment_Link_Endpoint__c');
+        return sendHttpRequest('POST', endpoint, body);
+    }
+
+    private static String buildEndpoint(Adyen_Adapter__mdt adyenAdapter, String endpointFieldName) {
+        String namedCredential = adyenAdapter.Named_Credential__c;
+        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
+        String endpointUrl = 'callout:' + namespace + namedCredential;
+        String apiVersion = adyenAdapter.Endpoint_Api_Version__c;
+        String endpointPath = (String) adyenAdapter.get(endpointFieldName);
+
+        return endpointUrl + apiVersion + endpointPath;
+    }
+
+    private static String sendHttpRequest(String requestMethod, String endpoint, String body) {
+        String compatibleBody = AdyenPaymentUtility.makeAdyenCompatible(body);
+
+        HttpRequest request = new HttpRequest();
+        request.setEndpoint(endpoint);
+        request.setMethod(requestMethod);
+        request.setHeader('Content-Type', 'application/json');
+        request.setBody(compatibleBody);
+
+        HttpResponse response = new Http().send(request);
+
+        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
+            throw new AdyenGatewayAdapter.GatewayException('Adyen Checkout API returned: ' + response.getStatusCode() + ', body: ' + response.getBody());
+        } else {
+            String salesforceCompatibleBody = AdyenPaymentUtility.makeSalesforceCompatible(response.getBody());
+            return salesforceCompatibleBody;
+        }
     }
 }

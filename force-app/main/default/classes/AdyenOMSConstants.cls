@@ -34,6 +34,7 @@ public with sharing class AdyenOMSConstants {
     };
     public enum PaymentAuthorizationStatus { DRAFT, CANCELED, PENDING, PROCESSED, FAILED }
     public enum PaymentGatewayLogStatus { NOOP, INITIATED, SUCCESS, FAILED, TIMEOUT }
+    public enum PaymentLinkStatus { ACTIVE, COMPLETED, EXPIRED, PAYMENT_PENDING }
     public enum ProcessingMode { EXTERNAL, SALESFORCE }
     public enum PaymentType { CAPTURE, SALE }
 
