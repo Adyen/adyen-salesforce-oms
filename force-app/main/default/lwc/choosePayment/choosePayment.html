@@ -1,12 +1,4 @@
 <template>
-    <lightning-layout horizontal-align="space">
-        <lightning-layout-item flexibility="auto, no-grow" padding="around-small">
-            <lightning-button-group>
-                <lightning-button icon-name="utility:send" label="Payment link" onclick={handlePblButtonClick} variant={pblButtonVariant}></lightning-button>
-                <lightning-button icon-name="utility:text_template" label="Manual card entry" onclick={handleCardButtonClick} variant={cardButtonVariant}></lightning-button>
-            </lightning-button-group>
-        </lightning-layout-item>
-    </lightning-layout>
     <lightning-spinner lwc:if={isLoading}></lightning-spinner>
     <template lwc:elseif={error}>
         <c-error-panel errors={error}></c-error-panel>
