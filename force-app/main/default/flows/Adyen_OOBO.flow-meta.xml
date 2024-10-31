@@ -44,31 +44,6 @@
         <versionSegment>1</versionSegment>
     </actionCalls>
     <actionCalls>
-        <name>Authorize_Payment</name>
-        <label>Authorize Payment</label>
-        <locationX>2360</locationX>
-        <locationY>5870</locationY>
-        <actionName>authorizePayment</actionName>
-        <actionType>authorizePayment</actionType>
-        <connector>
-            <targetReference>Update_Cart_Auth</targetReference>
-        </connector>
-        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
-        <inputParameters>
-            <name>paymentAuthorizationRequest</name>
-            <value>
-                <elementReference>Auth</elementReference>
-            </value>
-        </inputParameters>
-        <nameSegment>authorizePayment</nameSegment>
-        <offset>0</offset>
-        <outputParameters>
-            <assignToReference>AuthorizationResponse</assignToReference>
-            <name>paymentAuthorizationResponse</name>
-        </outputParameters>
-        <versionSegment>1</versionSegment>
-    </actionCalls>
-    <actionCalls>
         <name>Create_Cart</name>
         <label>Create Cart</label>
         <locationX>2426</locationX>
@@ -96,52 +71,6 @@
             </value>
         </inputParameters>
         <nameSegment>createCart</nameSegment>
-        <offset>0</offset>
-        <storeOutputAutomatically>true</storeOutputAutomatically>
-        <versionSegment>1</versionSegment>
-    </actionCalls>
-    <actionCalls>
-        <name>Create_Link_And_Call_Post_Auth</name>
-        <label>Create Link And Call Post Auth</label>
-        <locationX>2096</locationX>
-        <locationY>5762</locationY>
-        <actionName>PaymentLinkGenerateAction</actionName>
-        <actionType>apex</actionType>
-        <connector>
-            <targetReference>Update_Cart_Post_Auth</targetReference>
-        </connector>
-        <flowTransactionModel>Automatic</flowTransactionModel>
-        <inputParameters>
-            <name>accountId</name>
-            <value>
-                <elementReference>recordId</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
-            <name>amount</name>
-            <value>
-                <elementReference>cartSummaryTotals.grandTotalAmount</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
-            <name>currencyIsoCode</name>
-            <value>
-                <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
-            <name>merchantReference</name>
-            <value>
-                <elementReference>Create_Cart.cartSummary.cartId</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
-            <name>paymentGatewayId</name>
-            <value>
-                <elementReference>Payment_Gateway.Id</elementReference>
-            </value>
-        </inputParameters>
-        <nameSegment>PaymentLinkGenerateAction</nameSegment>
         <offset>0</offset>
         <storeOutputAutomatically>true</storeOutputAutomatically>
         <versionSegment>1</versionSegment>
@@ -183,11 +112,57 @@
         <offset>0</offset>
         <versionSegment>1</versionSegment>
     </actionCalls>
+    <actionCalls>
+        <name>Post_Authorize_Payment</name>
+        <label>Post Authorize Payment</label>
+        <locationX>2294</locationX>
+        <locationY>5654</locationY>
+        <actionName>AdyenPaymentHelper</actionName>
+        <actionType>apex</actionType>
+        <connector>
+            <targetReference>Update_Cart_Post_Auth</targetReference>
+        </connector>
+        <flowTransactionModel>Automatic</flowTransactionModel>
+        <inputParameters>
+            <name>accountId</name>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>amount</name>
+            <value>
+                <elementReference>cartSummaryTotals.grandTotalAmount</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>cartId</name>
+            <value>
+                <elementReference>Create_Cart.cartSummary.cartId</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>currencyIsoCode</name>
+            <value>
+                <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>paymentGatewayId</name>
+            <value>
+                <elementReference>Payment_Gateway.Id</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>AdyenPaymentHelper</nameSegment>
+        <offset>0</offset>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
     <apiVersion>61.0</apiVersion>
     <assignments>
         <name>Active_Stages</name>
         <label>Active Stages</label>
-        <locationX>4296</locationX>
+        <locationX>4230</locationX>
         <locationY>2030</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -211,7 +186,7 @@
     <assignments>
         <name>Active_Stages_2</name>
         <label>Active Stages</label>
-        <locationX>4032</locationX>
+        <locationX>3966</locationX>
         <locationY>2030</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -242,7 +217,7 @@
     <assignments>
         <name>Active_Stages_Billing_Stage</name>
         <label>Active Stages</label>
-        <locationX>3053</locationX>
+        <locationX>3020</locationX>
         <locationY>1730</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -265,7 +240,7 @@
     <assignments>
         <name>Active_Stages_Multiple_Location_Groups</name>
         <label>Active Stages</label>
-        <locationX>3768</locationX>
+        <locationX>3702</locationX>
         <locationY>1514</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -317,7 +292,7 @@
     <assignments>
         <name>Active_Stages_Multiple_Webstores</name>
         <label>Active Stages</label>
-        <locationX>2921</locationX>
+        <locationX>2888</locationX>
         <locationY>1514</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -420,7 +395,7 @@
     <assignments>
         <name>Active_Stages_Single</name>
         <label>Active Stages</label>
-        <locationX>4164</locationX>
+        <locationX>4098</locationX>
         <locationY>1814</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -464,7 +439,7 @@
     <assignments>
         <name>Active_Stages_Submit_Order</name>
         <label>Active Stages</label>
-        <locationX>2789</locationX>
+        <locationX>2756</locationX>
         <locationY>1730</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -494,7 +469,7 @@
     <assignments>
         <name>Assign_Location_Group_Count</name>
         <label>Location Group Count</label>
-        <locationX>2503</locationX>
+        <locationX>2470</locationX>
         <locationY>998</locationY>
         <assignmentItems>
             <assignToReference>locationGroupCount</assignToReference>
@@ -510,7 +485,7 @@
     <assignments>
         <name>Assign_Location_Group_Multiple_Webstores</name>
         <label>Location Group</label>
-        <locationX>3009</locationX>
+        <locationX>2976</locationX>
         <locationY>1322</locationY>
         <assignmentItems>
             <assignToReference>selectedLocationGroup</assignToReference>
@@ -526,7 +501,7 @@
     <assignments>
         <name>Assign_Location_Group_Single</name>
         <label>Location Group</label>
-        <locationX>4252</locationX>
+        <locationX>4186</locationX>
         <locationY>1622</locationY>
         <assignmentItems>
             <assignToReference>selectedLocationGroup</assignToReference>
@@ -573,7 +548,7 @@
     <assignments>
         <name>Assign_Webstore_Count</name>
         <label>Webstore Count</label>
-        <locationX>3270</locationX>
+        <locationX>3229</locationX>
         <locationY>566</locationY>
         <assignmentItems>
             <assignToReference>webstoreCount</assignToReference>
@@ -589,7 +564,7 @@
     <assignments>
         <name>Assign_Webstore_Multiple_Location_Groups</name>
         <label>Webstore</label>
-        <locationX>3856</locationX>
+        <locationX>3790</locationX>
         <locationY>1322</locationY>
         <assignmentItems>
             <assignToReference>selectedWebstore</assignToReference>
@@ -605,7 +580,7 @@
     <assignments>
         <name>Assign_Webstore_Single</name>
         <label>Webstore</label>
-        <locationX>4252</locationX>
+        <locationX>4186</locationX>
         <locationY>1322</locationY>
         <assignmentItems>
             <assignToReference>selectedWebstore</assignToReference>
@@ -621,7 +596,7 @@
     <assignments>
         <name>Assign_Webstore_Without_Location_Groups</name>
         <label>Webstore</label>
-        <locationX>5264</locationX>
+        <locationX>5198</locationX>
         <locationY>998</locationY>
         <assignmentItems>
             <assignToReference>selectedWebstore</assignToReference>
@@ -660,7 +635,7 @@
     <assignments>
         <name>Current_Stage</name>
         <label>Current Stage</label>
-        <locationX>2228</locationX>
+        <locationX>2294</locationX>
         <locationY>5222</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
@@ -677,7 +652,7 @@
         <name>Current_Stage_Confirmation_Stage</name>
         <label>Current Stage = Confirmation</label>
         <locationX>2426</locationX>
-        <locationY>6470</locationY>
+        <locationY>6170</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
             <operator>Assign</operator>
@@ -699,7 +674,7 @@
     <assignments>
         <name>Current_Stage_Enter_Billing_Information_Stage</name>
         <label>Current Stage = Enter Billing Information</label>
-        <locationX>2624</locationX>
+        <locationX>2558</locationX>
         <locationY>5222</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
@@ -747,8 +722,8 @@
     <assignments>
         <name>Current_Stage_Submit_Order_Stage</name>
         <label>Current Stage = Submit Order</label>
-        <locationX>2228</locationX>
-        <locationY>6170</locationY>
+        <locationX>2294</locationX>
+        <locationY>5870</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
             <operator>Assign</operator>
@@ -805,99 +780,6 @@
         </assignmentItems>
         <connector>
             <targetReference>Create_Cart</targetReference>
-        </connector>
-    </assignments>
-    <assignments>
-        <name>Input_Auth</name>
-        <label>Input Auth</label>
-        <locationX>2360</locationX>
-        <locationY>5762</locationY>
-        <assignmentItems>
-            <assignToReference>Auth.paymentGroup.createPaymentGroup</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <booleanValue>true</booleanValue>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.amount</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>cartSummaryTotals.grandTotalAmount</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.paymentGatewayId</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>Payment_Gateway.Id</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.currencyIsoCode</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.paymentGroup.currencyIsoCode</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.accountId</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>recordId</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.paymentMethod.cardPaymentMethod.cardHolderName</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>Card_Holder_Name</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.paymentMethod.cardPaymentMethod.cardNumber</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>Card_Number</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.paymentMethod.cardPaymentMethod.cvv</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>CVV</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.paymentMethod.cardPaymentMethod.expiryMonth</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>Expiry_Month_1</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.paymentMethod.cardPaymentMethod.expiryYear</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>Expiry_Year_1</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Auth.paymentMethod.saveForFuture</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <booleanValue>true</booleanValue>
-            </value>
-        </assignmentItems>
-        <connector>
-            <targetReference>Authorize_Payment</targetReference>
         </connector>
     </assignments>
     <assignments>
@@ -1011,7 +893,7 @@
     <assignments>
         <name>Webstore_Assignment</name>
         <label>Webstore</label>
-        <locationX>3009</locationX>
+        <locationX>2976</locationX>
         <locationY>2246</locationY>
         <assignmentItems>
             <assignToReference>selectedWebstore</assignToReference>
@@ -1062,7 +944,7 @@
     <decisions>
         <name>Account_Exists</name>
         <label>Account Exists?</label>
-        <locationX>921</locationX>
+        <locationX>910</locationX>
         <locationY>242</locationY>
         <defaultConnector>
             <targetReference>Get_Webstores</targetReference>
@@ -1087,7 +969,7 @@
     <decisions>
         <name>Any_Location_Groups</name>
         <label>Any Location Groups?</label>
-        <locationX>1540</locationX>
+        <locationX>1524</locationX>
         <locationY>890</locationY>
         <defaultConnector>
             <targetReference>Assign_Location_Group_Count</targetReference>
@@ -1112,7 +994,7 @@
     <decisions>
         <name>Any_Webstores</name>
         <label>Any Webstores?</label>
-        <locationX>1792</locationX>
+        <locationX>1771</locationX>
         <locationY>458</locationY>
         <defaultConnector>
             <targetReference>Assign_Webstore_Count</targetReference>
@@ -1137,7 +1019,7 @@
     <decisions>
         <name>CartExists</name>
         <label>Cart Exists?</label>
-        <locationX>2921</locationX>
+        <locationX>2888</locationX>
         <locationY>2630</locationY>
         <defaultConnector>
             <isGoTo>true</isGoTo>
@@ -1188,7 +1070,7 @@
     <decisions>
         <name>Multiple_Webstores_Or_Multiple_Location_Groups</name>
         <label>Multiple Webstores or Multiple Location Groups?</label>
-        <locationX>2503</locationX>
+        <locationX>2470</locationX>
         <locationY>1106</locationY>
         <defaultConnector>
             <targetReference>Webstore_Loop_Single</targetReference>
@@ -1264,7 +1146,7 @@
     <decisions>
         <name>Multiple_Webstores_Without_Location_Groups</name>
         <label>Multiple Webstores?</label>
-        <locationX>5000</locationX>
+        <locationX>4934</locationX>
         <locationY>782</locationY>
         <defaultConnector>
             <targetReference>Webstores_Loop_Without_Location_Groups</targetReference>
@@ -1285,31 +1167,6 @@
                 <targetReference>Active_Stages_Multiple_Webstores</targetReference>
             </connector>
             <label>Yes</label>
-        </rules>
-    </decisions>
-    <decisions>
-        <name>Payment_Method</name>
-        <label>Payment Method</label>
-        <locationX>2228</locationX>
-        <locationY>5546</locationY>
-        <defaultConnector>
-            <targetReference>Payment_Details</targetReference>
-        </defaultConnector>
-        <defaultConnectorLabel>Card</defaultConnectorLabel>
-        <rules>
-            <name>PBL</name>
-            <conditionLogic>and</conditionLogic>
-            <conditions>
-                <leftValueReference>paymentSelector.paymentMode</leftValueReference>
-                <operator>EqualTo</operator>
-                <rightValue>
-                    <stringValue>pbl</stringValue>
-                </rightValue>
-            </conditions>
-            <connector>
-                <targetReference>Billing_Details</targetReference>
-            </connector>
-            <label>PBL</label>
         </rules>
     </decisions>
     <decisions>
@@ -1365,7 +1222,7 @@
     <decisions>
         <name>Use_Location_Groups</name>
         <label>Use Location Groups?</label>
-        <locationX>3270</locationX>
+        <locationX>3229</locationX>
         <locationY>674</locationY>
         <defaultConnector>
             <targetReference>Multiple_Webstores_Without_Location_Groups</targetReference>
@@ -1390,7 +1247,7 @@
     <decisions>
         <name>Using_External_Payment_Mode</name>
         <label>Using External Payment Mode?</label>
-        <locationX>2921</locationX>
+        <locationX>2888</locationX>
         <locationY>1622</locationY>
         <defaultConnector>
             <targetReference>Active_Stages_Billing_Stage</targetReference>
@@ -1415,7 +1272,7 @@
     <decisions>
         <name>Using_External_Payment_Mode_2</name>
         <label>Using External Payment Mode?</label>
-        <locationX>4164</locationX>
+        <locationX>4098</locationX>
         <locationY>1922</locationY>
         <defaultConnector>
             <targetReference>Active_Stages</targetReference>
@@ -1440,7 +1297,7 @@
     <decisions>
         <name>Webstore_with_Selected_ID</name>
         <label>Webstore with Selected ID</label>
-        <locationX>3141</locationX>
+        <locationX>3108</locationX>
         <locationY>2138</locationY>
         <defaultConnector>
             <targetReference>Webstores_Loop</targetReference>
@@ -1462,7 +1319,7 @@
             <label>Yes</label>
         </rules>
     </decisions>
-    <description>OOBO Flow that allows card and Adyen Pay By Link solution for payments.</description>
+    <description>OOBO Flow that supports Adyen Pay By Link solution for payments.</description>
     <dynamicChoiceSets>
         <name>Location_Group_Choice_Set</name>
         <dataType>String</dataType>
@@ -1518,12 +1375,12 @@
         <valueField>Id</valueField>
     </dynamicChoiceSets>
     <environments>Default</environments>
-    <interviewLabel>OOBO Card and PBL {!$Flow.CurrentDateTime}</interviewLabel>
-    <label>OOBO With Card or PBL</label>
+    <interviewLabel>Adyen OOBO {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Adyen OOBO</label>
     <loops>
         <name>Location_Group_Loop_Multiple_Webstores</name>
         <label>Location Group</label>
-        <locationX>2921</locationX>
+        <locationX>2888</locationX>
         <locationY>1214</locationY>
         <collectionReference>Get_Location_Groups</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1537,7 +1394,7 @@
     <loops>
         <name>Location_Group_Loop_Single</name>
         <label>Location Group</label>
-        <locationX>4164</locationX>
+        <locationX>4098</locationX>
         <locationY>1514</locationY>
         <collectionReference>Get_Location_Groups</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1565,7 +1422,7 @@
     <loops>
         <name>Webstore_Loop_Multiple_Location_Groups</name>
         <label>Webstore</label>
-        <locationX>3768</locationX>
+        <locationX>3702</locationX>
         <locationY>1214</locationY>
         <collectionReference>Get_Webstores</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1579,7 +1436,7 @@
     <loops>
         <name>Webstore_Loop_Single</name>
         <label>Webstore</label>
-        <locationX>4164</locationX>
+        <locationX>4098</locationX>
         <locationY>1214</locationY>
         <collectionReference>Get_Webstores</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1593,7 +1450,7 @@
     <loops>
         <name>Webstores_Loop</name>
         <label>Webstores</label>
-        <locationX>2921</locationX>
+        <locationX>2888</locationX>
         <locationY>2030</locationY>
         <collectionReference>Get_Webstores</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1607,7 +1464,7 @@
     <loops>
         <name>Webstores_Loop_Without_Location_Groups</name>
         <label>Webstores</label>
-        <locationX>5176</locationX>
+        <locationX>5110</locationX>
         <locationY>890</locationY>
         <collectionReference>Get_Webstores</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1680,7 +1537,7 @@
         <name>Save_Payment_Link</name>
         <label>Save Payment Link</label>
         <locationX>2426</locationX>
-        <locationY>6578</locationY>
+        <locationY>6278</locationY>
         <connector>
             <targetReference>Confirmation_Screen</targetReference>
         </connector>
@@ -1699,13 +1556,13 @@
         <inputAssignments>
             <field>Expire_Date__c</field>
             <value>
-                <elementReference>Create_Link_And_Call_Post_Auth.expirationDateTime</elementReference>
+                <elementReference>Post_Authorize_Payment.expirationDateTime</elementReference>
             </value>
         </inputAssignments>
         <inputAssignments>
             <field>Name</field>
             <value>
-                <elementReference>Create_Link_And_Call_Post_Auth.paymentLinkId</elementReference>
+                <elementReference>Post_Authorize_Payment.paymentLinkId</elementReference>
             </value>
         </inputAssignments>
         <inputAssignments>
@@ -1729,7 +1586,7 @@
         <inputAssignments>
             <field>URL__c</field>
             <value>
-                <elementReference>Create_Link_And_Call_Post_Auth.paymentLink</elementReference>
+                <elementReference>Post_Authorize_Payment.paymentLink</elementReference>
             </value>
         </inputAssignments>
         <object>Payment_Link__c</object>
@@ -1739,7 +1596,7 @@
         <description>Get Account for the record Id passed</description>
         <name>Get_Account</name>
         <label>Account</label>
-        <locationX>921</locationX>
+        <locationX>910</locationX>
         <locationY>134</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -1765,7 +1622,7 @@
         <description>Fetch All Location Groups</description>
         <name>Get_Location_Groups</name>
         <label>Location Groups</label>
-        <locationX>1540</locationX>
+        <locationX>1524</locationX>
         <locationY>782</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -1818,7 +1675,7 @@
         <description>Fetch all web stores.</description>
         <name>Get_Webstores</name>
         <label>Webstores</label>
-        <locationX>1792</locationX>
+        <locationX>1771</locationX>
         <locationY>350</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -1843,11 +1700,11 @@
     <recordLookups>
         <name>Payment_Gateway</name>
         <label>Payment Gateway</label>
-        <locationX>2228</locationX>
+        <locationX>2294</locationX>
         <locationY>5438</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
-            <targetReference>Payment_Method</targetReference>
+            <targetReference>Billing_Details</targetReference>
         </connector>
         <filterLogic>and</filterLogic>
         <filters>
@@ -1871,70 +1728,10 @@
         </connector>
     </recordRollbacks>
     <recordUpdates>
-        <name>Update_Cart_Auth</name>
-        <label>Update Cart With Auth</label>
-        <locationX>2360</locationX>
-        <locationY>5978</locationY>
-        <connector>
-            <targetReference>Current_Stage_Submit_Order_Stage</targetReference>
-        </connector>
-        <filterLogic>and</filterLogic>
-        <filters>
-            <field>Id</field>
-            <operator>EqualTo</operator>
-            <value>
-                <elementReference>Create_Cart.cartSummary.cartId</elementReference>
-            </value>
-        </filters>
-        <inputAssignments>
-            <field>BillingCity</field>
-            <value>
-                <elementReference>Card_Billing_Address.city</elementReference>
-            </value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>BillingCountry</field>
-            <value>
-                <elementReference>Card_Billing_Address.country</elementReference>
-            </value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>BillingPostalCode</field>
-            <value>
-                <elementReference>Card_Billing_Address.postalCode</elementReference>
-            </value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>BillingState</field>
-            <value>
-                <elementReference>Card_Billing_Address.province</elementReference>
-            </value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>BillingStreet</field>
-            <value>
-                <elementReference>Card_Billing_Address.street</elementReference>
-            </value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>PaymentGroupId</field>
-            <value>
-                <elementReference>AuthorizationResponse.paymentGroup.id</elementReference>
-            </value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>PaymentMethodId</field>
-            <value>
-                <elementReference>AuthorizationResponse.paymentMethod.id</elementReference>
-            </value>
-        </inputAssignments>
-        <object>WebCart</object>
-    </recordUpdates>
-    <recordUpdates>
         <name>Update_Cart_Post_Auth</name>
         <label>Update Cart with Post Auth</label>
-        <locationX>2096</locationX>
-        <locationY>5870</locationY>
+        <locationX>2294</locationX>
+        <locationY>5762</locationY>
         <connector>
             <targetReference>Current_Stage_Submit_Order_Stage</targetReference>
         </connector>
@@ -1979,13 +1776,13 @@
         <inputAssignments>
             <field>PaymentGroupId</field>
             <value>
-                <elementReference>Create_Link_And_Call_Post_Auth.paymentGroupId</elementReference>
+                <elementReference>Post_Authorize_Payment.paymentGroupId</elementReference>
             </value>
         </inputAssignments>
         <inputAssignments>
             <field>PaymentMethodId</field>
             <value>
-                <elementReference>Create_Link_And_Call_Post_Auth.paymentMethodId</elementReference>
+                <elementReference>Post_Authorize_Payment.paymentMethodId</elementReference>
             </value>
         </inputAssignments>
         <object>WebCart</object>
@@ -1993,13 +1790,13 @@
     <screens>
         <name>Billing_Details</name>
         <label>Billing Details</label>
-        <locationX>2096</locationX>
-        <locationY>5654</locationY>
+        <locationX>2294</locationX>
+        <locationY>5546</locationY>
         <allowBack>true</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>true</allowPause>
         <connector>
-            <targetReference>Create_Link_And_Call_Post_Auth</targetReference>
+            <targetReference>Post_Authorize_Payment</targetReference>
         </connector>
         <fields>
             <name>Billing_Informat_Title</name>
@@ -2041,7 +1838,7 @@
         <name>Confirmation_Screen</name>
         <label>Confirmation Screen</label>
         <locationX>2426</locationX>
-        <locationY>6686</locationY>
+        <locationY>6386</locationY>
         <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>false</allowPause>
@@ -2052,7 +1849,7 @@
             <inputParameters>
                 <name>linkExpiryDate</name>
                 <value>
-                    <elementReference>Create_Link_And_Call_Post_Auth.linkExpiresAt</elementReference>
+                    <elementReference>Post_Authorize_Payment.linkExpiresAt</elementReference>
                 </value>
             </inputParameters>
             <inputParameters>
@@ -2064,7 +1861,7 @@
             <inputParameters>
                 <name>paymentLink</name>
                 <value>
-                    <elementReference>Create_Link_And_Call_Post_Auth.paymentLink</elementReference>
+                    <elementReference>Post_Authorize_Payment.paymentLink</elementReference>
                 </value>
             </inputParameters>
             <inputParameters>
@@ -2237,184 +2034,10 @@
         <showHeader>true</showHeader>
     </screens>
     <screens>
-        <name>Payment_Details</name>
-        <label>Card and Billing Details</label>
-        <locationX>2360</locationX>
-        <locationY>5654</locationY>
-        <allowBack>true</allowBack>
-        <allowFinish>true</allowFinish>
-        <allowPause>true</allowPause>
-        <connector>
-            <targetReference>Input_Auth</targetReference>
-        </connector>
-        <fields>
-            <name>Payment_Details_Section1</name>
-            <fieldType>RegionContainer</fieldType>
-            <fields>
-                <name>Payment_Details_Section1_Column1</name>
-                <fieldType>Region</fieldType>
-                <fields>
-                    <name>Card_Holder_Name</name>
-                    <dataType>String</dataType>
-                    <fieldText>Card Holder Name</fieldText>
-                    <fieldType>InputField</fieldType>
-                    <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
-                    <isRequired>true</isRequired>
-                </fields>
-                <inputParameters>
-                    <name>width</name>
-                    <value>
-                        <stringValue>12</stringValue>
-                    </value>
-                </inputParameters>
-                <isRequired>false</isRequired>
-            </fields>
-            <isRequired>false</isRequired>
-            <regionContainerType>SectionWithoutHeader</regionContainerType>
-        </fields>
-        <fields>
-            <name>Payment_Details_Section2</name>
-            <fieldType>RegionContainer</fieldType>
-            <fields>
-                <name>Payment_Details_Section2_Column1</name>
-                <fieldType>Region</fieldType>
-                <fields>
-                    <name>Card_Number</name>
-                    <dataType>String</dataType>
-                    <fieldText>Card Number</fieldText>
-                    <fieldType>InputField</fieldType>
-                    <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
-                    <isRequired>true</isRequired>
-                </fields>
-                <inputParameters>
-                    <name>width</name>
-                    <value>
-                        <stringValue>12</stringValue>
-                    </value>
-                </inputParameters>
-                <isRequired>false</isRequired>
-            </fields>
-            <isRequired>false</isRequired>
-            <regionContainerType>SectionWithoutHeader</regionContainerType>
-        </fields>
-        <fields>
-            <name>Payment_Details_Section3</name>
-            <fieldType>RegionContainer</fieldType>
-            <fields>
-                <name>Payment_Details_Section3_Column1</name>
-                <fieldType>Region</fieldType>
-                <fields>
-                    <name>CVV</name>
-                    <dataType>String</dataType>
-                    <fieldText>CVV</fieldText>
-                    <fieldType>InputField</fieldType>
-                    <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
-                    <isRequired>true</isRequired>
-                </fields>
-                <inputParameters>
-                    <name>width</name>
-                    <value>
-                        <stringValue>12</stringValue>
-                    </value>
-                </inputParameters>
-                <isRequired>false</isRequired>
-            </fields>
-            <isRequired>false</isRequired>
-            <regionContainerType>SectionWithoutHeader</regionContainerType>
-        </fields>
-        <fields>
-            <name>Payment_Details_Section4</name>
-            <fieldType>RegionContainer</fieldType>
-            <fields>
-                <name>Payment_Details_Section4_Column1</name>
-                <fieldType>Region</fieldType>
-                <fields>
-                    <name>Expiry_Month_1</name>
-                    <dataType>Number</dataType>
-                    <fieldText>Expiry Month</fieldText>
-                    <fieldType>InputField</fieldType>
-                    <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
-                    <isRequired>true</isRequired>
-                    <scale>0</scale>
-                </fields>
-                <inputParameters>
-                    <name>width</name>
-                    <value>
-                        <stringValue>6</stringValue>
-                    </value>
-                </inputParameters>
-                <isRequired>false</isRequired>
-            </fields>
-            <fields>
-                <name>Payment_Details_Section4_Column2</name>
-                <fieldType>Region</fieldType>
-                <fields>
-                    <name>Expiry_Year_1</name>
-                    <dataType>Number</dataType>
-                    <fieldText>Expiry Year</fieldText>
-                    <fieldType>InputField</fieldType>
-                    <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
-                    <isRequired>true</isRequired>
-                    <scale>0</scale>
-                </fields>
-                <inputParameters>
-                    <name>width</name>
-                    <value>
-                        <stringValue>6</stringValue>
-                    </value>
-                </inputParameters>
-                <isRequired>false</isRequired>
-            </fields>
-            <isRequired>false</isRequired>
-            <regionContainerType>SectionWithoutHeader</regionContainerType>
-        </fields>
-        <fields>
-            <name>Copy_1_of_Billing_Informat_Title</name>
-            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;strong&gt;Billing Information&lt;/strong&gt;&lt;/p&gt;</fieldText>
-            <fieldType>DisplayText</fieldType>
-        </fields>
-        <fields>
-            <name>Card_Billing_Address</name>
-            <extensionName>flowruntime:address</extensionName>
-            <fieldType>ComponentInstance</fieldType>
-            <inputParameters>
-                <name>addressLabel</name>
-                <value>
-                    <stringValue>Address</stringValue>
-                </value>
-            </inputParameters>
-            <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
-            <isRequired>true</isRequired>
-            <storeOutputAutomatically>true</storeOutputAutomatically>
-        </fields>
-        <fields>
-            <name>Copy_1_of_Payment_Details_footer</name>
-            <extensionName>runtime_commerce_oms:flowFooter</extensionName>
-            <fieldType>ComponentInstance</fieldType>
-            <inputParameters>
-                <name>currentStage</name>
-                <value>
-                    <elementReference>$Flow.CurrentStage</elementReference>
-                </value>
-            </inputParameters>
-            <inputParameters>
-                <name>stages</name>
-                <value>
-                    <elementReference>$Flow.ActiveStages</elementReference>
-                </value>
-            </inputParameters>
-            <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
-            <isRequired>true</isRequired>
-            <storeOutputAutomatically>true</storeOutputAutomatically>
-        </fields>
-        <showFooter>false</showFooter>
-        <showHeader>true</showHeader>
-    </screens>
-    <screens>
         <name>Payment_Screen</name>
         <label>Payment Screen</label>
         <locationX>2426</locationX>
-        <locationY>6362</locationY>
+        <locationY>6062</locationY>
         <allowBack>true</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>false</allowPause>
@@ -2534,7 +2157,7 @@
     <screens>
         <name>Payment_Selection</name>
         <label>Payment Selection</label>
-        <locationX>2228</locationX>
+        <locationX>2294</locationX>
         <locationY>5330</locationY>
         <allowBack>true</allowBack>
         <allowFinish>true</allowFinish>
@@ -2659,7 +2282,7 @@
     <screens>
         <name>productSelectionScreen</name>
         <label>Product Selection</label>
-        <locationX>2921</locationX>
+        <locationX>2888</locationX>
         <locationY>2522</locationY>
         <allowBack>true</allowBack>
         <allowFinish>true</allowFinish>
@@ -2840,7 +2463,7 @@
     <screens>
         <name>Select_Webstore_and_Location_Group</name>
         <label>Select Webstore and Location Group</label>
-        <locationX>2921</locationX>
+        <locationX>2888</locationX>
         <locationY>1922</locationY>
         <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
@@ -3111,7 +2734,7 @@
         <stageOrder>9</stageOrder>
     </stages>
     <start>
-        <locationX>795</locationX>
+        <locationX>784</locationX>
         <locationY>0</locationY>
         <connector>
             <targetReference>Get_Account</targetReference>

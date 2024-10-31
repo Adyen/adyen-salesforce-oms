@@ -98,6 +98,8 @@ export default class AdyenPblConfirmationScreen extends NavigationMixin(Lightnin
         const ordinalDay = day + getOrdinalSuffix(day);
 
         formattedDate = formattedDate.replace(day, ordinalDay);
-        return `${formattedTime}, ${formattedDate}`;
+        const timezone = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' }).format(date).split(' ').pop();
+
+        return `${formattedTime}, ${formattedDate} (${timezone})`;
     }
 }

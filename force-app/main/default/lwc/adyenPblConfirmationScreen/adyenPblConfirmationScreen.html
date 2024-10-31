@@ -30,7 +30,7 @@
     
                     <div class="slds-grid slds-m-around_x-small">
                         <div class="slds-col slds-size_1-of-2">
-                            <p class="slds-text-title_bold">Directed to</p>
+                            <p class="slds-text-title_bold">Directed for</p>
                         </div>
                         <div class="slds-col slds-size_1-of-2">
                             <div class="slds-grid slds-float_right">
@@ -77,34 +77,6 @@
     
                 </div>
             </div>
-        </template>
-
-        <template lwc:if={isCardPaymentMode}>
-            <div class="slds-text-align_center">
-                <lightning-icon class="slds-m-around_medium" icon-name="action:approval" alternative-text="Success" size="xx-small"></lightning-icon>
-                <h1 class="slds-text-heading_large">Success!</h1>
-                <div class="slds-align_absolute-center slds-m-around_medium">Your order has been created and card has been charged {currencyIsoCode} {amount}</div>
-            </div>
-
-                <div class="slds-grid slds-grid_vertical"> 
-                    <div class="slds-grid slds-m-around_x-small">
-                        <div class="slds-col slds-size_1-of-2">
-                            <p class="slds-text-title_bold">Order reference</p>
-                        </div>
-                        <div class="slds-col slds-size_1-of-2">
-                            <div class="slds-grid slds-float_right">
-                                <p class="slds-truncate">{orderReference}</p>
-                                <lightning-button-icon 
-                                    icon-name="utility:open" 
-                                    alternative-text="Go to order details" 
-                                    onclick={openOrderSummary}
-                                    variant="bare"
-                                    class="slds-m-left_x-small">
-                                </lightning-button-icon>
-                            </div>
-                        </div>
-                    </div>
-                </div>
         </template>
     </lightning-card>
 </template>
