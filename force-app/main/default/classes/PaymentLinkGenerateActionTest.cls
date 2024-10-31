@@ -1,22 +1,22 @@
 @IsTest
-private class PaymentLinkPostAuthActionTest {
+private class PaymentLinkGenerateActionTest {
     @IsTest(SeeAllData=true)
     static void callPostAuthorizeTest() {
         // Given
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
 
-        PaymentLinkPostAuthAction.PBLPostAuthRequest postAuthRequest = new PaymentLinkPostAuthAction.PBLPostAuthRequest();
+        PaymentLinkGenerateAction.PBLCreateRequest postAuthRequest = new PaymentLinkGenerateAction.PBLCreateRequest();
         postAuthRequest.paymentGatewayId = null;
         postAuthRequest.accountId = testAccount.Id;
         postAuthRequest.currencyIsoCode = 'EUR';
         postAuthRequest.amount = 55.55;
 
-        List<PaymentLinkPostAuthAction.PBLPostAuthRequest> postAuthRequests = new List<PaymentLinkPostAuthAction.PBLPostAuthRequest>{ postAuthRequest };
+        List<PaymentLinkGenerateAction.PBLCreateRequest> postAuthRequests = new List<PaymentLinkGenerateAction.PBLCreateRequest>{ postAuthRequest };
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.PBLMockResponse());
         // when
-        List<PaymentLinkPostAuthAction.PBLPostAuthResponse> postAuthResponses =  PaymentLinkPostAuthAction.callPostAuthorize(postAuthRequests);
+        List<PaymentLinkGenerateAction.PBLCreateResponse> postAuthResponses =  PaymentLinkGenerateAction.callPostAuthorize(postAuthRequests);
         Test.stopTest();
 
         // then

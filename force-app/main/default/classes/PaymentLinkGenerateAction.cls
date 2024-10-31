@@ -1,16 +1,30 @@
-public with sharing class PaymentLinkPostAuthAction {
-    @InvocableMethod(Label = 'Call Post Authorize' Category = 'Payment Link' Callout = true)
-    public static List<PBLPostAuthResponse> callPostAuthorize(List<PBLPostAuthRequest> postAuthRequests) {
-        PBLPostAuthRequest postAuthRequestInput = postAuthRequests[0];
+public with sharing class PaymentLinkGenerateAction {
+    @InvocableMethod(Label = 'Create Payment Link' Category = 'Payment Link' Callout = true)
+    public static List<PBLCreateResponse> callPostAuthorize(List<PBLCreateRequest> pblCreateRequests) {
+        PBLCreateRequest pblCreateRequest = pblCreateRequests[0];
         Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
 
         Amount amount = new Amount();
-        amount.value = (postAuthRequestInput.amount * AdyenPaymentUtility.getAmountMultiplier(postAuthRequestInput.currencyIsoCode)).round(System.RoundingMode.HALF_UP);
-        amount.currency_x = postAuthRequestInput.currencyIsoCode;
+        amount.value = (pblCreateRequest.amount * AdyenPaymentUtility.getAmountMultiplier(pblCreateRequest.currencyIsoCode)).round(System.RoundingMode.HALF_UP);
+        amount.currency_x = pblCreateRequest.currencyIsoCode;
 
-        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, postAuthRequestInput.cartId);
+        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, pblCreateRequest.merchantReference);
         PaymentLinkResponse paymentLinkResponse = AdyenPBLHelper.generatePaymentLink(adyenAdapter, paymentLinkRequest);
 
+        PBLCreateResponse postAuthResponse = new PBLCreateResponse();
+        if (pblCreateRequest.paymentGatewayId != null) { // the presence of a payment gateway id indicates post auth is needed
+            ConnectApi.PostAuthorizationResponse postAuthorizationResponse = callPostAuth(pblCreateRequest, paymentLinkResponse.id);
+            postAuthResponse.paymentMethodId = postAuthorizationResponse.paymentMethod.id;
+            postAuthResponse.paymentGroupId = postAuthorizationResponse.paymentGroup.id;
+        }
+        postAuthResponse.paymentLink = paymentLinkResponse.url;
+        postAuthResponse.linkExpiresAt = paymentLinkResponse.expiresAt;
+        postAuthResponse.expirationDateTime = AdyenPBLHelper.parseDateTime(paymentLinkResponse.expiresAt);
+        postAuthResponse.paymentLinkId = paymentLinkResponse.id;
+        return new List<PBLCreateResponse> { postAuthResponse };
+    }
+
+    private static ConnectApi.PostAuthorizationResponse callPostAuth(PBLCreateRequest postAuthRequestInput, String paymentLinkId) {
         ConnectApi.PostAuthRequest postAuthRequest = new ConnectApi.PostAuthRequest();
         postAuthRequest.accountId = postAuthRequestInput.accountId;
         postAuthRequest.amount = postAuthRequestInput.amount;
@@ -20,7 +34,7 @@ public with sharing class PaymentLinkPostAuthAction {
         postAuthRequest.paymentMethod = new ConnectApi.PostAuthApiPaymentMethodRequest();
 
         ConnectApi.AlternativePaymentMethod apmRequest = new ConnectApi.AlternativePaymentMethod();
-        apmRequest.gatewayToken = paymentLinkResponse.id;
+        apmRequest.gatewayToken = paymentLinkId;
         apmRequest.gatewayTokenDetails = AdyenOMSConstants.PBL_GATEWAY_TOKEN_DETAILS;
         postAuthRequest.paymentMethod.alternativePaymentMethod = apmRequest;
         postAuthRequest.paymentMethod.alternativePaymentMethod.accountId = postAuthRequestInput.accountId;
@@ -31,20 +45,11 @@ public with sharing class PaymentLinkPostAuthAction {
         postAuthRequest.paymentGroup.currencyIsoCode = postAuthRequestInput.currencyIsoCode;
 
         Map<String, String> additionalData = new Map<String, String> {
-            AdyenOMSConstants.PBL_ID_KEY => paymentLinkResponse.id
+                AdyenOMSConstants.PBL_ID_KEY => paymentLinkId
         };
         postAuthRequest.additionalData = additionalData;
 
-        ConnectApi.PostAuthorizationResponse postAuthorizationResponse = Test.isRunningTest() ? mockPostAuthResponse() : ConnectApi.Payments.postAuth(postAuthRequest);
-
-        PBLPostAuthResponse postAuthResponse = new PBLPostAuthResponse();
-        postAuthResponse.paymentMethodId = postAuthorizationResponse.paymentMethod.id;
-        postAuthResponse.paymentGroupId = postAuthorizationResponse.paymentGroup.id;
-        postAuthResponse.paymentLink = paymentLinkResponse.url;
-        postAuthResponse.linkExpiresAt = paymentLinkResponse.expiresAt;
-        postAuthResponse.expirationDateTime = AdyenPBLHelper.parseDateTime(paymentLinkResponse.expiresAt);
-        postAuthResponse.paymentLinkId = paymentLinkResponse.id;
-        return new List<PBLPostAuthResponse> { postAuthResponse };
+        return Test.isRunningTest() ? mockPostAuthResponse() : ConnectApi.Payments.postAuth(postAuthRequest);
     }
 
     @TestVisible
@@ -57,12 +62,12 @@ public with sharing class PaymentLinkPostAuthAction {
         return postAuthorizationResponse;
     }
 
-    public class PBLPostAuthRequest {
-        @InvocableVariable(Required=true)
-        public String paymentGatewayId;
+    public class PBLCreateRequest {
+        @InvocableVariable
+        public Id paymentGatewayId;
 
-        @InvocableVariable(Required=true)
-        public String accountId;
+        @InvocableVariable
+        public Id accountId;
 
         @InvocableVariable(Required=true)
         public String currencyIsoCode;
@@ -71,10 +76,10 @@ public with sharing class PaymentLinkPostAuthAction {
         public Decimal amount;
 
         @InvocableVariable(Required=true)
-        public String cartId;
+        public String merchantReference;
     }
 
-    public class PBLPostAuthResponse {
+    public class PBLCreateResponse {
         @InvocableVariable
         public String paymentMethodId;
 

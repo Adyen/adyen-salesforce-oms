@@ -101,6 +101,52 @@
         <versionSegment>1</versionSegment>
     </actionCalls>
     <actionCalls>
+        <name>Create_Link_And_Call_Post_Auth</name>
+        <label>Create Link And Call Post Auth</label>
+        <locationX>2096</locationX>
+        <locationY>5762</locationY>
+        <actionName>PaymentLinkGenerateAction</actionName>
+        <actionType>apex</actionType>
+        <connector>
+            <targetReference>Update_Cart_Post_Auth</targetReference>
+        </connector>
+        <flowTransactionModel>Automatic</flowTransactionModel>
+        <inputParameters>
+            <name>accountId</name>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>amount</name>
+            <value>
+                <elementReference>cartSummaryTotals.grandTotalAmount</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>currencyIsoCode</name>
+            <value>
+                <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>merchantReference</name>
+            <value>
+                <elementReference>Create_Cart.cartSummary.cartId</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>paymentGatewayId</name>
+            <value>
+                <elementReference>Payment_Gateway.Id</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>PaymentLinkGenerateAction</nameSegment>
+        <offset>0</offset>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
+    <actionCalls>
         <name>Delete_Existing_Cart</name>
         <label>Delete Existing Cart</label>
         <locationX>2426</locationX>
@@ -135,52 +181,6 @@
         </inputParameters>
         <nameSegment>deleteCart</nameSegment>
         <offset>0</offset>
-        <versionSegment>1</versionSegment>
-    </actionCalls>
-    <actionCalls>
-        <name>Post_Authorize_Payment</name>
-        <label>Post Authorize Payment</label>
-        <locationX>2096</locationX>
-        <locationY>5762</locationY>
-        <actionName>AdyenPaymentHelper</actionName>
-        <actionType>apex</actionType>
-        <connector>
-            <targetReference>Update_Cart_Post_Auth</targetReference>
-        </connector>
-        <flowTransactionModel>Automatic</flowTransactionModel>
-        <inputParameters>
-            <name>accountId</name>
-            <value>
-                <elementReference>recordId</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
-            <name>amount</name>
-            <value>
-                <elementReference>cartSummaryTotals.grandTotalAmount</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
-            <name>cartId</name>
-            <value>
-                <elementReference>Create_Cart.cartSummary.cartId</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
-            <name>currencyIsoCode</name>
-            <value>
-                <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
-            <name>paymentGatewayId</name>
-            <value>
-                <elementReference>Payment_Gateway.Id</elementReference>
-            </value>
-        </inputParameters>
-        <nameSegment>AdyenPaymentHelper</nameSegment>
-        <offset>0</offset>
-        <storeOutputAutomatically>true</storeOutputAutomatically>
         <versionSegment>1</versionSegment>
     </actionCalls>
     <apiVersion>61.0</apiVersion>
@@ -1699,13 +1699,13 @@
         <inputAssignments>
             <field>Expire_Date__c</field>
             <value>
-                <elementReference>Post_Authorize_Payment.expirationDateTime</elementReference>
+                <elementReference>Create_Link_And_Call_Post_Auth.expirationDateTime</elementReference>
             </value>
         </inputAssignments>
         <inputAssignments>
             <field>Name</field>
             <value>
-                <elementReference>Post_Authorize_Payment.paymentLinkId</elementReference>
+                <elementReference>Create_Link_And_Call_Post_Auth.paymentLinkId</elementReference>
             </value>
         </inputAssignments>
         <inputAssignments>
@@ -1729,7 +1729,7 @@
         <inputAssignments>
             <field>URL__c</field>
             <value>
-                <elementReference>Post_Authorize_Payment.paymentLink</elementReference>
+                <elementReference>Create_Link_And_Call_Post_Auth.paymentLink</elementReference>
             </value>
         </inputAssignments>
         <object>Payment_Link__c</object>
@@ -1979,13 +1979,13 @@
         <inputAssignments>
             <field>PaymentGroupId</field>
             <value>
-                <elementReference>Post_Authorize_Payment.paymentGroupId</elementReference>
+                <elementReference>Create_Link_And_Call_Post_Auth.paymentGroupId</elementReference>
             </value>
         </inputAssignments>
         <inputAssignments>
             <field>PaymentMethodId</field>
             <value>
-                <elementReference>Post_Authorize_Payment.paymentMethodId</elementReference>
+                <elementReference>Create_Link_And_Call_Post_Auth.paymentMethodId</elementReference>
             </value>
         </inputAssignments>
         <object>WebCart</object>
@@ -1999,7 +1999,7 @@
         <allowFinish>true</allowFinish>
         <allowPause>true</allowPause>
         <connector>
-            <targetReference>Post_Authorize_Payment</targetReference>
+            <targetReference>Create_Link_And_Call_Post_Auth</targetReference>
         </connector>
         <fields>
             <name>Billing_Informat_Title</name>
@@ -2052,7 +2052,7 @@
             <inputParameters>
                 <name>linkExpiryDate</name>
                 <value>
-                    <elementReference>Post_Authorize_Payment.linkExpiresAt</elementReference>
+                    <elementReference>Create_Link_And_Call_Post_Auth.linkExpiresAt</elementReference>
                 </value>
             </inputParameters>
             <inputParameters>
@@ -2064,7 +2064,7 @@
             <inputParameters>
                 <name>paymentLink</name>
                 <value>
-                    <elementReference>Post_Authorize_Payment.paymentLink</elementReference>
+                    <elementReference>Create_Link_And_Call_Post_Auth.paymentLink</elementReference>
                 </value>
             </inputParameters>
             <inputParameters>
