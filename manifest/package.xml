@@ -96,9 +96,9 @@
         <name>LightningComponentBundle</name>
     </types>
     <types>
-        <members>OOBO_Card_and_PBL</members>
         <members>Force_Expire_Link</members>
         <members>Regenerate_Payment_Link</members>
+        <members>Adyen_OOBO</members>
         <name>Flow</name>
     </types>
     <types>

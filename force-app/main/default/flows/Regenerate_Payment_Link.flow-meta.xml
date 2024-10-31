@@ -270,7 +270,7 @@
         <label>PBL Confirmation Screen</label>
         <locationX>176</locationX>
         <locationY>890</locationY>
-        <allowBack>true</allowBack>
+        <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>true</allowPause>
         <fields>

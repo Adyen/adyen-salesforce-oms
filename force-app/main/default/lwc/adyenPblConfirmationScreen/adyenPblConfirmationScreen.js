@@ -39,27 +39,25 @@ export default class AdyenPblConfirmationScreen extends NavigationMixin(Lightnin
     async openOrderSummary() {
         try {
             const orderSummaryId = await getOrderSummaryIdByOrderNumber({ orderNumber: this.orderReference });
-            const url = await this[NavigationMixin.GenerateUrl]({
-                type: 'standard__recordPage',
-                attributes: {
-                    recordId: orderSummaryId,
-                    objectApiName: 'OrderSummary',
-                    actionName: 'view',
-                },
-            });
-            window.open(url, '_blank');
+            const recordUrl = `/lightning/r/${orderSummaryId}/view`;
+            window.open(recordUrl, '_blank');
         } catch (error) {
             this.showToast('Error', 'Failed to open order summary', 'error');
         }
     }
 
-    async copyToClipboard(textToCopy) {
+    copyToClipboard(textToCopy) {
+        const textArea = document.createElement('textarea');
+        textArea.value = textToCopy;
+        document.body.appendChild(textArea);
+        textArea.select();
         try {
-            await navigator.clipboard.writeText(textToCopy);
+            document.execCommand('copy');
             this.showToast('Success', 'Copied to clipboard!', 'success');
-        } catch (error) {
+        } catch (err) {
             this.showToast('Error', 'Failed to copy!', 'error');
         }
+        document.body.removeChild(textArea);
     }
 
     showToast(title, message, variant) {
