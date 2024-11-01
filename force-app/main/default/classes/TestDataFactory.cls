@@ -246,6 +246,15 @@ public class TestDataFactory {
         return orderPaymentSummary;
     }
 
+    public static Payment_Link__c createPaymentLink(Id orderSummaryId, String status, Datetime expireDate) {
+        return new Payment_Link__c(
+            Name = 'PL03437B5F04798D20E',
+            Expire_Date__c = expireDate,
+            Order_Summary__c = orderSummaryId,
+            Status__c = status
+        );
+    }
+
     public static List<Id> createFulfillmentOrder(Id orderSummaryId) {
         String fulfillmentType = 'warehouse';
         

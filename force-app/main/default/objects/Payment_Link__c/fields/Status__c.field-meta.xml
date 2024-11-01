@@ -27,7 +27,7 @@
                 <label>Expired</label>
             </value>
             <value>
-                <fullName>Payment Pending</fullName>
+                <fullName>Payment_Pending</fullName>
                 <default>false</default>
                 <label>Payment Pending</label>
             </value>

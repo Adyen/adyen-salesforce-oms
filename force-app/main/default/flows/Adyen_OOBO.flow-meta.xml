@@ -117,7 +117,7 @@
         <label>Post Authorize Payment</label>
         <locationX>2294</locationX>
         <locationY>5654</locationY>
-        <actionName>AdyenPaymentHelper</actionName>
+        <actionName>PaymentLinkGenerateAction</actionName>
         <actionType>apex</actionType>
         <connector>
             <targetReference>Update_Cart_Post_Auth</targetReference>
@@ -136,7 +136,7 @@
             </value>
         </inputParameters>
         <inputParameters>
-            <name>cartId</name>
+            <name>merchantReference</name>
             <value>
                 <elementReference>Create_Cart.cartSummary.cartId</elementReference>
             </value>
@@ -153,7 +153,7 @@
                 <elementReference>Payment_Gateway.Id</elementReference>
             </value>
         </inputParameters>
-        <nameSegment>AdyenPaymentHelper</nameSegment>
+        <nameSegment>PaymentLinkGenerateAction</nameSegment>
         <offset>0</offset>
         <storeOutputAutomatically>true</storeOutputAutomatically>
         <versionSegment>1</versionSegment>

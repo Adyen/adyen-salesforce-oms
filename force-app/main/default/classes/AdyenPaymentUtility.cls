@@ -391,7 +391,7 @@ public with sharing class AdyenPaymentUtility {
 
         CommercePayments.PaymentsHttp paymentsHttp = new CommercePayments.PaymentsHttp();
         HttpResponse response = paymentsHttp.send(request);
-        if (response.getStatusCode() != 200 && response.getStatusCode() != 201) {
+        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
             throw new AdyenGatewayAdapter.GatewayException('Adyen Checkout API returned: ' + response.getStatusCode() + ', body: ' + response.getBody());
         } else {
             return response;

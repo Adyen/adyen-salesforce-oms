@@ -24,6 +24,10 @@
         <members>AdyenPBLHelperTest</members>
         <members>AdyenNotificationHandler</members>
         <members>AdyenNotificationHandlerTest</members>
+        <members>PaymentLinkExpireAction</members>
+        <members>PaymentLinkExpireActionTest</members>
+        <members>PaymentLinkGenerateAction</members>
+        <members>PaymentLinkPostAuthActionTest</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -92,7 +96,9 @@
         <name>LightningComponentBundle</name>
     </types>
     <types>
-        <members>OOBO_Card_and_PBL</members>
+        <members>Force_Expire_Link</members>
+        <members>Regenerate_Payment_Link</members>
+        <members>Adyen_OOBO</members>
         <name>Flow</name>
     </types>
     <types>
