@@ -116,7 +116,7 @@
         <name>Post_Authorize_Payment</name>
         <label>Post Authorize Payment</label>
         <locationX>2294</locationX>
-        <locationY>5654</locationY>
+        <locationY>5762</locationY>
         <actionName>PaymentLinkGenerateAction</actionName>
         <actionType>apex</actionType>
         <connector>
@@ -136,15 +136,15 @@
             </value>
         </inputParameters>
         <inputParameters>
-            <name>merchantReference</name>
-            <value>
-                <elementReference>Create_Cart.cartSummary.cartId</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
             <name>currencyIsoCode</name>
             <value>
                 <elementReference>cartSummaryTotals.currencyIsoCode</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>merchantReference</name>
+            <value>
+                <elementReference>Get_Order_Reference.InitialOrderReferenceNumber</elementReference>
             </value>
         </inputParameters>
         <inputParameters>
@@ -652,7 +652,7 @@
         <name>Current_Stage_Confirmation_Stage</name>
         <label>Current Stage = Confirmation</label>
         <locationX>2426</locationX>
-        <locationY>6170</locationY>
+        <locationY>6278</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
             <operator>Assign</operator>
@@ -723,7 +723,7 @@
         <name>Current_Stage_Submit_Order_Stage</name>
         <label>Current Stage = Submit Order</label>
         <locationX>2294</locationX>
-        <locationY>5870</locationY>
+        <locationY>5978</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
             <operator>Assign</operator>
@@ -1537,7 +1537,7 @@
         <name>Save_Payment_Link</name>
         <label>Save Payment Link</label>
         <locationX>2426</locationX>
-        <locationY>6278</locationY>
+        <locationY>6386</locationY>
         <connector>
             <targetReference>Confirmation_Screen</targetReference>
         </connector>
@@ -1645,6 +1645,27 @@
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
     <recordLookups>
+        <name>Get_Order_Reference</name>
+        <label>Get Order Reference</label>
+        <locationX>2294</locationX>
+        <locationY>5654</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Post_Authorize_Payment</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Create_Cart.cartSummary.cartId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>WebCart</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
         <name>Get_Product</name>
         <label>Product</label>
         <locationX>2778</locationX>
@@ -1731,7 +1752,7 @@
         <name>Update_Cart_Post_Auth</name>
         <label>Update Cart with Post Auth</label>
         <locationX>2294</locationX>
-        <locationY>5762</locationY>
+        <locationY>5870</locationY>
         <connector>
             <targetReference>Current_Stage_Submit_Order_Stage</targetReference>
         </connector>
@@ -1796,7 +1817,7 @@
         <allowFinish>true</allowFinish>
         <allowPause>true</allowPause>
         <connector>
-            <targetReference>Post_Authorize_Payment</targetReference>
+            <targetReference>Get_Order_Reference</targetReference>
         </connector>
         <fields>
             <name>Billing_Informat_Title</name>
@@ -1838,7 +1859,7 @@
         <name>Confirmation_Screen</name>
         <label>Confirmation Screen</label>
         <locationX>2426</locationX>
-        <locationY>6386</locationY>
+        <locationY>6494</locationY>
         <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>false</allowPause>
@@ -2037,7 +2058,7 @@
         <name>Payment_Screen</name>
         <label>Payment Screen</label>
         <locationX>2426</locationX>
-        <locationY>6062</locationY>
+        <locationY>6170</locationY>
         <allowBack>true</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>false</allowPause>
