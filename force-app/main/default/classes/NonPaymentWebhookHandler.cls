@@ -78,7 +78,7 @@ global without sharing class NonPaymentWebhookHandler {
 
     private static PaymentAuthorization findPaymentAuthorization(NotificationRequestItem requestItem) {
         if (requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE) {
-            return findPaymentAuthByCartId(requestItem.merchantReference);
+            return findPaymentAuthByMerchantRef(requestItem.merchantReference);
         } else {
             return findPaymentAuthByGatewayRef(requestItem.originalReference);
         }
@@ -94,15 +94,11 @@ global without sharing class NonPaymentWebhookHandler {
         return paymentAuthorizations.isEmpty() ? null : paymentAuthorizations[0];
     }
 
-    private static PaymentAuthorization findPaymentAuthByCartId(String cartId) {
-        List<WebCart> webCarts = [SELECT PaymentGroupId FROM WebCart WHERE Id = :cartId];
-        if (webCarts.isEmpty()) {
-            return null;
-        }
+    private static PaymentAuthorization findPaymentAuthByMerchantRef(String merchantReference) {
         List<PaymentAuthorization> paymentAuthorizations = [
             SELECT Status, OrderPaymentSummaryId, PaymentGatewayId
             FROM PaymentAuthorization
-            WHERE PaymentGroupId = :webCarts[0].PaymentGroupId AND OrderPaymentSummaryId != NULL
+            WHERE OrderPaymentSummary.OrderSummary.OrderNumber =: merchantReference
             LIMIT 1
         ];
         return paymentAuthorizations.isEmpty() ? null : paymentAuthorizations[0];

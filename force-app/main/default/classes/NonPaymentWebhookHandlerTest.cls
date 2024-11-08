@@ -107,8 +107,9 @@ private class NonPaymentWebhookHandlerTest {
     static void successfulAuthorizationWebhookTest() {
         // given
         PaymentAuthorization payAuth = TestDataFactory.insertCartAndRelatedPA();
-        Id webCartId = [SELECT Id FROM WebCart WHERE PaymentGroupId = :payAuth.PaymentGroupId].Id;
-        String successfulAuthWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE, TestDataFactory.TEST_PSP_REFERENCE, null, webCartId, true);
+        PaymentAuthorization payAuthWithOrderSummary = [SELECT Id, OrderPaymentSummary.OrderSummary.OrderNumber FROM PaymentAuthorization WHERE Id =:payAuth.Id LIMIT 1];
+        String orderNumber = payAuthWithOrderSummary.OrderPaymentSummary.OrderSummary.OrderNumber;
+        String successfulAuthWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE, TestDataFactory.TEST_PSP_REFERENCE, null, orderNumber, true);
         RestContext.request = createRestRequest(successfulAuthWebhook);
 
         // when
@@ -129,8 +130,9 @@ private class NonPaymentWebhookHandlerTest {
     static void unsuccessfulAuthorizationWebhookTest() {
         // given
         PaymentAuthorization payAuth = TestDataFactory.insertCartAndRelatedPA();
-        Id webCartId = [SELECT Id FROM WebCart WHERE PaymentGroupId = :payAuth.PaymentGroupId].Id;
-        String unsuccessfulAuthWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE, TestDataFactory.TEST_PSP_REFERENCE, null, webCartId, false);
+        PaymentAuthorization payAuthWithOrderSummary = [SELECT Id, OrderPaymentSummary.OrderSummary.OrderNumber FROM PaymentAuthorization WHERE Id =:payAuth.Id LIMIT 1];
+        String orderNumber = payAuthWithOrderSummary.OrderPaymentSummary.OrderSummary.OrderNumber;
+        String unsuccessfulAuthWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE, TestDataFactory.TEST_PSP_REFERENCE, null, orderNumber, false);
         RestContext.request = createRestRequest(unsuccessfulAuthWebhook);
 
         // when
