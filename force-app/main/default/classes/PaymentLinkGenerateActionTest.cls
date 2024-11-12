@@ -11,6 +11,7 @@ private class PaymentLinkGenerateActionTest {
         postAuthRequest.accountId = testAccount.Id;
         postAuthRequest.currencyIsoCode = 'EUR';
         postAuthRequest.amount = 55.55;
+        postAuthRequest.billingAddressJson = TestDataFactory.NL_JSON_ADDRESS;
 
         List<PaymentLinkGenerateAction.PBLCreateRequest> postAuthRequests = new List<PaymentLinkGenerateAction.PBLCreateRequest>{ postAuthRequest };
         Test.startTest();

@@ -27,10 +27,9 @@
         <members>PaymentLinkExpireAction</members>
         <members>PaymentLinkExpireActionTest</members>
         <members>PaymentLinkGenerateAction</members>
-        <members>PaymentLinkPostAuthActionTest</members>
+        <members>PaymentLinkGenerateActionTest</members>
         <members>OrderSummaryCreatedEventHandler</members>
         <members>OrderSummaryCreatedEventHandlerTest</members>
-        <members>PaymentLinkGenerateActionTest</members>
         <name>ApexClass</name>
     </types>
     <types>
