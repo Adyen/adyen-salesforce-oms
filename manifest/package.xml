@@ -27,7 +27,7 @@
         <members>PaymentLinkExpireAction</members>
         <members>PaymentLinkExpireActionTest</members>
         <members>PaymentLinkGenerateAction</members>
-        <members>PaymentLinkPostAuthActionTest</members>
+        <members>PaymentLinkGenerateActionTest</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -104,6 +104,9 @@
     <types>
         <members>Payment_Link__c</members>
         <name>CustomTab</name>
+    </types>
+    <types>
+        <name>WebLink</name>
     </types>
     <version>61.0</version>
 </Package>

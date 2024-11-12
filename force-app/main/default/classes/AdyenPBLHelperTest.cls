@@ -93,4 +93,10 @@ private class AdyenPBLHelperTest {
         // Then
         Assert.isTrue(expiryDate.contains(expectedDate), 'Expiry date should contain the correct future date.');
     }
+
+    @IsTest
+    static void makeAdyenAddressCompatibleTest() {
+        // given - US address
+//        PaymentLinkGenerateAction.PBLCreateRequest
+    }
 }

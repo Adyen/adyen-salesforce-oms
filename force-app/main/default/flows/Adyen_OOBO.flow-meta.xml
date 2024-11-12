@@ -116,7 +116,7 @@
         <name>Post_Authorize_Payment</name>
         <label>Post Authorize Payment</label>
         <locationX>2294</locationX>
-        <locationY>5762</locationY>
+        <locationY>5654</locationY>
         <actionName>PaymentLinkGenerateAction</actionName>
         <actionType>apex</actionType>
         <connector>
@@ -133,6 +133,12 @@
             <name>amount</name>
             <value>
                 <elementReference>cartSummaryTotals.grandTotalAmount</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>billingAddressJson</name>
+            <value>
+                <elementReference>JSON_Address</elementReference>
             </value>
         </inputParameters>
         <inputParameters>
@@ -652,7 +658,7 @@
         <name>Current_Stage_Confirmation_Stage</name>
         <label>Current Stage = Confirmation</label>
         <locationX>2426</locationX>
-        <locationY>6278</locationY>
+        <locationY>6170</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
             <operator>Assign</operator>
@@ -723,7 +729,7 @@
         <name>Current_Stage_Submit_Order_Stage</name>
         <label>Current Stage = Submit Order</label>
         <locationX>2294</locationX>
-        <locationY>5978</locationY>
+        <locationY>5870</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
             <operator>Assign</operator>
@@ -1375,6 +1381,11 @@
         <valueField>Id</valueField>
     </dynamicChoiceSets>
     <environments>Default</environments>
+    <formulas>
+        <name>JSON_Address</name>
+        <dataType>String</dataType>
+        <expression>&apos;{&quot;city&quot;: &quot;&apos; &amp; {!Billing_Address.city} &amp; &apos;&quot;, &quot;country&quot;: &quot;&apos; &amp; {!Billing_Address.country} &amp; &apos;&quot;, &quot;postalCode&quot;: &quot;&apos; &amp; {!Billing_Address.postalCode} &amp; &apos;&quot;, &quot;state&quot;: &quot;&apos; &amp; {!Billing_Address.province} &amp; &apos;&quot;, &quot;street&quot;: &quot;&apos; &amp; {!Billing_Address.street} &amp; &apos;&quot;}&apos;</expression>
+    </formulas>
     <interviewLabel>Adyen OOBO {!$Flow.CurrentDateTime}</interviewLabel>
     <label>Adyen OOBO</label>
     <loops>
@@ -1537,7 +1548,7 @@
         <name>Save_Payment_Link</name>
         <label>Save Payment Link</label>
         <locationX>2426</locationX>
-        <locationY>6386</locationY>
+        <locationY>6278</locationY>
         <connector>
             <targetReference>Confirmation_Screen</targetReference>
         </connector>
@@ -1648,7 +1659,7 @@
         <name>Get_Order_Reference</name>
         <label>Get Order Reference</label>
         <locationX>2294</locationX>
-        <locationY>5654</locationY>
+        <locationY>5546</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
             <targetReference>Post_Authorize_Payment</targetReference>
@@ -1725,7 +1736,7 @@
         <locationY>5438</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
-            <targetReference>Billing_Details</targetReference>
+            <targetReference>Get_Order_Reference</targetReference>
         </connector>
         <filterLogic>and</filterLogic>
         <filters>
@@ -1752,7 +1763,7 @@
         <name>Update_Cart_Post_Auth</name>
         <label>Update Cart with Post Auth</label>
         <locationX>2294</locationX>
-        <locationY>5870</locationY>
+        <locationY>5762</locationY>
         <connector>
             <targetReference>Current_Stage_Submit_Order_Stage</targetReference>
         </connector>
@@ -1809,57 +1820,10 @@
         <object>WebCart</object>
     </recordUpdates>
     <screens>
-        <name>Billing_Details</name>
-        <label>Billing Details</label>
-        <locationX>2294</locationX>
-        <locationY>5546</locationY>
-        <allowBack>true</allowBack>
-        <allowFinish>true</allowFinish>
-        <allowPause>true</allowPause>
-        <connector>
-            <targetReference>Get_Order_Reference</targetReference>
-        </connector>
-        <fields>
-            <name>Billing_Informat_Title</name>
-            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;strong&gt;Billing Information&lt;/strong&gt;&lt;/p&gt;</fieldText>
-            <fieldType>DisplayText</fieldType>
-        </fields>
-        <fields>
-            <name>Billing_Address</name>
-            <extensionName>flowruntime:address</extensionName>
-            <fieldType>ComponentInstance</fieldType>
-            <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
-            <isRequired>true</isRequired>
-            <storeOutputAutomatically>true</storeOutputAutomatically>
-        </fields>
-        <fields>
-            <name>Payment_Details_footer</name>
-            <extensionName>runtime_commerce_oms:flowFooter</extensionName>
-            <fieldType>ComponentInstance</fieldType>
-            <inputParameters>
-                <name>currentStage</name>
-                <value>
-                    <elementReference>$Flow.CurrentStage</elementReference>
-                </value>
-            </inputParameters>
-            <inputParameters>
-                <name>stages</name>
-                <value>
-                    <elementReference>$Flow.ActiveStages</elementReference>
-                </value>
-            </inputParameters>
-            <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
-            <isRequired>true</isRequired>
-            <storeOutputAutomatically>true</storeOutputAutomatically>
-        </fields>
-        <showFooter>false</showFooter>
-        <showHeader>true</showHeader>
-    </screens>
-    <screens>
         <name>Confirmation_Screen</name>
         <label>Confirmation Screen</label>
         <locationX>2426</locationX>
-        <locationY>6494</locationY>
+        <locationY>6386</locationY>
         <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>false</allowPause>
@@ -1957,8 +1921,63 @@
             <targetReference>Update_Current_Stage_4</targetReference>
         </connector>
         <fields>
+            <name>Billing_Address_Text</name>
+            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;font-size: 20px; color: rgb(62, 62, 60);&quot;&gt;Enter Billing Address&lt;/span&gt;&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <fields>
+            <name>Billing_Address</name>
+            <extensionName>flowruntime:address</extensionName>
+            <fieldType>ComponentInstance</fieldType>
+            <inputParameters>
+                <name>addressLabel</name>
+                <value>
+                    <stringValue>Address</stringValue>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>required</name>
+                <value>
+                    <booleanValue>true</booleanValue>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>street</name>
+                <value>
+                    <elementReference>Get_Account.BillingStreet</elementReference>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>city</name>
+                <value>
+                    <elementReference>Get_Account.BillingCity</elementReference>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>province</name>
+                <value>
+                    <elementReference>Get_Account.BillingState</elementReference>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>postalCode</name>
+                <value>
+                    <elementReference>Get_Account.BillingPostalCode</elementReference>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>country</name>
+                <value>
+                    <elementReference>Get_Account.BillingCountry</elementReference>
+                </value>
+            </inputParameters>
+            <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
+            <isRequired>true</isRequired>
+            <storeOutputAutomatically>true</storeOutputAutomatically>
+        </fields>
+        <fields>
             <name>Header_enter_shipping_address</name>
-            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(62, 62, 60); font-size: 20px; background-color: rgb(255, 255, 255);&quot;&gt;Enter Shipping Address&lt;/span&gt;&lt;/p&gt;</fieldText>
+            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;background-color: rgb(255, 255, 255); font-size: 20px; color: rgb(62, 62, 60);&quot;&gt;Enter Shipping Address&lt;/span&gt;&lt;/p&gt;</fieldText>
             <fieldType>DisplayText</fieldType>
         </fields>
         <fields>
@@ -2058,7 +2077,7 @@
         <name>Payment_Screen</name>
         <label>Payment Screen</label>
         <locationX>2426</locationX>
-        <locationY>6170</locationY>
+        <locationY>6062</locationY>
         <allowBack>true</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>false</allowPause>

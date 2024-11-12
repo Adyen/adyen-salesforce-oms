@@ -8,7 +8,9 @@ public with sharing class PaymentLinkGenerateAction {
         amount.value = (pblCreateRequest.amount * AdyenPaymentUtility.getAmountMultiplier(pblCreateRequest.currencyIsoCode)).round(System.RoundingMode.HALF_UP);
         amount.currency_x = pblCreateRequest.currencyIsoCode;
 
-        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, pblCreateRequest.merchantReference);
+        System.Address sfBillingAddress = (System.Address)JSON.deserialize(pblCreateRequest.billingAddressJson, System.Address.class);
+        Address adyenBillingAddress = AdyenPBLHelper.makeAdyenAddressCompatible(sfBillingAddress);
+        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, pblCreateRequest.merchantReference, adyenBillingAddress);
         PaymentLinkResponse paymentLinkResponse = AdyenPBLHelper.generatePaymentLink(adyenAdapter, paymentLinkRequest);
 
         PBLCreateResponse postAuthResponse = new PBLCreateResponse();
@@ -77,6 +79,9 @@ public with sharing class PaymentLinkGenerateAction {
 
         @InvocableVariable(Required=true)
         public String merchantReference;
+
+        @InvocableVariable(Required=true)
+        public String billingAddressJson;
     }
 
     public class PBLCreateResponse {
