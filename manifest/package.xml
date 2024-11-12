@@ -27,8 +27,15 @@
         <members>PaymentLinkExpireAction</members>
         <members>PaymentLinkExpireActionTest</members>
         <members>PaymentLinkGenerateAction</members>
+        <members>PaymentLinkPostAuthActionTest</members>
+        <members>OrderSummaryCreatedEventHandler</members>
+        <members>OrderSummaryCreatedEventHandlerTest</members>
         <members>PaymentLinkGenerateActionTest</members>
         <name>ApexClass</name>
+    </types>
+    <types>
+        <members>OrderSummaryCreatedEventTrigger</members>
+        <name>ApexTrigger</name>
     </types>
     <types>
         <members>Adyen_Adapter.AdyenDefault</members>
@@ -104,9 +111,6 @@
     <types>
         <members>Payment_Link__c</members>
         <name>CustomTab</name>
-    </types>
-    <types>
-        <name>WebLink</name>
     </types>
     <version>61.0</version>
 </Package>
