@@ -28,7 +28,13 @@
         <members>PaymentLinkExpireActionTest</members>
         <members>PaymentLinkGenerateAction</members>
         <members>PaymentLinkPostAuthActionTest</members>
+        <members>OrderSummaryCreatedEventHandler</members>
+        <members>OrderSummaryCreatedEventHandlerTest</members>
         <name>ApexClass</name>
+    </types>
+    <types>
+        <members>OrderSummaryCreatedEventTrigger</members>
+        <name>ApexTrigger</name>
     </types>
     <types>
         <members>Adyen_Adapter.AdyenDefault</members>
