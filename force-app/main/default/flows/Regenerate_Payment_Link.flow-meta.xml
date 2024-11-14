@@ -47,6 +47,12 @@
             </value>
         </inputParameters>
         <inputParameters>
+            <name>billingAddressJson</name>
+            <value>
+                <elementReference>Address_JSON</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
             <name>currencyIsoCode</name>
             <value>
                 <elementReference>Get_Last_Link.CurrencyIsoCode</elementReference>
@@ -66,6 +72,11 @@
     <apiVersion>62.0</apiVersion>
     <description>Flow used to deactivate any previous link and generate a new one.</description>
     <environments>Default</environments>
+    <formulas>
+        <name>Address_JSON</name>
+        <dataType>String</dataType>
+        <expression>&apos;{&quot;city&quot;: &quot;&apos; &amp; {!Get_Order_Summary.BillingCity} &amp; &apos;&quot;, &quot;country&quot;: &quot;&apos; &amp; {!Get_Order_Summary.BillingCountry} &amp; &apos;&quot;, &quot;postalCode&quot;: &quot;&apos; &amp; {!Get_Order_Summary.BillingPostalCode} &amp; &apos;&quot;, &quot;state&quot;: &quot;&apos; &amp; {!Get_Order_Summary.BillingState} &amp; &apos;&quot;, &quot;street&quot;: &quot;&apos; &amp; {!Get_Order_Summary.BillingStreet} &amp; &apos;&quot;}&apos;</expression>
+    </formulas>
     <interviewLabel>Regenerate Payment Link {!$Flow.CurrentDateTime}</interviewLabel>
     <label>Regenerate Payment Link</label>
     <processMetadataValues>

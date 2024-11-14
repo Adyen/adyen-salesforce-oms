@@ -1,7 +1,7 @@
 public with sharing class AdyenPBLHelper {
     public static final List<String> ALLOWED_PAYMENT_METHODS = new List<String>{'ideal', 'scheme', 'paypal', 'applepay'};
 
-    public static PaymentLinkRequest buildPaymentLinkRequest(Adyen_Adapter__mdt adyenAdapter, Amount amount, String reference) {
+    public static PaymentLinkRequest buildPaymentLinkRequest(Adyen_Adapter__mdt adyenAdapter, Amount amount, String reference, Address adyenBillingAddress) {
         PaymentLinkRequest paymentLinkRequest = new PaymentLinkRequest();
         paymentLinkRequest.amount = amount;
         paymentLinkRequest.reference = reference;
@@ -10,6 +10,7 @@ public with sharing class AdyenPBLHelper {
         paymentLinkRequest.returnUrl = adyenAdapter.Payment_Link_Return_Url__c;
         paymentLinkRequest.themeId = adyenAdapter.Payment_Link_Theme_Id__c;
         paymentLinkRequest.allowedPaymentMethods = ALLOWED_PAYMENT_METHODS;
+        paymentLinkRequest.billingAddress = adyenBillingAddress;
         paymentLinkRequest.expiresAt = adyenAdapter.Payment_Link_Expiry_Duration__c != null 
             ? getLinkExpiryDate(adyenAdapter.Payment_Link_Expiry_Duration__c.intValue()) 
             : null;
@@ -92,6 +93,42 @@ public with sharing class AdyenPBLHelper {
         } else {
             String salesforceCompatibleBody = AdyenPaymentUtility.makeSalesforceCompatible(response.getBody());
             return salesforceCompatibleBody;
+        }
+    }
+
+    public static Address makeAdyenAddressCompatible(System.Address sfAddress) {
+        Address adyenAddress = new Address();
+        adyenAddress.city = sfAddress.city;
+        adyenAddress.country = sfAddress.country;
+        adyenAddress.postalCode = sfAddress.postalCode;
+        adyenAddress.stateOrProvince = sfAddress.state;
+        parseHouseNumberFromStreetAddress(sfAddress.street, adyenAddress);
+        return adyenAddress;
+    }
+
+    public static void parseHouseNumberFromStreetAddress(String streetAddressWithHouseNumber, Address adyenAddress) {
+        if (String.isBlank(streetAddressWithHouseNumber)) {
+            return;
+        }
+
+        // Regular expression to match numbers (house number) at the beginning or end of the address
+        Pattern numberPattern = Pattern.compile('^(\\d+)?\\s*(.*?)(\\d+)?$');
+        Matcher matcher = numberPattern.matcher(streetAddressWithHouseNumber.trim());
+
+        if (matcher.find()) {
+            // Check for house number at the start
+            if (matcher.group(1) != null) {
+                adyenAddress.houseNumberOrName = matcher.group(1).trim();
+                adyenAddress.street = matcher.group(2).trim();
+            }
+            // Check for house number at the end
+            else if (matcher.group(3) != null) {
+                adyenAddress.houseNumberOrName = matcher.group(3).trim();
+                adyenAddress.street = matcher.group(2).trim();
+            } else {
+                // If no number is found, treat the whole address as the street name
+                adyenAddress.street = streetAddressWithHouseNumber;
+            }
         }
     }
 }

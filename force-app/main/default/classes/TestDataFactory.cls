@@ -11,6 +11,10 @@ public class TestDataFactory {
     public static final Double TEST_TAX_AMOUNT = TEST_PRICE_AMOUNT * 0.05;
     public static final String ACTIVE_CURRENCY = [SELECT IsoCode FROM CurrencyType WHERE IsActive = TRUE LIMIT 1].IsoCode;
     public static final String ASSERT_PRICE_MESSAGE = 'For input price of ';
+    public static final String US_JSON_ADDRESS = '{"city": "San Francisco", "country": "USA", "postalCode": "94103", "state": "CA", "street": "123 Market St"}';
+    public static final String NL_JSON_ADDRESS = '{"city": "Amsterdam", "country": "Netherlands", "postalCode": "1012 JS", "state": "", "street": "Dam Square 1"}';
+    public static final String NO_NUMBER_JSON_ADDRESS = '{"city": "Amsterdam", "country": "Netherlands", "postalCode": "1012 JS", "state": "", "street": "Dam Square"}';
+
 
     public static AdyenGatewayAdapter adyenAdapter = new AdyenGatewayAdapter();
 

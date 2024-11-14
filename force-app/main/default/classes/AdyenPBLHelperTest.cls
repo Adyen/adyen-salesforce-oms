@@ -11,7 +11,7 @@ private class AdyenPBLHelperTest {
         String reference = 'TestReference123';
 
         // When
-        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, reference);
+        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, reference, Address.getExample());
 
         // Then
         Assert.areNotEqual(null, paymentLinkRequest);
@@ -31,7 +31,7 @@ private class AdyenPBLHelperTest {
         amount.value = 2000;
         String reference = 'TestReference456';
 
-        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, reference);
+        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, reference, Address.getExample());
 
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.PBLMockResponse());
 
@@ -68,7 +68,7 @@ private class AdyenPBLHelperTest {
         amount.value = 2000;
         String reference = 'TestReference789';
 
-        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, reference);
+        PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, reference, Address.getExample());
 
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.FailureResponse());
 
@@ -92,5 +92,32 @@ private class AdyenPBLHelperTest {
 
         // Then
         Assert.isTrue(expiryDate.contains(expectedDate), 'Expiry date should contain the correct future date.');
+    }
+
+    @IsTest
+    static void makeAdyenAddressCompatibleTest() {
+        // given - US address
+        System.Address sfUSAddress = (System.Address)JSON.deserialize(TestDataFactory.US_JSON_ADDRESS, System.Address.class);
+        // when
+        Address adyenUSAddress = AdyenPBLHelper.makeAdyenAddressCompatible(sfUSAddress);
+        // then
+        Assert.areEqual('123', adyenUSAddress.houseNumberOrName);
+        Assert.areEqual('Market St', adyenUSAddress.street);
+
+        // given - Netherlands address
+        System.Address sfNLAddress = (System.Address)JSON.deserialize(TestDataFactory.NL_JSON_ADDRESS, System.Address.class);
+        // when
+        Address adyenNLAddress = AdyenPBLHelper.makeAdyenAddressCompatible(sfNLAddress);
+        // then
+        Assert.areEqual('1', adyenNLAddress.houseNumberOrName);
+        Assert.areEqual('Dam Square', adyenNLAddress.street);
+
+        // given - address without house number
+        System.Address sfNoNumberAddress = (System.Address)JSON.deserialize(TestDataFactory.NO_NUMBER_JSON_ADDRESS, System.Address.class);
+        // when
+        Address adyenNoNumberAddress = AdyenPBLHelper.makeAdyenAddressCompatible(sfNoNumberAddress);
+        // then
+        Assert.isNull(adyenNoNumberAddress.houseNumberOrName);
+        Assert.areEqual('Dam Square', adyenNoNumberAddress.street);
     }
 }
