@@ -4,7 +4,7 @@ private class NonPaymentWebhookHandlerTest {
     @IsTest
     static void unsupportedNotificationTypeTest() {
         // given unsupported notification type (not a cancellation)
-        String wrongWebhookType = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE, '1234567890123456', '1010101010101010', '999999', true);
+        String wrongWebhookType = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED, '1234567890123456', '1010101010101010', '999999', true);
         RestContext.request = createRestRequest(wrongWebhookType);
 
         // when
@@ -160,6 +160,44 @@ private class NonPaymentWebhookHandlerTest {
         Test.stopTest();
 
         Assert.areEqual(NonPaymentWebhookHandler.responseWithReason(NonPaymentWebhookHandler.NO_PAYMENT_FOUND), response);
+    }
+    
+    @IsTest(SeeAllData = true)
+    static void captureWebhookWithoutPaymentRecordTest() {
+        // given
+        PaymentAuthorization payAuth = TestDataFactory.insertAccountOrderAndPayAuth(AdyenOMSConstants.PaymentAuthorizationStatus.PROCESSED.name());
+        String captureWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE, '123456789012ABCD', TestDataFactory.TEST_PSP_REFERENCE, '999999', true);
+        RestContext.request = createRestRequest(captureWebhook);
+
+        // when
+        Test.startTest();
+        String response = NonPaymentWebhookHandler.doPost();
+        Test.stopTest();
+
+        // then
+        PaymentGatewayLog captureGatewayLog = [SELECT Id, GatewayRefNumber, GatewayMessage, InteractionStatus FROM PaymentGatewayLog WHERE GatewayRefNumber = '123456789012ABCD' LIMIT 1];
+        Assert.areEqual(NonPaymentWebhookHandler.ACCEPTED_RESPONSE, response, 'Expected accepted response');
+        Assert.areEqual('Success', captureGatewayLog.InteractionStatus, 'Expected interaction status to be Success.');
+        Assert.areEqual('[capture-completed]', captureGatewayLog.GatewayMessage);
+    }
+    
+    @IsTest(SeeAllData = true)
+    static void refundWebhookWithoutRefundRecordTest() {
+        // given
+        PaymentAuthorization payAuth = TestDataFactory.insertAccountOrderAndPayAuth(AdyenOMSConstants.PaymentAuthorizationStatus.PROCESSED.name());
+        String refundWebhook = TestDataFactory.mockWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND, '123456789012ABCD', TestDataFactory.TEST_PSP_REFERENCE, '999999', true);
+        RestContext.request = createRestRequest(refundWebhook);
+
+        // when
+        Test.startTest();
+        String response = NonPaymentWebhookHandler.doPost();
+        Test.stopTest();
+
+        // then
+        PaymentGatewayLog refundGatewayLog = [SELECT Id, GatewayRefNumber, GatewayMessage, InteractionStatus FROM PaymentGatewayLog WHERE GatewayRefNumber = '123456789012ABCD' LIMIT 1];
+        Assert.areEqual(NonPaymentWebhookHandler.ACCEPTED_RESPONSE, response, 'Expected accepted response');
+        Assert.areEqual('Success', refundGatewayLog.InteractionStatus, 'Expected interaction status to be Success.');
+        Assert.areEqual('[refund-completed]', refundGatewayLog.GatewayMessage);
     }
 
     private static RestRequest createRestRequest(String body) {

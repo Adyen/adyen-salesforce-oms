@@ -19,11 +19,13 @@ global without sharing class NonPaymentWebhookHandler {
                 return responseWithReason(INVALID_WEBHOOK);
             }
             PaymentAuthorization paymentAuthorization = findPaymentAuthorization(notificationRequestItem);
-            if (paymentAuthorization == null) {
+            if (paymentAuthorization == null && !isValidRefund(notificationRequestItem)) {
                 return responseWithReason(NO_PAYMENT_FOUND);
             }
             processNotification(paymentAuthorization, notificationRequestItem);
-            createGatewayLog(paymentAuthorization, notificationRequestItem, requestBody);
+            if (requiresGatewayLog(notificationRequestItem)) {
+                createGatewayLog(paymentAuthorization, notificationRequestItem, requestBody);
+            }
             return ACCEPTED_RESPONSE;
         } catch (HMACValidator.HmacValidationException ex) {
             return responseWithReason(INVALID_NOTIFICATION);
@@ -102,5 +104,48 @@ global without sharing class NonPaymentWebhookHandler {
             LIMIT 1
         ];
         return paymentAuthorizations.isEmpty() ? null : paymentAuthorizations[0];
+    }
+
+    private static Boolean isValidRefund(NotificationRequestItem requestItem) {
+        if (requestItem.eventCode != AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND) {
+            return false;
+        }
+        return relatedPaymentFound(requestItem.originalReference);
+    }
+
+    private static Boolean relatedPaymentFound(String gatewayReference) {
+        List<Payment> payments = [
+            SELECT Id
+            FROM Payment
+            WHERE GatewayRefNumber = :gatewayReference 
+            AND OrderPaymentSummaryId != NULL
+        ];
+        return !payments.isEmpty();
+    }
+
+    private static Boolean relatedRefundFound(String gatewayReference) {
+        List<Refund> refunds = [
+            SELECT Id
+            FROM Refund
+            WHERE GatewayRefNumber = :gatewayReference 
+            AND OrderPaymentSummaryId != NULL
+        ];
+        return !refunds.isEmpty();
+    }
+
+    private static Boolean requiresGatewayLog(NotificationRequestItem requestItem) {
+        if (requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE || 
+            requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL) {
+            return true;
+        }
+
+        if (requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE) {
+            return !relatedPaymentFound(requestItem.pspReference);
+        }
+        if (requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND) {
+            return !relatedRefundFound(requestItem.pspReference);
+        }
+    
+        return false;
     }
 }
