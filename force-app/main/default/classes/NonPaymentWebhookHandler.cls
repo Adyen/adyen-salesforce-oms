@@ -19,11 +19,11 @@ global without sharing class NonPaymentWebhookHandler {
                 return responseWithReason(INVALID_WEBHOOK);
             }
             PaymentAuthorization paymentAuthorization = findPaymentAuthorization(notificationRequestItem);
-            if (paymentAuthorization == null) {
+            if (paymentAuthorization == null && !isValidRefund(notificationRequestItem)) {
                 return responseWithReason(NO_PAYMENT_FOUND);
             }
             processNotification(paymentAuthorization, notificationRequestItem);
-            if(requiresGatewayLog(notificationRequestItem)) {
+            if (requiresGatewayLog(notificationRequestItem)) {
                 createGatewayLog(paymentAuthorization, notificationRequestItem, requestBody);
             }
             return ACCEPTED_RESPONSE;
@@ -104,6 +104,13 @@ global without sharing class NonPaymentWebhookHandler {
             LIMIT 1
         ];
         return paymentAuthorizations.isEmpty() ? null : paymentAuthorizations[0];
+    }
+
+    private static Boolean isValidRefund(NotificationRequestItem requestItem) {
+        if (requestItem.eventCode != AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND) {
+            return false;
+        }
+        return relatedPaymentFound(requestItem.originalReference);
     }
 
     private static Boolean relatedPaymentFound(String gatewayReference) {
