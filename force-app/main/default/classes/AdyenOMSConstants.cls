@@ -25,12 +25,16 @@ public with sharing class AdyenOMSConstants {
     };
     public static final Set<String> VALID_WEBHOOK_TYPES = new Set<String>{
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE,
-        AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL,
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE,
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND
     };
 
     public static final Map<String,String> INTERACTION_TYPE_MAP = new Map<String,String>{
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_CANCEL => 'AuthorizationReversal',
-        AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE => 'Authorization'
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE => 'Authorization',
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE => 'Capture',
+        AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND => 'ReferencedRefund'
     };
     public enum PaymentAuthorizationStatus { DRAFT, CANCELED, PENDING, PROCESSED, FAILED }
     public enum PaymentGatewayLogStatus { NOOP, INITIATED, SUCCESS, FAILED, TIMEOUT }
