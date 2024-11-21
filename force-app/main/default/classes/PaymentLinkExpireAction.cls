@@ -1,6 +1,6 @@
-public with sharing class PaymentLinkExpireAction {
+global with sharing class PaymentLinkExpireAction {
     @InvocableMethod(Label = 'Force Expire Link' Category = 'Payment Link' Callout = true)
-    public static void forceExpireLink(List<PBLForceExpire> pblForceExpireList) {
+    global static void forceExpireLink(List<PBLForceExpire> pblForceExpireList) {
         if (pblForceExpireList == null || pblForceExpireList.isEmpty() || pblForceExpireList[0].orderSummaryId == null) {
             throw new IllegalArgumentException('Required order summary Id is missing!');
         }
@@ -25,7 +25,7 @@ public with sharing class PaymentLinkExpireAction {
         update activePaymentLinks;
     }
 
-    public class PBLForceExpire {
+    global class PBLForceExpire {
         @InvocableVariable(Required=true)
         public Id orderSummaryId;
     }
