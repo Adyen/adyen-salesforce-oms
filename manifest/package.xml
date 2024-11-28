@@ -26,6 +26,8 @@
         <members>AdyenNotificationHandlerTest</members>
         <members>PaymentLinkExpireAction</members>
         <members>PaymentLinkExpireActionTest</members>
+        <members>PaymentLinkRegenerateAction</members>
+        <members>PaymentLinkRegenerateActionTest</members>
         <members>PaymentLinkGenerateAction</members>
         <members>PaymentLinkGenerateActionTest</members>
         <members>OrderSummaryCreatedEventHandler</members>
