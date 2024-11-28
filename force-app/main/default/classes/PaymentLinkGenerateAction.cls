@@ -1,6 +1,6 @@
 public with sharing class PaymentLinkGenerateAction {
     @InvocableMethod(Label = 'Create Payment Link' Category = 'Payment Link' Callout = true)
-    public static List<PBLCreateResponse> callPostAuthorize(List<PBLCreateRequest> pblCreateRequests) {
+    public static List<PBLCreateResponse> handlePaymentLinkCreation(List<PBLCreateRequest> pblCreateRequests) {
         PBLCreateRequest pblCreateRequest = pblCreateRequests[0];
         Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
 
@@ -13,17 +13,17 @@ public with sharing class PaymentLinkGenerateAction {
         PaymentLinkRequest paymentLinkRequest = AdyenPBLHelper.buildPaymentLinkRequest(adyenAdapter, amount, pblCreateRequest.merchantReference, adyenBillingAddress);
         PaymentLinkResponse paymentLinkResponse = AdyenPBLHelper.generatePaymentLink(adyenAdapter, paymentLinkRequest);
 
-        PBLCreateResponse postAuthResponse = new PBLCreateResponse();
+        PBLCreateResponse linkGenerationResponse = new PBLCreateResponse();
         if (pblCreateRequest.paymentGatewayId != null) { // the presence of a payment gateway id indicates post auth is needed
             ConnectApi.PostAuthorizationResponse postAuthorizationResponse = callPostAuth(pblCreateRequest, paymentLinkResponse.id);
-            postAuthResponse.paymentMethodId = postAuthorizationResponse.paymentMethod.id;
-            postAuthResponse.paymentGroupId = postAuthorizationResponse.paymentGroup.id;
+            linkGenerationResponse.paymentMethodId = postAuthorizationResponse.paymentMethod.id;
+            linkGenerationResponse.paymentGroupId = postAuthorizationResponse.paymentGroup.id;
         }
-        postAuthResponse.paymentLink = paymentLinkResponse.url;
-        postAuthResponse.linkExpiresAt = paymentLinkResponse.expiresAt;
-        postAuthResponse.expirationDateTime = AdyenPBLHelper.parseDateTime(paymentLinkResponse.expiresAt);
-        postAuthResponse.paymentLinkId = paymentLinkResponse.id;
-        return new List<PBLCreateResponse> { postAuthResponse };
+        linkGenerationResponse.paymentLink = paymentLinkResponse.url;
+        linkGenerationResponse.linkExpiresAt = paymentLinkResponse.expiresAt;
+        linkGenerationResponse.expirationDateTime = AdyenPBLHelper.parseDateTime(paymentLinkResponse.expiresAt);
+        linkGenerationResponse.paymentLinkId = paymentLinkResponse.id;
+        return new List<PBLCreateResponse> { linkGenerationResponse };
     }
 
     private static ConnectApi.PostAuthorizationResponse callPostAuth(PBLCreateRequest postAuthRequestInput, String paymentLinkId) {
