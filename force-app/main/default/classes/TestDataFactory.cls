@@ -253,6 +253,8 @@ public class TestDataFactory {
     public static Payment_Link__c createPaymentLink(Id orderSummaryId, String status, Datetime expireDate) {
         return new Payment_Link__c(
             Name = 'PL03437B5F04798D20E',
+            Amount__c = TEST_PRICE_AMOUNT,
+            Shopper_Email__c = 'test@email.com',
             Expire_Date__c = expireDate,
             Order_Summary__c = orderSummaryId,
             Status__c = status
