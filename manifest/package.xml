@@ -30,6 +30,7 @@
         <members>PaymentLinkGenerateActionTest</members>
         <members>OrderSummaryCreatedEventHandler</members>
         <members>OrderSummaryCreatedEventHandlerTest</members>
+        <members>AdyenRefundHelperTest</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -111,5 +112,5 @@
         <members>Payment_Link__c</members>
         <name>CustomTab</name>
     </types>
-    <version>61.0</version>
+    <version>62.0</version>
 </Package>
