@@ -1,7 +1,7 @@
 @IsTest
 private class PaymentLinkGenerateActionTest {
     @IsTest(SeeAllData=true)
-    static void callPostAuthorizeTest() {
+    static void handlePaymentLinkCreationTest() {
         // Given
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
@@ -17,7 +17,7 @@ private class PaymentLinkGenerateActionTest {
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.PBLMockResponse());
         // when
-        List<PaymentLinkGenerateAction.PBLCreateResponse> postAuthResponses =  PaymentLinkGenerateAction.callPostAuthorize(postAuthRequests);
+        List<PaymentLinkGenerateAction.PBLCreateResponse> postAuthResponses =  PaymentLinkGenerateAction.handlePaymentLinkCreation(postAuthRequests);
         Test.stopTest();
 
         // then
