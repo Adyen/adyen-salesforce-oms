@@ -69,13 +69,32 @@ global without sharing class NonPaymentWebhookHandler {
     }
 
     private static void processNotification(PaymentAuthorization payAuth, NotificationRequestItem requestItem) {
+        String paymentLinkId = requestItem.additionalData?.get('paymentLinkId');
         if (requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE) {
             if (requestItem.success == 'true' && payAuth.Status.equalsIgnoreCase(AdyenOMSConstants.PaymentAuthorizationStatus.PENDING.name())) {
+                if(String.isNotBlank(paymentLinkId)) {
+                    payAuth.Adyen_Payment_Method_Variant__c = requestItem.paymentMethod;
+                    Payment_Link__c paymentLink = getPaymentLinkByExternalId(paymentLinkId);
+                    paymentLink.Payment_Method_Used__c = requestItem.paymentMethod;
+                    paymentLink.Status__c = AdyenOMSConstants.PaymentLinkStatus.COMPLETED.name();
+                    update paymentLink;
+                }
                 payAuth.GatewayRefNumber = requestItem.pspReference;
                 payAuth.Status = AdyenOMSConstants.PaymentAuthorizationStatus.PROCESSED.name();
                 update payAuth;
             }
         }
+    }
+
+    private static Payment_Link__c getPaymentLinkByExternalId(String externalId) {
+        List<Payment_Link__c> paymentLinks = [
+                SELECT Id, Name, Payment_Method_Used__c, Status__c
+                FROM Payment_Link__c
+                WHERE Name = :externalId
+                LIMIT 1
+            ];
+            
+            return paymentLinks.isEmpty() ? null : paymentLinks[0];
     }
 
     private static PaymentAuthorization findPaymentAuthorization(NotificationRequestItem requestItem) {
