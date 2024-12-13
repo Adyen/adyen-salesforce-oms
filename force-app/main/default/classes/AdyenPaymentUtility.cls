@@ -19,7 +19,7 @@ public with sharing class AdyenPaymentUtility {
     public static Payment retrievePayment(Id paymentId) {
         List<Payment> payments = [
             SELECT
-                Id, GatewayRefNumber, GatewayRefDetails,
+                Id, GatewayRefNumber, GatewayRefDetails, Adyen_Payment_Method_Variant__c,
                 PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
                 PaymentAuthorization.Adyen_Payment_Method__c,CurrencyIsoCode, OrderPaymentSummary.FullName,
                 OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
@@ -134,11 +134,26 @@ public with sharing class AdyenPaymentUtility {
     * @return Boolean denoting if the Authorization Id belongs to an Open Invoice payment method.
     */
     public static Boolean checkIfOpenInvoiceFromAuthorization(PaymentAuthorization pa) {
-        if (pa != null && pa.Adyen_Payment_Method_Variant__c != null) {
+        return isOpenInvoicePaymentMethod(pa?.Adyen_Payment_Method_Variant__c);
+    }
+
+    public static Boolean isOpenInvoicePayment(Payment payment) {
+        if (checkIfOpenInvoiceFromAuthorization(payment.PaymentAuthorization)) {
+            return true;
+        }
+        return checkIfOpenInvoiceFromPayment(payment);
+    }
+
+    public static Boolean checkIfOpenInvoiceFromPayment(Payment payment) {
+        return isOpenInvoicePaymentMethod(payment?.Adyen_Payment_Method_Variant__c);
+    }
+
+    private static Boolean isOpenInvoicePaymentMethod(String paymentMethodVariant) {
+        if (paymentMethodVariant != null) {
             for (String openInvoiceMethod : AdyenOMSConstants.OPEN_INVOICE_METHODS) {
-                 if (pa.Adyen_Payment_Method_Variant__c.containsIgnoreCase(openInvoiceMethod)) {
-                     return true;
-                 }
+                if (paymentMethodVariant.containsIgnoreCase(openInvoiceMethod)) {
+                    return true;
+                }
             }
         }
         return false;
