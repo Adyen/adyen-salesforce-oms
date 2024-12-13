@@ -193,6 +193,24 @@ private class AdyenPaymentUtilityTest {
             Assert.areEqual(ex.getMessage(), AdyenPaymentUtility.NO_ORDER_PAY_SUM_FOUND_BY_ID + acct.Id);
         }
     }
+    
+    @IsTest
+    static void checkIfOpenInvoiceWithoutPayAuthTest() {
+        // given
+        Account acct = TestDataFactory.createAccount();
+        insert acct;
+        CardPaymentMethod paymentMethod = TestDataFactory.createCardPaymentMethod();
+        insert paymentMethod;
+       	Payment payment = TestDataFactory.createPayment(acct.Id, paymentMethod.Id, null, null, null);
+        payment.Adyen_Payment_Method_Variant__c = 'klarna_paynow';
+        insert payment;
+        
+        // when
+        Boolean isOpenInvoice = AdyenPaymentUtility.isOpenInvoicePayment(payment);
+        
+        // then
+        Assert.isTrue(isOpenInvoice);
+    }
 
     private static OrderPaymentSummary createInvoiceAndRelatedRecords(Decimal price, Decimal taxValue) {
         Account acct = TestDataFactory.createAccount();
