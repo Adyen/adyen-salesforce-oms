@@ -1,5 +1,7 @@
 @IsTest
 private class NonPaymentWebhookHandlerTest {
+    private static final String ACTIVE_STATUS = AdyenOMSConstants.PaymentLinkStatus.ACTIVE.name().toLowerCase();
+    private static final String COMPLETED_STATUS = AdyenOMSConstants.PaymentLinkStatus.COMPLETED.name().toLowerCase();
 
     @IsTest
     static void unsupportedNotificationTypeTest() {
@@ -123,6 +125,36 @@ private class NonPaymentWebhookHandlerTest {
         Assert.areEqual(NonPaymentWebhookHandler.ACCEPTED_RESPONSE, response);
         Assert.areEqual(AdyenOMSConstants.PaymentAuthorizationStatus.PROCESSED.name(), payAuth.Status.toUpperCase());
         Assert.areEqual(TestDataFactory.TEST_PSP_REFERENCE, payAuth.GatewayRefNumber);
+        Assert.areEqual(AdyenOMSConstants.PaymentGatewayLogStatus.SUCCESS.name(), payGatewayLog.InteractionStatus.toUpperCase());
+    }
+
+    @IsTest(SeeAllData = true)
+    static void authWebhookWithPaymentLinkTest() {
+        // given
+        PaymentAuthorization payAuth = TestDataFactory.insertCartAndRelatedPA();
+        PaymentAuthorization payAuthWithOrderSummary = [SELECT Id, OrderPaymentSummary.OrderSummary.OrderNumber FROM PaymentAuthorization WHERE Id =:payAuth.Id LIMIT 1];
+        String orderNumber = payAuthWithOrderSummary.OrderPaymentSummary.OrderSummary.OrderNumber;
+        Datetime dateInTheFuture = Datetime.now().addDays(+1);
+        Payment_Link__c paymentLink = TestDataFactory.createPaymentLink(payAuthWithOrderSummary.OrderPaymentSummary.orderSummaryId, ACTIVE_STATUS, dateInTheFuture);
+        insert paymentLink;
+        String successfulPblAuthWebhook = TestDataFactory.mockPblWebhookRequest(AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE, TestDataFactory.TEST_PSP_REFERENCE, paymentLink.Name, orderNumber, true);
+        RestContext.request = createRestRequest(successfulPblAuthWebhook);
+
+        // when
+        Test.startTest();
+        String response = NonPaymentWebhookHandler.doPost();
+        Test.stopTest();
+
+        // then
+        payAuth = [SELECT Status, GatewayRefNumber, Adyen_Payment_Method_Variant__c FROM PaymentAuthorization WHERE Id = :payAuth.Id];
+        PaymentGatewayLog payGatewayLog = [SELECT GatewayRefNumber, InteractionStatus FROM PaymentGatewayLog WHERE ReferencedEntityId = :payAuth.Id];
+        Payment_Link__c updatedPaymentLink = [SELECT Status__c, Payment_Method_Used__c FROM Payment_Link__c WHERE Id = :paymentLink.Id];
+        Assert.areEqual(NonPaymentWebhookHandler.ACCEPTED_RESPONSE, response);
+        Assert.areEqual(AdyenOMSConstants.PaymentAuthorizationStatus.PROCESSED.name(), payAuth.Status.toUpperCase());
+        Assert.areEqual(COMPLETED_STATUS, updatedPaymentLink.Status__c?.toLowerCase());
+        Assert.isNotNull(updatedPaymentLink.Payment_Method_Used__c);
+        Assert.areEqual(TestDataFactory.TEST_PSP_REFERENCE, payAuth.GatewayRefNumber);
+        Assert.isNotNull(payAuth.Adyen_Payment_Method_Variant__c);
         Assert.areEqual(AdyenOMSConstants.PaymentGatewayLogStatus.SUCCESS.name(), payGatewayLog.InteractionStatus.toUpperCase());
     }
 

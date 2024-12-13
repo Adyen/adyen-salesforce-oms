@@ -48,12 +48,6 @@ public with sharing class AdyenPBLHelper {
         dateTimePart = dateTimePart.replace('T', ' ');
         Datetime dt = Datetime.valueOf(dateTimePart);
 
-        Integer offsetHours = Integer.valueOf(timeZoneOffset.substring(0, 2));
-        Integer offsetMinutes = Integer.valueOf(timeZoneOffset.substring(3, 5));
-        // Adjust DateTime by subtracting the offset to store it as UTC
-        dt = dt.addHours(-offsetHours);
-        dt = dt.addMinutes(-offsetMinutes);
-
         return dt;
     }
 
