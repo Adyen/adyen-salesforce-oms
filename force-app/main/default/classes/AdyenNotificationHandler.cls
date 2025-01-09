@@ -11,10 +11,10 @@ public with sharing class AdyenNotificationHandler {
         try {
             validator = new HMACValidator(notificationRequestItem, adyenAdapter.HMAC_Key__c);
             if (!Test.isRunningTest() && !validator.validateHMAC()) {
-                return createAcceptedNotificationResponse('not a valid notification request');
+                return createErrorResponse(AdyenOMSConstants.INVALID_NOTIFICATION, 403);
             }
         } catch (HMACValidator.HmacValidationException hmacValidationException) {
-            return createAcceptedNotificationResponse(hmacValidationException.getMessage());
+            return createErrorResponse(hmacValidationException.getMessage(), 403);
         }
 
         if (!AdyenPaymentUtility.isValidNotification(notificationRequestItem)) {
@@ -38,6 +38,13 @@ public with sharing class AdyenNotificationHandler {
         CommercePayments.GatewayNotificationResponse gatewayNotificationResponse = new CommercePayments.GatewayNotificationResponse();
         gatewayNotificationResponse.setResponseBody(Blob.valueOf(responseMessage));
         gatewayNotificationResponse.setStatusCode(AdyenConstants.HTTP_SUCCESS_CODE);
+        return gatewayNotificationResponse;
+    }
+
+    private static CommercePayments.GatewayNotificationResponse createErrorResponse(String message, Integer statusCode) {
+        CommercePayments.GatewayNotificationResponse gatewayNotificationResponse = new CommercePayments.GatewayNotificationResponse();
+        gatewayNotificationResponse.setResponseBody(Blob.valueOf(message));
+        gatewayNotificationResponse.setStatusCode(statusCode);
         return gatewayNotificationResponse;
     }
 
