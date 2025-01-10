@@ -1,7 +1,6 @@
 @RestResource(UrlMapping='/nonPaymentWebhook/v1/*')
 global without sharing class NonPaymentWebhookHandler {
     public static final String ACCEPTED_RESPONSE = '[accepted]';
-    public static final String INVALID_NOTIFICATION = 'but not a valid notification request';
     public static final String INVALID_WEBHOOK = 'but no valid psp reference found or webhook type was ignored';
     public static final String NO_PAYMENT_FOUND = 'but no related payment record found';
     public static final String EXCEPTION_OCCURRED = 'but an exception happened: ';
@@ -13,7 +12,7 @@ global without sharing class NonPaymentWebhookHandler {
             NotificationRequestItem notificationRequestItem = WebhookUtils.parseAdyenNotificationRequest(requestBody);
             Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByMerchantAcct(notificationRequestItem.merchantAccountCode);
             if (!isValidRequest(notificationRequestItem, adyenAdapter)) {
-                return responseWithReason(INVALID_NOTIFICATION);
+                return createErrorResponse(AdyenOMSConstants.INVALID_NOTIFICATION, 403);
             }
             if (!AdyenPaymentUtility.isValidNonPaymentWebhook(notificationRequestItem)) {
                 return responseWithReason(INVALID_WEBHOOK);
@@ -28,7 +27,7 @@ global without sharing class NonPaymentWebhookHandler {
             }
             return ACCEPTED_RESPONSE;
         } catch (HMACValidator.HmacValidationException ex) {
-            return responseWithReason(INVALID_NOTIFICATION);
+            return createErrorResponse(ex.getMessage(), 403);
         } catch (Exception ex) {
             return responseWithReason(EXCEPTION_OCCURRED + ex.getMessage());
         }
@@ -42,6 +41,11 @@ global without sharing class NonPaymentWebhookHandler {
     @TestVisible
     private static String responseWithReason(String reason) {
         return ACCEPTED_RESPONSE + ', ' + reason;
+    }
+    
+    private static String createErrorResponse(String reason, Integer statusCode) {
+        RestContext.response.statusCode = statusCode;
+        return reason;
     }
 
     private static void createGatewayLog(PaymentAuthorization paymentAuthorization, NotificationRequestItem notificationRequestItem, String requestBody) {

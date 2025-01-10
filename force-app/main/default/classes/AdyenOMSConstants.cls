@@ -47,4 +47,5 @@ public with sharing class AdyenOMSConstants {
     public static final String PBL_ID_KEY = 'pblId';
     public static final String GATEWAY_RESULT_SUCCESS = 'success';
     public static final String GATEWAY_RESULT_SUCCESS_DESCRIPTION = 'Transaction Normal';
+    public static final String INVALID_NOTIFICATION = 'Not a valid notification request';
 }
