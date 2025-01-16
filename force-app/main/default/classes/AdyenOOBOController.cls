@@ -44,7 +44,7 @@ public with sharing class AdyenOOBOController {
                 if (contactRecords.size() >= 1) {
                     return new AccountEmailAndName(contactRecords[0].Name, contactRecords[0].Email);
                 } else {
-                    throw new AuraHandledException('No contact found for this account id ' + accountId);
+                    throw new HandledException('No contact found for this account id ' + accountId);
                 }
             }
         } catch (Exception ex) {

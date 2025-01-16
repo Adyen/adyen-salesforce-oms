@@ -44,10 +44,15 @@ public class AdyenOOBOControllerTest {
     @IsTest
     static void getExpiryDurationTest() {
         // given
+        Decimal currentExpiryDays = [SELECT Payment_Link_Expiry_Duration__c FROM Adyen_Adapter__mdt WHERE DeveloperName = :AdyenConstants.DEFAULT_ADAPTER_NAME].Payment_Link_Expiry_Duration__c;
         // when
-        Decimal expireDays = AdyenOOBOController.getExpiryDuration();
+        Decimal fetchedExpiryDays = AdyenOOBOController.getExpiryDuration();
         // then
-        Assert.areEqual(1, expireDays);
+        if(currentExpiryDays == null) {
+            Assert.areEqual(1, fetchedExpiryDays);
+        } else {
+            Assert.areEqual(currentExpiryDays, fetchedExpiryDays);
+        }
     }
 
     @IsTest
