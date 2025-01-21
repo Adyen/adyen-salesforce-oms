@@ -33,6 +33,8 @@
         <members>OrderSummaryCreatedEventHandler</members>
         <members>OrderSummaryCreatedEventHandlerTest</members>
         <members>AdyenRefundHelperTest</members>
+        <members>AdyenPaymentLinkBatch</members>
+        <members>AdyenPaymentLinkBatchTest</members>
         <name>ApexClass</name>
     </types>
     <types>
