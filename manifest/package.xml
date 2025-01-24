@@ -35,6 +35,8 @@
         <members>AdyenRefundHelperTest</members>
         <members>AdyenPaymentLinkBatch</members>
         <members>AdyenPaymentLinkBatchTest</members>
+        <members>AdyenPBLController</members>
+        <members>AdyenPBLControllerTest</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -72,6 +74,7 @@
     </types>
     <types>
         <members>Adyen_Adapter__mdt-Adyen Adapter Layout</members>
+        <members>Payment_Link__c-Payment Link Layout</members>
         <name>Layout</name>
     </types>
     <types>
@@ -104,6 +107,7 @@
         <members>payByLinkUtils</members>
         <members>ldsUtils</members>
         <members>errorPanel</members>
+        <members>adyenPBLStatusUpdater</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
@@ -115,6 +119,10 @@
     <types>
         <members>Payment_Link__c</members>
         <name>CustomTab</name>
+    </types>
+    <types>
+        <members>Payment_Link__c.Refresh_Status</members>
+        <name>QuickAction</name>
     </types>
     <version>62.0</version>
 </Package>
