@@ -45,6 +45,25 @@ private class AdyenPBLHelperTest {
     }
 
     @IsTest
+    static void getPaymentLinkByIdTest() {
+        // Given
+        Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
+        
+        String paymentLinkId = 'testLinkId';
+
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.PBLMockResponse());
+
+        // When
+        Test.startTest();
+        PaymentLinkResponse response = AdyenPBLHelper.getPaymentLinkById(adyenAdapter, paymentLinkId);
+        Test.stopTest();
+
+        // Then
+        Assert.areEqual('https://test.payment.link', response.url);
+        Assert.areEqual('2024-01-01T12:00:00+00:00', response.expiresAt);
+    }
+
+    @IsTest
     static void generatePaymentLinkNullParametersTest() {
         // Given
         Adyen_Adapter__mdt adyenAdapter = null;

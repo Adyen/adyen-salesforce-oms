@@ -36,6 +36,14 @@ public with sharing class AdyenOMSConstants {
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE => 'Capture',
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND => 'ReferencedRefund'
     };
+
+    public static final Map<String, String> ADYEN_PBL_STATUS_TO_SF_STATUS = new Map<String, String>{
+        'active' => PaymentLinkStatus.ACTIVE.name(),
+        'expired' => PaymentLinkStatus.EXPIRED.name(),
+        'completed' => PaymentLinkStatus.COMPLETED.name(),
+        'paymentPending' => PaymentLinkStatus.PAYMENT_PENDING.name()
+    };
+    
     public enum PaymentAuthorizationStatus { DRAFT, CANCELED, PENDING, PROCESSED, FAILED }
     public enum PaymentGatewayLogStatus { NOOP, INITIATED, SUCCESS, FAILED, TIMEOUT }
     public enum PaymentLinkStatus { ACTIVE, COMPLETED, EXPIRED, PAYMENT_PENDING }
