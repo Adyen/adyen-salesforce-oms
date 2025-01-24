@@ -12,7 +12,7 @@
             <targetReference>Generate_Link</targetReference>
         </connector>
         <faultConnector>
-            <targetReference>Error_Screen</targetReference>
+            <targetReference>Force_Expire_Error</targetReference>
         </faultConnector>
         <flowTransactionModel>Automatic</flowTransactionModel>
         <inputParameters>
@@ -36,8 +36,7 @@
             <targetReference>Save_Payment_Link</targetReference>
         </connector>
         <faultConnector>
-            <isGoTo>true</isGoTo>
-            <targetReference>Error_Screen</targetReference>
+            <targetReference>Generate_Link_Error</targetReference>
         </faultConnector>
         <flowTransactionModel>Automatic</flowTransactionModel>
         <inputParameters>
@@ -70,6 +69,39 @@
         <versionSegment>1</versionSegment>
     </actionCalls>
     <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Force_Expire_Error</name>
+        <label>Force Expire Error</label>
+        <locationX>704</locationX>
+        <locationY>674</locationY>
+        <assignmentItems>
+            <assignToReference>errorMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Error_Screen</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Generate_Link_Error</name>
+        <label>Generate Link Error</label>
+        <locationX>440</locationX>
+        <locationY>782</locationY>
+        <assignmentItems>
+            <assignToReference>errorMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <isGoTo>true</isGoTo>
+            <targetReference>Error_Screen</targetReference>
+        </connector>
+    </assignments>
     <description>Flow used to deactivate any previous link and generate a new one.</description>
     <environments>Default</environments>
     <formulas>
@@ -234,13 +266,13 @@
         <name>Error_Screen</name>
         <label>Error_Screen</label>
         <locationX>704</locationX>
-        <locationY>674</locationY>
+        <locationY>782</locationY>
         <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>true</allowPause>
         <fields>
             <name>Error_Text</name>
-            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;An error has occurred while performing the operation.&lt;/p&gt;</fieldText>
+            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;font-size: 14px;&quot;&gt;An error has occurred while performing the operation.&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;background-color: rgb(255, 255, 255); font-size: 12px; color: rgb(68, 68, 68);&quot;&gt;{!errorMessage}&lt;/span&gt;&lt;/p&gt;</fieldText>
             <fieldType>DisplayText</fieldType>
         </fields>
         <showFooter>true</showFooter>
@@ -344,6 +376,13 @@
         <dataType>String</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>errorMessage</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
         <isOutput>false</isOutput>
     </variables>
     <variables>

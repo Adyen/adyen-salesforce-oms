@@ -115,13 +115,16 @@
     <actionCalls>
         <name>Post_Authorize_Payment</name>
         <label>Post Authorize Payment</label>
-        <locationX>2294</locationX>
+        <locationX>2162</locationX>
         <locationY>5654</locationY>
         <actionName>PaymentLinkGenerateAction</actionName>
         <actionType>apex</actionType>
         <connector>
             <targetReference>Update_Cart_Post_Auth</targetReference>
         </connector>
+        <faultConnector>
+            <targetReference>Post_Authorize_Error</targetReference>
+        </faultConnector>
         <flowTransactionModel>Automatic</flowTransactionModel>
         <inputParameters>
             <name>accountId</name>
@@ -168,7 +171,7 @@
     <assignments>
         <name>Active_Stages</name>
         <label>Active Stages</label>
-        <locationX>4230</locationX>
+        <locationX>4362</locationX>
         <locationY>2030</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -192,7 +195,7 @@
     <assignments>
         <name>Active_Stages_2</name>
         <label>Active Stages</label>
-        <locationX>3966</locationX>
+        <locationX>4098</locationX>
         <locationY>2030</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -223,7 +226,7 @@
     <assignments>
         <name>Active_Stages_Billing_Stage</name>
         <label>Active Stages</label>
-        <locationX>3020</locationX>
+        <locationX>3086</locationX>
         <locationY>1730</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -246,7 +249,7 @@
     <assignments>
         <name>Active_Stages_Multiple_Location_Groups</name>
         <label>Active Stages</label>
-        <locationX>3702</locationX>
+        <locationX>3834</locationX>
         <locationY>1514</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -298,7 +301,7 @@
     <assignments>
         <name>Active_Stages_Multiple_Webstores</name>
         <label>Active Stages</label>
-        <locationX>2888</locationX>
+        <locationX>2954</locationX>
         <locationY>1514</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -401,7 +404,7 @@
     <assignments>
         <name>Active_Stages_Single</name>
         <label>Active Stages</label>
-        <locationX>4098</locationX>
+        <locationX>4230</locationX>
         <locationY>1814</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -445,7 +448,7 @@
     <assignments>
         <name>Active_Stages_Submit_Order</name>
         <label>Active Stages</label>
-        <locationX>2756</locationX>
+        <locationX>2822</locationX>
         <locationY>1730</locationY>
         <assignmentItems>
             <assignToReference>$Flow.ActiveStages</assignToReference>
@@ -475,7 +478,7 @@
     <assignments>
         <name>Assign_Location_Group_Count</name>
         <label>Location Group Count</label>
-        <locationX>2470</locationX>
+        <locationX>2536</locationX>
         <locationY>998</locationY>
         <assignmentItems>
             <assignToReference>locationGroupCount</assignToReference>
@@ -491,7 +494,7 @@
     <assignments>
         <name>Assign_Location_Group_Multiple_Webstores</name>
         <label>Location Group</label>
-        <locationX>2976</locationX>
+        <locationX>3042</locationX>
         <locationY>1322</locationY>
         <assignmentItems>
             <assignToReference>selectedLocationGroup</assignToReference>
@@ -507,7 +510,7 @@
     <assignments>
         <name>Assign_Location_Group_Single</name>
         <label>Location Group</label>
-        <locationX>4186</locationX>
+        <locationX>4318</locationX>
         <locationY>1622</locationY>
         <assignmentItems>
             <assignToReference>selectedLocationGroup</assignToReference>
@@ -554,7 +557,7 @@
     <assignments>
         <name>Assign_Webstore_Count</name>
         <label>Webstore Count</label>
-        <locationX>3229</locationX>
+        <locationX>3311</locationX>
         <locationY>566</locationY>
         <assignmentItems>
             <assignToReference>webstoreCount</assignToReference>
@@ -570,7 +573,7 @@
     <assignments>
         <name>Assign_Webstore_Multiple_Location_Groups</name>
         <label>Webstore</label>
-        <locationX>3790</locationX>
+        <locationX>3922</locationX>
         <locationY>1322</locationY>
         <assignmentItems>
             <assignToReference>selectedWebstore</assignToReference>
@@ -586,7 +589,7 @@
     <assignments>
         <name>Assign_Webstore_Single</name>
         <label>Webstore</label>
-        <locationX>4186</locationX>
+        <locationX>4318</locationX>
         <locationY>1322</locationY>
         <assignmentItems>
             <assignToReference>selectedWebstore</assignToReference>
@@ -602,7 +605,7 @@
     <assignments>
         <name>Assign_Webstore_Without_Location_Groups</name>
         <label>Webstore</label>
-        <locationX>5198</locationX>
+        <locationX>5330</locationX>
         <locationY>998</locationY>
         <assignmentItems>
             <assignToReference>selectedWebstore</assignToReference>
@@ -641,7 +644,7 @@
     <assignments>
         <name>Current_Stage</name>
         <label>Current Stage</label>
-        <locationX>2294</locationX>
+        <locationX>2162</locationX>
         <locationY>5222</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
@@ -680,7 +683,7 @@
     <assignments>
         <name>Current_Stage_Enter_Billing_Information_Stage</name>
         <label>Current Stage = Enter Billing Information</label>
-        <locationX>2558</locationX>
+        <locationX>2690</locationX>
         <locationY>5222</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
@@ -728,7 +731,7 @@
     <assignments>
         <name>Current_Stage_Submit_Order_Stage</name>
         <label>Current Stage = Submit Order</label>
-        <locationX>2294</locationX>
+        <locationX>2162</locationX>
         <locationY>5870</locationY>
         <assignmentItems>
             <assignToReference>$Flow.CurrentStage</assignToReference>
@@ -881,6 +884,30 @@
         </connector>
     </assignments>
     <assignments>
+        <name>Post_Authorize_Error</name>
+        <label>Post Authorize Error</label>
+        <locationX>2426</locationX>
+        <locationY>5762</locationY>
+        <assignmentItems>
+            <assignToReference>errorMessageTitle</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Error_Output_Failed_To_Generate_Payment_Link</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>errorMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <isGoTo>true</isGoTo>
+            <targetReference>Error_Message</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
         <name>Update_Current_Stage_4</name>
         <label>Current Stage = Select Delivery Option</label>
         <locationX>2426</locationX>
@@ -899,7 +926,7 @@
     <assignments>
         <name>Webstore_Assignment</name>
         <label>Webstore</label>
-        <locationX>2976</locationX>
+        <locationX>3042</locationX>
         <locationY>2246</locationY>
         <assignmentItems>
             <assignToReference>selectedWebstore</assignToReference>
@@ -950,7 +977,7 @@
     <decisions>
         <name>Account_Exists</name>
         <label>Account Exists?</label>
-        <locationX>910</locationX>
+        <locationX>931</locationX>
         <locationY>242</locationY>
         <defaultConnector>
             <targetReference>Get_Webstores</targetReference>
@@ -975,7 +1002,7 @@
     <decisions>
         <name>Any_Location_Groups</name>
         <label>Any Location Groups?</label>
-        <locationX>1524</locationX>
+        <locationX>1557</locationX>
         <locationY>890</locationY>
         <defaultConnector>
             <targetReference>Assign_Location_Group_Count</targetReference>
@@ -1000,7 +1027,7 @@
     <decisions>
         <name>Any_Webstores</name>
         <label>Any Webstores?</label>
-        <locationX>1771</locationX>
+        <locationX>1812</locationX>
         <locationY>458</locationY>
         <defaultConnector>
             <targetReference>Assign_Webstore_Count</targetReference>
@@ -1025,7 +1052,7 @@
     <decisions>
         <name>CartExists</name>
         <label>Cart Exists?</label>
-        <locationX>2888</locationX>
+        <locationX>2954</locationX>
         <locationY>2630</locationY>
         <defaultConnector>
             <isGoTo>true</isGoTo>
@@ -1076,7 +1103,7 @@
     <decisions>
         <name>Multiple_Webstores_Or_Multiple_Location_Groups</name>
         <label>Multiple Webstores or Multiple Location Groups?</label>
-        <locationX>2470</locationX>
+        <locationX>2536</locationX>
         <locationY>1106</locationY>
         <defaultConnector>
             <targetReference>Webstore_Loop_Single</targetReference>
@@ -1152,7 +1179,7 @@
     <decisions>
         <name>Multiple_Webstores_Without_Location_Groups</name>
         <label>Multiple Webstores?</label>
-        <locationX>4934</locationX>
+        <locationX>5066</locationX>
         <locationY>782</locationY>
         <defaultConnector>
             <targetReference>Webstores_Loop_Without_Location_Groups</targetReference>
@@ -1228,7 +1255,7 @@
     <decisions>
         <name>Use_Location_Groups</name>
         <label>Use Location Groups?</label>
-        <locationX>3229</locationX>
+        <locationX>3311</locationX>
         <locationY>674</locationY>
         <defaultConnector>
             <targetReference>Multiple_Webstores_Without_Location_Groups</targetReference>
@@ -1253,7 +1280,7 @@
     <decisions>
         <name>Using_External_Payment_Mode</name>
         <label>Using External Payment Mode?</label>
-        <locationX>2888</locationX>
+        <locationX>2954</locationX>
         <locationY>1622</locationY>
         <defaultConnector>
             <targetReference>Active_Stages_Billing_Stage</targetReference>
@@ -1278,7 +1305,7 @@
     <decisions>
         <name>Using_External_Payment_Mode_2</name>
         <label>Using External Payment Mode?</label>
-        <locationX>4098</locationX>
+        <locationX>4230</locationX>
         <locationY>1922</locationY>
         <defaultConnector>
             <targetReference>Active_Stages</targetReference>
@@ -1303,7 +1330,7 @@
     <decisions>
         <name>Webstore_with_Selected_ID</name>
         <label>Webstore with Selected ID</label>
-        <locationX>3108</locationX>
+        <locationX>3174</locationX>
         <locationY>2138</locationY>
         <defaultConnector>
             <targetReference>Webstores_Loop</targetReference>
@@ -1391,7 +1418,7 @@
     <loops>
         <name>Location_Group_Loop_Multiple_Webstores</name>
         <label>Location Group</label>
-        <locationX>2888</locationX>
+        <locationX>2954</locationX>
         <locationY>1214</locationY>
         <collectionReference>Get_Location_Groups</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1405,7 +1432,7 @@
     <loops>
         <name>Location_Group_Loop_Single</name>
         <label>Location Group</label>
-        <locationX>4098</locationX>
+        <locationX>4230</locationX>
         <locationY>1514</locationY>
         <collectionReference>Get_Location_Groups</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1433,7 +1460,7 @@
     <loops>
         <name>Webstore_Loop_Multiple_Location_Groups</name>
         <label>Webstore</label>
-        <locationX>3702</locationX>
+        <locationX>3834</locationX>
         <locationY>1214</locationY>
         <collectionReference>Get_Webstores</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1447,7 +1474,7 @@
     <loops>
         <name>Webstore_Loop_Single</name>
         <label>Webstore</label>
-        <locationX>4098</locationX>
+        <locationX>4230</locationX>
         <locationY>1214</locationY>
         <collectionReference>Get_Webstores</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1461,7 +1488,7 @@
     <loops>
         <name>Webstores_Loop</name>
         <label>Webstores</label>
-        <locationX>2888</locationX>
+        <locationX>2954</locationX>
         <locationY>2030</locationY>
         <collectionReference>Get_Webstores</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1475,7 +1502,7 @@
     <loops>
         <name>Webstores_Loop_Without_Location_Groups</name>
         <label>Webstores</label>
-        <locationX>5110</locationX>
+        <locationX>5242</locationX>
         <locationY>890</locationY>
         <collectionReference>Get_Webstores</collectionReference>
         <iterationOrder>Asc</iterationOrder>
@@ -1607,7 +1634,7 @@
         <description>Get Account for the record Id passed</description>
         <name>Get_Account</name>
         <label>Account</label>
-        <locationX>910</locationX>
+        <locationX>931</locationX>
         <locationY>134</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -1633,7 +1660,7 @@
         <description>Fetch All Location Groups</description>
         <name>Get_Location_Groups</name>
         <label>Location Groups</label>
-        <locationX>1524</locationX>
+        <locationX>1557</locationX>
         <locationY>782</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -1658,7 +1685,7 @@
     <recordLookups>
         <name>Get_Order_Reference</name>
         <label>Get Order Reference</label>
-        <locationX>2294</locationX>
+        <locationX>2162</locationX>
         <locationY>5546</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -1707,7 +1734,7 @@
         <description>Fetch all web stores.</description>
         <name>Get_Webstores</name>
         <label>Webstores</label>
-        <locationX>1771</locationX>
+        <locationX>1812</locationX>
         <locationY>350</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -1732,7 +1759,7 @@
     <recordLookups>
         <name>Payment_Gateway</name>
         <label>Payment Gateway</label>
-        <locationX>2294</locationX>
+        <locationX>2162</locationX>
         <locationY>5438</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
@@ -1762,7 +1789,7 @@
     <recordUpdates>
         <name>Update_Cart_Post_Auth</name>
         <label>Update Cart with Post Auth</label>
-        <locationX>2294</locationX>
+        <locationX>2162</locationX>
         <locationY>5762</locationY>
         <connector>
             <targetReference>Current_Stage_Submit_Order_Stage</targetReference>
@@ -2197,7 +2224,7 @@
     <screens>
         <name>Payment_Selection</name>
         <label>Payment Selection</label>
-        <locationX>2294</locationX>
+        <locationX>2162</locationX>
         <locationY>5330</locationY>
         <allowBack>true</allowBack>
         <allowFinish>true</allowFinish>
@@ -2322,7 +2349,7 @@
     <screens>
         <name>productSelectionScreen</name>
         <label>Product Selection</label>
-        <locationX>2888</locationX>
+        <locationX>2954</locationX>
         <locationY>2522</locationY>
         <allowBack>true</allowBack>
         <allowFinish>true</allowFinish>
@@ -2503,7 +2530,7 @@
     <screens>
         <name>Select_Webstore_and_Location_Group</name>
         <label>Select Webstore and Location Group</label>
-        <locationX>2888</locationX>
+        <locationX>2954</locationX>
         <locationY>1922</locationY>
         <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
@@ -2774,13 +2801,18 @@
         <stageOrder>9</stageOrder>
     </stages>
     <start>
-        <locationX>784</locationX>
+        <locationX>805</locationX>
         <locationY>0</locationY>
         <connector>
             <targetReference>Get_Account</targetReference>
         </connector>
     </start>
     <status>Active</status>
+    <textTemplates>
+        <name>Error_Output_Failed_To_Generate_Payment_Link</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>Failed To Generate Payment Link.</text>
+    </textTemplates>
     <textTemplates>
         <name>Error_Output_Invocable_Action_Message</name>
         <isViewedAsPlainText>true</isViewedAsPlainText>

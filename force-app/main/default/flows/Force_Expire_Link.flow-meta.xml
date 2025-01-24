@@ -8,7 +8,7 @@
         <actionName>PaymentLinkExpireAction</actionName>
         <actionType>apex</actionType>
         <faultConnector>
-            <targetReference>An_error_ocurred_screen</targetReference>
+            <targetReference>Force_Expire_Error</targetReference>
         </faultConnector>
         <flowTransactionModel>Automatic</flowTransactionModel>
         <inputParameters>
@@ -22,6 +22,22 @@
         <versionSegment>1</versionSegment>
     </actionCalls>
     <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Force_Expire_Error</name>
+        <label>Force Expire Error</label>
+        <locationX>440</locationX>
+        <locationY>350</locationY>
+        <assignmentItems>
+            <assignToReference>errorMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>An_error_ocurred_screen</targetReference>
+        </connector>
+    </assignments>
     <description>Flow used to force expire an active payment link</description>
     <environments>Default</environments>
     <interviewLabel>Force Expire Link {!$Flow.CurrentDateTime}</interviewLabel>
@@ -49,13 +65,13 @@
         <name>An_error_ocurred_screen</name>
         <label>An error ocurred</label>
         <locationX>440</locationX>
-        <locationY>350</locationY>
+        <locationY>458</locationY>
         <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
         <allowPause>false</allowPause>
         <fields>
             <name>Error_Text</name>
-            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;An error occurred while trying to force expire a link. The operation could not be completed.&lt;/span&gt;&lt;/p&gt;</fieldText>
+            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;font-size: 14px;&quot;&gt;An error has occurred while performing the operation.&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;background-color: rgb(255, 255, 255); font-size: 12px;&quot;&gt;{!errorMessage}&lt;/span&gt;&lt;/p&gt;</fieldText>
             <fieldType>DisplayText</fieldType>
         </fields>
         <showFooter>true</showFooter>
@@ -88,6 +104,13 @@
         </connector>
     </start>
     <status>Active</status>
+    <variables>
+        <name>errorMessage</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
     <variables>
         <name>OrderSummaryId</name>
         <dataType>String</dataType>
