@@ -37,6 +37,10 @@
         <members>AdyenPaymentLinkBatchTest</members>
         <members>AdyenPBLController</members>
         <members>AdyenPBLControllerTest</members>
+        <members>AdyenPaymentLinkBatchJobScheduler</members>
+        <members>AdyenPaymentLinkBatchJobSchedulerTest</members>
+        <members>PostInstallScript</members>
+        <members>PostInstallScriptTest</members>
         <name>ApexClass</name>
     </types>
     <types>
