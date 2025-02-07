@@ -117,4 +117,68 @@ private class AdyenGatewayAdapterTest {
         Assert.isInstanceOfType(gatewayResponse, CommercePayments.GatewayErrorResponse.class);
         Assert.isTrue(gatewayResponse.toString().containsIgnoreCase('Payment Amount Missing'));
     }
+    
+    @IsTest
+    static void testCreateAutoCaptureResponse() {
+        // Given
+        PaymentAuthorization payAuth = [SELECT Id, GatewayRefNumber FROM PaymentAuthorization ORDER BY CreatedDate DESC LIMIT 1];
+        CommercePayments.CaptureRequest captureRequest = new CommercePayments.CaptureRequest(TestDataFactory.TEST_PRICE_AMOUNT, payAuth.Id);
+
+        // When
+        Test.startTest();
+        CommercePayments.GatewayResponse response = AdyenCaptureHelper.createAutoCaptureResponse(captureRequest, payAuth);
+        Test.stopTest();
+
+        // Then
+        Assert.isTrue(response.toString().contains('[capture-complete] auto capture enabled'));
+        Assert.isTrue(response.toString().contains(TestDataFactory.TEST_PSP_REFERENCE));
+    }
+
+    @IsTest
+    static void testIsManualCaptureRequiredExcludedPaymentMethod() {
+        // Given
+        Adyen_Adapter__mdt adyenAdapterMdt = new Adyen_Adapter__mdt();
+        adyenAdapterMdt.Manual_Capture_Payment_Methods__c = 'klarna, paypal';
+        String paymentMethod = 'klarna';
+
+        // When
+        Test.startTest();
+        Boolean result = AdyenCaptureHelper.isManualCaptureRequired(paymentMethod, adyenAdapterMdt);
+        Test.stopTest();
+
+        // Then
+        Assert.areEqual(true, result, 'Manual capture should be required for excluded payment method');
+    }
+
+    @IsTest
+    static void testIsManualCaptureRequiredNonExcludedPaymentMethod() {
+        // Given
+        Adyen_Adapter__mdt adyenAdapterMdt = new Adyen_Adapter__mdt();
+        adyenAdapterMdt.Manual_Capture_Payment_Methods__c = 'klarna, paypal';
+        String paymentMethod = 'ideal';
+
+        // When
+        Test.startTest();
+        Boolean result = AdyenCaptureHelper.isManualCaptureRequired(paymentMethod, adyenAdapterMdt);
+        Test.stopTest();
+
+        // Then
+        Assert.areEqual(false, result, 'Manual capture should NOT be required for non-excluded payment method');
+    }
+
+    @IsTest
+    static void testIsManualCaptureRequiredBlankExclusionList() {
+        // Given
+        Adyen_Adapter__mdt adyenAdapterMdt = new Adyen_Adapter__mdt();
+        adyenAdapterMdt.Manual_Capture_Payment_Methods__c = '';
+        String paymentMethod = 'ideal';
+
+        // When
+        Test.startTest();
+        Boolean result = AdyenCaptureHelper.isManualCaptureRequired(paymentMethod, adyenAdapterMdt);
+        Test.stopTest();
+
+        // Then
+        Assert.areEqual(false, result, 'Manual capture should NOT be required when exclusion list is blank');
+    }
 }

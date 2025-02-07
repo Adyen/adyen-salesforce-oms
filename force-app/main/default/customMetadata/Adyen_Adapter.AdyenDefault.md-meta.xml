@@ -7,6 +7,10 @@
         <value xsi:type="xsd:string">/payments</value>
     </values>
     <values>
+        <field>Auto_Capture_Enabled__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
         <field>Cancel_Endpoint__c</field>
         <value xsi:type="xsd:string">/payments/{paymentPspReference}/cancels</value>
     </values>
@@ -21,6 +25,10 @@
     <values>
         <field>Endpoint_Path__c</field>
         <value xsi:type="xsd:string">/checkout</value>
+    </values>
+    <values>
+        <field>Manual_Capture_Payment_Methods__c</field>
+        <value xsi:nil="true"/>
     </values>
     <values>
         <field>Merchant_Account__c</field>

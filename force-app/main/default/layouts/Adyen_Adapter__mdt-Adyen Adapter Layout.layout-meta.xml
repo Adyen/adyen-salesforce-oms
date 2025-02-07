@@ -22,6 +22,10 @@
                 <behavior>Edit</behavior>
                 <field>Payment_Link_Expiry_Duration__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Auto_Capture_Enabled__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
@@ -39,6 +43,10 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Payment_Link_Theme_Id__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Manual_Capture_Payment_Methods__c</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsLeftToRight</style>
