@@ -67,7 +67,7 @@ public with sharing class AdyenPaymentUtility {
                 'System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c, ' +
                 'Named_Credential__c, Package_Namespace__c, Payment_Link_Endpoint__c, ' +
                 'Payment_Link_Return_Url__c, Payment_Link_Theme_Id__c, Payment_Link_Expiry_Duration__c, ' +
-                'Authorize_Endpoint__c, HMAC_Key__c, Cancel_Endpoint__c ' +
+                'Authorize_Endpoint__c, HMAC_Key__c, Auto_Capture_Enabled__c, Manual_Capture_Payment_Methods__c, Cancel_Endpoint__c ' +
                 'FROM Adyen_Adapter__mdt WHERE ' + fieldName + ' = :fieldValue';
 
         List<Adyen_Adapter__mdt> adyenAdapters = Database.query(query);

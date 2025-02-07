@@ -70,6 +70,8 @@
         <members>PaymentAuthorization.Adyen_Payment_Method__c</members>
         <members>PaymentAuthorization.Adyen_Payment_Method_Variant__c</members>
         <members>Adyen_Adapter__mdt.Cancel_Endpoint__c</members>
+        <members>Adyen_Adapter__mdt.Auto_Capture_Enabled__c</members>
+        <members>Adyen_Adapter__mdt.Manual_Capture_Payment_Methods__c</members>
         <name>CustomField</name>
     </types>
     <types>
