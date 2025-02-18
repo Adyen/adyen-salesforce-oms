@@ -23,6 +23,19 @@ public with sharing class PaymentLinkGenerateAction {
         linkGenerationResponse.linkExpiresAt = paymentLinkResponse.expiresAt;
         linkGenerationResponse.expirationDateTime = AdyenPBLHelper.parseDateTime(paymentLinkResponse.expiresAt);
         linkGenerationResponse.paymentLinkId = paymentLinkResponse.id;
+        if (pblCreateRequest.insertPaymentLink == true) {
+            Payment_Link__c newLink = new Payment_Link__c(
+                Order_Number__c = pblCreateRequest.merchantReference,
+                Status__c = AdyenOMSConstants.PaymentLinkStatus.ACTIVE.name(),
+                Amount__c = pblCreateRequest.amount,
+                Shopper_Email__c = pblCreateRequest.shopperEmail,
+                CurrencyIsoCode = pblCreateRequest.CurrencyIsoCode,
+                URL__c = linkGenerationResponse.paymentLink,
+                Name = linkGenerationResponse.paymentLinkId,
+                Expire_Date__c = linkGenerationResponse.expirationDateTime
+            );
+            insert newLink;
+        }
         return new List<PBLCreateResponse> { linkGenerationResponse };
     }
 
@@ -82,6 +95,12 @@ public with sharing class PaymentLinkGenerateAction {
 
         @InvocableVariable(Required=true)
         public String billingAddressJson;
+
+        @InvocableVariable
+        public String shopperEmail;
+
+        @InvocableVariable
+        public Boolean insertPaymentLink;
     }
 
     public class PBLCreateResponse {
