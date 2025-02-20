@@ -18,9 +18,8 @@ export default class AdyenPBLStatusUpdater extends LightningElement {
     async updateStatus() {
         try {
             await updatePaymentLinkStatus({ paymentLinkId: this.paymentLinkId });
-            this.showToast('Success', 'Payment link status updated successfully.', 'success');
+            this.showToast('Success', 'Payment link status updated successfully. Please reload the page.', 'success');
             this.closeComponent();
-            window.location.reload();
         } catch (error) {
             const errorMessage = error.body?.message || 'An unknown error occurred.';
             this.showToast('Error', `Failed to update payment link status. ${errorMessage}`, 'error');

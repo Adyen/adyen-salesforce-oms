@@ -10,5 +10,5 @@
     <openType>noSidebar</openType>
     <protected>false</protected>
     <requireRowSelection>false</requireRowSelection>
-    <url>/flow/Regenerate_Payment_Link?OrderSummaryId={!OrderSummary.Id}&amp;Account_Name={!Account.Name}&amp;retURL=/{!OrderSummary.Id}</url>
+    <url>/flow/adyen_payment/Regenerate_Payment_Link?OrderSummaryId={!OrderSummary.Id}&amp;Account_Name={!Account.Name}&amp;retURL=/{!OrderSummary.Id}</url>
 </WebLink>

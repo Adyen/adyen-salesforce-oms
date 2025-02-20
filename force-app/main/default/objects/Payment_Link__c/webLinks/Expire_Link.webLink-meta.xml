@@ -10,5 +10,5 @@
     <openType>sidebar</openType>
     <protected>false</protected>
     <requireRowSelection>false</requireRowSelection>
-    <url>/flow/Force_Expire_Link?OrderSummaryId={!OrderSummary.Id}&amp;retURL=/{!OrderSummary.Id}</url>
+    <url>/flow/adyen_payment/Force_Expire_Link?OrderSummaryId={!OrderSummary.Id}&amp;retURL=/{!OrderSummary.Id}</url>
 </WebLink>
