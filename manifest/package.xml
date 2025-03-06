@@ -41,6 +41,8 @@
         <members>AdyenPaymentLinkBatchJobSchedulerTest</members>
         <members>PostInstallScript</members>
         <members>PostInstallScriptTest</members>
+        <members>AdyenConfigPageController</members>
+        <members>AdyenConfigPageControllerTest</members>
         <name>ApexClass</name>
     </types>
     <types>
