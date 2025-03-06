@@ -15,6 +15,12 @@ public with sharing class AdyenOMSConstants {
     public static final String CARD_PAYMENT_METHOD_OBJECT = 'CardPaymentMethod';
     public static final String ALTERNATIVE_PAYMENT_METHOD_OBJECT = 'AlternativePaymentMethod';
 
+    public static final String PAYMENT_GATEWAY_PROVIDER = 'Adyen_OMS_Provider';
+    public static final String NAMED_CREDENTIAL = 'AdyenCheckout';
+
+    public static final String PAYMENT_INSTRUMENT_ADYEN_COMPONENT = 'Adyen_Component';
+    public static final String PAYMENT_INSTRUMENT_ADYEN_POS = 'Adyen_POS';
+
     public static final Set<String> OPEN_INVOICE_METHODS = new Set<String>{'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay', 'riverty'};
 
     public static final Set<String> VALID_NOTIFICATION_TYPES = new Set<String>{
