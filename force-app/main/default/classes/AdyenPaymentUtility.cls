@@ -19,7 +19,7 @@ public with sharing class AdyenPaymentUtility {
     public static Payment retrievePayment(Id paymentId) {
         List<Payment> payments = [
             SELECT
-                Id, GatewayRefNumber, GatewayRefDetails,
+                Id, GatewayRefNumber, GatewayRefDetails, Adyen_Payment_Method_Variant__c,
                 PaymentAuthorization.GatewayRefNumber, PaymentAuthorization.Adyen_Payment_Method_Variant__c,
                 PaymentAuthorization.Adyen_Payment_Method__c,CurrencyIsoCode, OrderPaymentSummary.FullName,
                 OrderPaymentSummary.OrderSummary.SalesChannel.AdyenMerchantID__c
@@ -65,7 +65,9 @@ public with sharing class AdyenPaymentUtility {
     private static Adyen_Adapter__mdt retrieveAdapter(String fieldName, String fieldValue, String errorMessage) {
         String query = 'SELECT DeveloperName, MasterLabel, Capture_Endpoint__c, Endpoint_Api_Version__c, ' +
                 'System_Integrator_Name__c, Endpoint_Path__c, Merchant_Account__c, Refund_Endpoint__c, ' +
-                'Authorize_Endpoint__c, HMAC_Key__c, Cancel_Endpoint__c ' +
+                'Named_Credential__c, Package_Namespace__c, Payment_Link_Endpoint__c, ' +
+                'Payment_Link_Return_Url__c, Payment_Link_Theme_Id__c, Payment_Link_Expiry_Duration__c, ' +
+                'Authorize_Endpoint__c, HMAC_Key__c, Auto_Capture_Enabled__c, Manual_Capture_Payment_Methods__c, Cancel_Endpoint__c ' +
                 'FROM Adyen_Adapter__mdt WHERE ' + fieldName + ' = :fieldValue';
 
         List<Adyen_Adapter__mdt> adyenAdapters = Database.query(query);
@@ -78,11 +80,22 @@ public with sharing class AdyenPaymentUtility {
 
     public static Boolean isValidNotification(NotificationRequestItem notificationRequestItem) {
         return AdyenOMSConstants.VALID_NOTIFICATION_TYPES.contains(notificationRequestItem.eventCode.toUpperCase())
-            && isValidPspReference(notificationRequestItem.originalReference)
-            && isValidPspReference(notificationRequestItem.pspReference);
+            && isValidPspReference(notificationRequestItem.pspReference)
+            && hasValidOriginalReference(notificationRequestItem);
     }
 
-    // The Adyen PSP Reference number is a alphanumeric value containing 16 characters
+    public static Boolean isValidNonPaymentWebhook(NotificationRequestItem notificationRequestItem) {
+        return AdyenOMSConstants.VALID_WEBHOOK_TYPES.contains(notificationRequestItem.eventCode.toUpperCase())
+            && isValidPspReference(notificationRequestItem.pspReference)
+            && hasValidOriginalReference(notificationRequestItem);
+    }
+
+    public static Boolean hasValidOriginalReference(NotificationRequestItem notificationRequestItem) {
+        return notificationRequestItem.eventCode.endsWithIgnoreCase(AdyenConstants.NOTIFICATION_REQUEST_TYPE_AUTHORISE)
+            || isValidPspReference(notificationRequestItem.originalReference);
+    }
+
+    // The Adyen PSP Reference number is an alphanumeric value containing 16 characters
     private static Boolean isValidPspReference(String pspReference) {
         return String.isNotBlank(pspReference) && pspReference.isAlphanumeric() && pspReference.length() == 16;
     }
@@ -121,40 +134,51 @@ public with sharing class AdyenPaymentUtility {
     * @return Boolean denoting if the Authorization Id belongs to an Open Invoice payment method.
     */
     public static Boolean checkIfOpenInvoiceFromAuthorization(PaymentAuthorization pa) {
-        if (pa != null && pa.Adyen_Payment_Method_Variant__c != null) {
+        return isOpenInvoicePaymentMethod(pa?.Adyen_Payment_Method_Variant__c);
+    }
+
+    public static Boolean isOpenInvoicePayment(Payment payment) {
+        if (checkIfOpenInvoiceFromAuthorization(payment.PaymentAuthorization)) {
+            return true;
+        }
+        return checkIfOpenInvoiceFromPayment(payment);
+    }
+
+    public static Boolean checkIfOpenInvoiceFromPayment(Payment payment) {
+        return isOpenInvoicePaymentMethod(payment?.Adyen_Payment_Method_Variant__c);
+    }
+
+    private static Boolean isOpenInvoicePaymentMethod(String paymentMethodVariant) {
+        if (paymentMethodVariant != null) {
             for (String openInvoiceMethod : AdyenOMSConstants.OPEN_INVOICE_METHODS) {
-                 if (pa.Adyen_Payment_Method_Variant__c.containsIgnoreCase(openInvoiceMethod)) {
-                     return true;
-                 }
+                if (paymentMethodVariant.containsIgnoreCase(openInvoiceMethod)) {
+                    return true;
+                }
             }
         }
         return false;
     }
-    
-    /**
-    * Retrieve apex adapter id from the gateway reference number.
-    *
-    * @param gatewayRefNumber original payment gateway reference number as received in the notification
-    * @return apex class id for the payment gateway adapter.
-    */
+
     public static Boolean relatedPaymentFound(String gatewayRefNumber) {
         // Prioritize the payment authorization record if it exists
         List<PaymentAuthorization> paymentAuthorizations = [
-            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+            SELECT Status, GatewayRefNumber, PaymentGatewayId, OrderPaymentSummaryId
             FROM PaymentAuthorization
-            WHERE GatewayRefNumber = :gatewayRefNumber
+            WHERE GatewayRefNumber = :gatewayRefNumber AND OrderPaymentSummaryId != NULL
         ];
         if (!paymentAuthorizations.isEmpty()) {
             return true;
         }
         // Fall back to a payment record for pre-captured transactions
         List<Payment> payments = [
-            SELECT PaymentGateway.PaymentGatewayProvider.ApexAdapter.Id
+            SELECT Status, GatewayRefNumber, PaymentGatewayId, OrderPaymentSummaryId
             FROM Payment
-            WHERE GatewayRefNumber = :gatewayRefNumber
+            WHERE GatewayRefNumber = :gatewayRefNumber AND OrderPaymentSummaryId != NULL
         ];
         return !payments.isEmpty();
     }
+
+
     
     public static Integer getAmountMultiplier(String currencyCode) {
         if (AdyenOMSConstants.THREE_DECIMAL_CURRENCIES.contains(currencyCode)) {
@@ -382,10 +406,14 @@ public with sharing class AdyenPaymentUtility {
 
         CommercePayments.PaymentsHttp paymentsHttp = new CommercePayments.PaymentsHttp();
         HttpResponse response = paymentsHttp.send(request);
-        if (response.getStatusCode() != 200 && response.getStatusCode() != 201) {
+        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
             throw new AdyenGatewayAdapter.GatewayException('Adyen Checkout API returned: ' + response.getStatusCode() + ', body: ' + response.getBody());
         } else {
             return response;
         }
+    }
+
+    public static Boolean personAccountsEnabled() {
+        return Schema.SObjectType.Account.fields.getMap().containsKey( 'isPersonAccount' );
     }
 }

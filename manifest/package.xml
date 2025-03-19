@@ -5,6 +5,8 @@
         <members>AdyenAuthorisationHelper</members>
         <members>AdyenAuthorisationHelperTest</members>
         <members>AdyenCaptureHelper</members>
+        <members>AdyenOOBOController</members>
+        <members>AdyenOOBOControllerTest</members>
         <members>AdyenOMSConstants</members>
         <members>AdyenPaymentHelper</members>
         <members>AdyenPaymentHelperTest</members>
@@ -18,7 +20,32 @@
         <members>NonPaymentWebhookHandlerTest</members>
         <members>WebhookUtils</members>
         <members>WebhookUtilsTest</members>
+        <members>AdyenPBLHelper</members>
+        <members>AdyenPBLHelperTest</members>
+        <members>AdyenNotificationHandler</members>
+        <members>AdyenNotificationHandlerTest</members>
+        <members>PaymentLinkExpireAction</members>
+        <members>PaymentLinkExpireActionTest</members>
+        <members>PaymentLinkRegenerateAction</members>
+        <members>PaymentLinkRegenerateActionTest</members>
+        <members>PaymentLinkGenerateAction</members>
+        <members>PaymentLinkGenerateActionTest</members>
+        <members>OrderSummaryCreatedEventHandler</members>
+        <members>OrderSummaryCreatedEventHandlerTest</members>
+        <members>AdyenRefundHelperTest</members>
+        <members>AdyenPaymentLinkBatch</members>
+        <members>AdyenPaymentLinkBatchTest</members>
+        <members>AdyenPBLController</members>
+        <members>AdyenPBLControllerTest</members>
+        <members>AdyenPaymentLinkBatchJobScheduler</members>
+        <members>AdyenPaymentLinkBatchJobSchedulerTest</members>
+        <members>PostInstallScript</members>
+        <members>PostInstallScriptTest</members>
         <name>ApexClass</name>
+    </types>
+    <types>
+        <members>OrderSummaryCreatedEventTrigger</members>
+        <name>ApexTrigger</name>
     </types>
     <types>
         <members>Adyen_Adapter.AdyenDefault</members>
@@ -29,6 +56,7 @@
         <members>AlternativePaymentMethod</members>
         <members>Payment</members>
         <members>PaymentAuthorization</members>
+        <members>Payment_Link__c</members>
         <name>CustomObject</name>
     </types>
     <types>
@@ -46,10 +74,13 @@
         <members>PaymentAuthorization.Adyen_Payment_Method__c</members>
         <members>PaymentAuthorization.Adyen_Payment_Method_Variant__c</members>
         <members>Adyen_Adapter__mdt.Cancel_Endpoint__c</members>
+        <members>Adyen_Adapter__mdt.Auto_Capture_Enabled__c</members>
+        <members>Adyen_Adapter__mdt.Manual_Capture_Payment_Methods__c</members>
         <name>CustomField</name>
     </types>
     <types>
         <members>Adyen_Adapter__mdt-Adyen Adapter Layout</members>
+        <members>Payment_Link__c-Payment Link Layout</members>
         <name>Layout</name>
     </types>
     <types>
@@ -76,5 +107,28 @@
         <members>AlternativePaymentMethod.Alternative_Payment_Method</members>
         <name>RecordType</name>
     </types>
-    <version>60.0</version>
+    <types>
+        <members>adyenPblConfirmationScreen</members>
+        <members>choosePayment</members>
+        <members>payByLinkUtils</members>
+        <members>ldsUtils</members>
+        <members>errorPanel</members>
+        <members>adyenPBLStatusUpdater</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>Force_Expire_Link</members>
+        <members>Regenerate_Payment_Link</members>
+        <members>Adyen_OOBO</members>
+        <name>Flow</name>
+    </types>
+    <types>
+        <members>Payment_Link__c</members>
+        <name>CustomTab</name>
+    </types>
+    <types>
+        <members>Payment_Link__c.Refresh_Status</members>
+        <name>QuickAction</name>
+    </types>
+    <version>62.0</version>
 </Package>

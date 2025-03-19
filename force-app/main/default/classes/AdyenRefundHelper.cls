@@ -33,17 +33,19 @@ public with sharing class AdyenRefundHelper {
         return processRefundResponse(refundResponse, refundRequest.amount);
     }
 
+    @TestVisible
     private static CheckoutRefundRequest createRefundRequest(CommercePayments.ReferencedRefundRequest refundRequest, Payment payment, Adyen_Adapter__mdt adyenAdapter) {
         CheckoutRefundRequest modRequest = (CheckoutRefundRequest)AdyenPaymentUtility.createModificationRequest(refundRequest, payment.CurrencyIsoCode, adyenAdapter);
         //Only for Paypal Refunds - Capture reference must be a substring of refund reference
-        if (String.isNotBlank(payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c)) {
+        if (String.isNotBlank(payment.PaymentAuthorization?.Adyen_Payment_Method_Variant__c)) {
             if (payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c.equalsIgnoreCase('Paypal') && String.isNotBlank(payment.GatewayRefDetails)) {
                 String refundReference = modRequest.getReference() + payment.GatewayRefDetails;
                 modRequest.setReference(refundReference);
+                modRequest.capturePspReference = payment.GatewayRefNumber;
             }
         }
         // Line items required for partial refunds for Open Invoice methods
-        if (AdyenPaymentUtility.checkIfOpenInvoiceFromAuthorization(payment.PaymentAuthorization)) {
+        if (AdyenPaymentUtility.isOpenInvoicePayment(payment)) {
             modRequest.setLineItems(AdyenPaymentUtility.addCreditMemoData(payment.OrderPaymentSummary.OrderSummaryId));
         }
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Auto_Capture_Enabled__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>To identify if Auto Capture is enabled in Customer Area</description>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+    <inlineHelpText>Check if Auto Capture (Immediate capture) is enabled in Adyen Customer Area</inlineHelpText>
+    <label>Auto Capture Enabled</label>
+    <type>Checkbox</type>
+</CustomField>

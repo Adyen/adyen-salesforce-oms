@@ -153,4 +153,22 @@ private class AdyenAuthorisationHelperTest {
             Assert.areEqual(ex.getMessage(), String.format(AdyenAuthorisationHelper.AMOUNT_MISMATCH_ERROR, new List<Object>{price,availableToCapture}));
         }
     }
+
+    @IsTest
+    static void createPostAuthResponseTest() {
+        // Given
+        Double price = 19.99;
+        CommercePayments.PostAuthorizationRequest postAuthRequest = new CommercePayments.PostAuthorizationRequest(price);
+        postAuthRequest.amount = 5000;
+        postAuthRequest.additionalData = new Map<String, String> {
+            'pblId' => 'testPblId123'
+        };
+        
+        // When
+        CommercePayments.GatewayResponse response = AdyenAuthorisationHelper.createPostAuthResponse(postAuthRequest);
+
+        // Then
+        Assert.isTrue(response.toString().containsIgnoreCase('success'));
+        Assert.isTrue(response.toString().contains('testPblId123'));
+    }
 }
