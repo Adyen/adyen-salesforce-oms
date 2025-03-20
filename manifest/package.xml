@@ -43,6 +43,9 @@
         <members>PostInstallScriptTest</members>
         <members>AdyenConfigPageController</members>
         <members>AdyenConfigPageControllerTest</members>
+        <members>AdyenCustomMetadataService</members>
+        <members>AdyenCustomMetadataServiceTest</members>
+        <members>AdyenMetadataDeployCallback</members>
         <name>ApexClass</name>
     </types>
     <types>

@@ -15,7 +15,9 @@ public class TestDataFactory {
     public static final String NL_JSON_ADDRESS = '{"city": "Amsterdam", "country": "Netherlands", "postalCode": "1012 JS", "state": "", "street": "Dam Square 1"}';
     public static final String NO_NUMBER_JSON_ADDRESS = '{"city": "Amsterdam", "country": "Netherlands", "postalCode": "1012 JS", "state": "", "street": "Dam Square"}';
 
-
+    public static Boolean isMetadataAPISuccessful = true;
+    public static String mockDeploymentId = '0Af000000000000001';
+    
     public static AdyenGatewayAdapter adyenAdapter = new AdyenGatewayAdapter();
 
     public static Account createAccount() {
@@ -415,5 +417,22 @@ public class TestDataFactory {
     public static String mockPblWebhookRequest(String eventCode, String pspReference, String paymentLinkId, String merchantRef, Boolean success) {
         String merchantAccountName = [SELECT Merchant_Account__c FROM Adyen_Adapter__mdt LIMIT 1].Merchant_Account__c;
         return '{"live": "false", "notificationItems": [{"NotificationRequestItem": {"additionalData": {"hmacSignature": "testsignature", "paymentLinkId": "'+ paymentLinkId +'"}, "amount": {"currency": "'+ ACTIVE_CURRENCY +'", "value": 1000}, "eventCode": "' + eventCode + '", "eventDate": "2024-01-01T01:00:00+01:00", "merchantAccountCode": "' + merchantAccountName + '", "merchantReference": "' + merchantRef + '", "paymentMethod": "visa", "pspReference": "' + pspReference + '", "reason": "null", "success": "' + success + '"}}]}';
+    }
+
+    public static Adyen_Adapter__mdt createMockAdapter() {
+        Adyen_Adapter__mdt mockAdapter = new Adyen_Adapter__mdt();
+        mockAdapter.DeveloperName = AdyenConstants.DEFAULT_ADAPTER_NAME;
+        mockAdapter.MasterLabel = 'Test Adyen Default';
+        mockAdapter.Package_Namespace__c = 'testns';
+        mockAdapter.Merchant_Account__c = 'TestMerchantAccount';
+        mockAdapter.HMAC_Key__c = 'TestHMACKey';
+        mockAdapter.Auto_Capture_Enabled__c = true;
+        mockAdapter.Manual_Capture_Payment_Methods__c = 'card,ideal';
+        mockAdapter.System_Integrator_Name__c = 'TestIntegrator';
+        mockAdapter.Payment_Link_Return_Url__c = 'https://test.example.com/return';
+        mockAdapter.Payment_Link_Theme_Id__c = 'test-theme-id';
+        mockAdapter.Payment_Link_Expiry_Duration__c = 24;
+
+        return mockAdapter;
     }
 }
