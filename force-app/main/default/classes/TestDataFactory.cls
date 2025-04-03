@@ -385,6 +385,12 @@ public class TestDataFactory {
         }
     }
 
+    public class WebhookSetupMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockWebhookSetupResponse(), 200);
+        }
+    }
+
     public static HttpResponse mockHttpResponse(String body, Integer code) {
         HttpResponse res = new HttpResponse();
         res.setHeader('Content-Type', 'text/json');
@@ -407,6 +413,10 @@ public class TestDataFactory {
 
     private static String pblExpiredResponse() {
         return '{ "url": "https://test.payment.link", "expiresAt": "2024-01-01T12:00:00+00:00", "status": "expired", "id":"PLE5B4575C5A026A2B2"}';
+    }
+    
+    private static String mockWebhookSetupResponse() {
+        return '{ "id": "WBHK12345678912345678912345678", "type": "standard", "description": "Test webhook" }';
     }
 
     public static String mockWebhookRequest(String eventCode, String pspReference, String originalReference, String merchantRef, Boolean success) {
