@@ -41,6 +41,8 @@
         <members>AdyenPaymentLinkBatchJobSchedulerTest</members>
         <members>PostInstallScript</members>
         <members>PostInstallScriptTest</members>
+        <members>AdyenWebhookService</members>
+        <members>AdyenWebhookServiceTest</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -76,6 +78,10 @@
         <members>Adyen_Adapter__mdt.Cancel_Endpoint__c</members>
         <members>Adyen_Adapter__mdt.Auto_Capture_Enabled__c</members>
         <members>Adyen_Adapter__mdt.Manual_Capture_Payment_Methods__c</members>
+        <members>Adyen_Adapter__mdt.Management_API_Endpoint_Path__c</members>
+        <members>Adyen_Adapter__mdt.Management_API_Named_Credential__c</members>
+        <members>Adyen_Adapter__mdt.Management_API_Version__c</members>
+        <members>Adyen_Adapter__mdt.Management_API_Webhook_Endpoint__c</members>
         <name>CustomField</name>
     </types>
     <types>
