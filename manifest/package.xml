@@ -87,6 +87,10 @@
         <members>Adyen_Adapter__mdt.Management_API_Named_Credential__c</members>
         <members>Adyen_Adapter__mdt.Management_API_Version__c</members>
         <members>Adyen_Adapter__mdt.Management_API_Webhook_Endpoint__c</members>
+        <members>Adyen_Adapter__mdt.Management_API_Endpoint_Path__c</members>
+        <members>Adyen_Adapter__mdt.Management_API_Named_Credential__c</members>
+        <members>Adyen_Adapter__mdt.Management_API_Version__c</members>
+        <members>Adyen_Adapter__mdt.Management_API_Webhook_Endpoint__c</members>
         <name>CustomField</name>
     </types>
     <types>
