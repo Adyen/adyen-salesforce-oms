@@ -30,7 +30,7 @@ public with sharing class AdyenWebhookService {
     private static WebhookSetupRequest buildWebhookRequest(String webhookUrl, String description) {
         WebhookSetupRequest webhookRequest = new WebhookSetupRequest();
         webhookRequest.url = webhookUrl;
-        webhookRequest.active = false;
+        webhookRequest.active = true;
         webhookRequest.communicationFormat = DEFAULT_COMMUNICATION_FORMAT;
         webhookRequest.encryptionProtocol = DEFAULT_ENCRYPTION_PROTOCOL;
         webhookRequest.type = DEFAULT_WEBHOOK_TYPE;
