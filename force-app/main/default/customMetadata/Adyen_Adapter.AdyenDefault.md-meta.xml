@@ -27,6 +27,22 @@
         <value xsi:type="xsd:string">/checkout</value>
     </values>
     <values>
+        <field>Management_API_Endpoint_Path__c</field>
+        <value xsi:type="xsd:string">/merchants</value>
+    </values>
+    <values>
+        <field>Management_API_Named_Credential__c</field>
+        <value xsi:type="xsd:string">AdyenManagementAPI</value>
+    </values>
+    <values>
+        <field>Management_API_Version__c</field>
+        <value xsi:type="xsd:string">/v3</value>
+    </values>
+    <values>
+        <field>Management_API_Webhook_Endpoint__c</field>
+        <value xsi:type="xsd:string">/{merchantId}/webhooks</value>
+    </values>
+    <values>
         <field>Manual_Capture_Payment_Methods__c</field>
         <value xsi:nil="true"/>
     </values>
