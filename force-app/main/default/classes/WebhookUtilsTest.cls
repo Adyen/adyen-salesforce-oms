@@ -46,4 +46,64 @@ private class WebhookUtilsTest {
             Assert.areEqual('Notification Request Body is invalid', e.getMessage(), 'Unexpected exception message');
         }
     }
+
+    @IsTest
+    static void getPaymentGatewayProviderIdTest() {
+        String id = WebhookUtils.getPaymentGatewayProviderId();
+        Assert.areNotEqual(null, id);
+    }
+
+    @IsTest(SeeAllData=true)
+    static void isStandardOMSNotificationValidCaptureTest() {
+        // given
+        OrderPaymentSummary ops = TestDataFactory.insertAccountAndOrderPaymentSummary();
+    
+        CardPaymentMethod paymentMethod = TestDataFactory.createCardPaymentMethod();
+        insert paymentMethod;
+       	Payment payment = TestDataFactory.createPayment(null, paymentMethod.Id, null, null, ops.Id);
+        payment.GatewayRefNumber = TestDataFactory.TEST_PSP_REFERENCE;
+		insert payment;
+        NotificationRequestItem item = new NotificationRequestItem();
+        item.eventCode = 'CAPTURE';
+        item.pspReference = TestDataFactory.TEST_PSP_REFERENCE;
+        item.originalReference = TestDataFactory.TEST_PSP_REFERENCE;
+
+        // when
+        Test.startTest();
+        Boolean isOMSCaptureNotification = WebhookUtils.isStandardOMSNotification(item);
+        Test.stopTest();
+
+        // then
+        Assert.areEqual(true, isOMSCaptureNotification);
+    }
+    
+    @IsTest(SeeAllData=true)
+    static void isStandardOMSNotificationValidRefundTest() {
+        // given
+        OrderPaymentSummary ops = TestDataFactory.insertAccountAndOrderPaymentSummary();
+        CardPaymentMethod paymentMethod = TestDataFactory.createCardPaymentMethod();
+        insert paymentMethod;
+        Refund refund = new Refund(
+            PaymentMethodId = paymentMethod.Id,
+            Amount = TestDataFactory.TEST_PRICE_AMOUNT,
+            GatewayRefNumber = TestDataFactory.TEST_PSP_REFERENCE,
+            Status = AdyenOMSConstants.PaymentAuthorizationStatus.PROCESSED.name(),
+            ProcessingMode = AdyenOMSConstants.ProcessingMode.EXTERNAL.name(),
+            Type = 'Referenced',
+            OrderPaymentSummaryId = ops.Id
+        );
+        insert refund;
+        NotificationRequestItem item = new NotificationRequestItem();
+        item.eventCode = 'REFUND';
+        item.pspReference = TestDataFactory.TEST_PSP_REFERENCE;
+        item.originalReference = TestDataFactory.TEST_PSP_REFERENCE;
+
+        // when
+        Test.startTest();
+        Boolean isOMSRefundNotification = WebhookUtils.isStandardOMSNotification(item);
+        Test.stopTest();
+        
+        // then
+        Assert.areEqual(true, isOMSRefundNotification);
+    }
 }
