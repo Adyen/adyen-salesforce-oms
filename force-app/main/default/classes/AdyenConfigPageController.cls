@@ -51,6 +51,18 @@ public with sharing class AdyenConfigPageController {
         return paymentGatewayIds;
     }
 
+    @AuraEnabled
+    public static List<PaymentGateway> getExistingPaymentGateways() {
+        Set<String> externalReferences = new Set<String>{AdyenOMSConstants.PAYMENT_INSTRUMENT_ADYEN_COMPONENT, AdyenOMSConstants.PAYMENT_INSTRUMENT_ADYEN_POS};
+        return [
+            SELECT Id, PaymentGatewayName, ExternalReference, Status, CreatedDate
+            FROM PaymentGateway
+            WHERE PaymentGatewayProvider.DeveloperName = :AdyenOMSConstants.PAYMENT_GATEWAY_PROVIDER 
+            AND ExternalReference IN :externalReferences
+            ORDER BY CreatedDate DESC
+        ];
+    }
+
     private static PaymentGatewayProvider getPaymentGatewayProvider() {
         List<PaymentGatewayProvider> gatewayProviders = [
             SELECT Id 
@@ -73,9 +85,8 @@ public with sharing class AdyenConfigPageController {
         return namedCredentials.isEmpty() ? null : namedCredentials[0];
     }
     
-
     public class PaymentGatewayInput {
-        @AuraEnabled public String externalReference;
-        @AuraEnabled public String gatewayName;
+        @AuraEnabled public String externalReference { get; set; }
+        @AuraEnabled public String gatewayName { get; set; }
     }
 }
