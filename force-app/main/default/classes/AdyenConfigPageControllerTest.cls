@@ -63,4 +63,25 @@ private class AdyenConfigPageControllerTest {
             Assert.areEqual(e.getMessage(), 'Script-thrown exception');
         }
     }
+
+    @isTest
+    static void getSetupPageUrlsTest() {
+        // Given
+        String baseUrl = URL.getOrgDomainUrl().toExternalForm();
+
+        // When
+        Test.startTest();
+        Map<String, String> urls = AdyenConfigPageController.getSetupPageUrls();
+        Test.stopTest();
+
+        // Then
+        Assert.areNotEqual(null, urls);
+        Assert.areEqual(3, urls.size());
+
+        Assert.isTrue(urls.containsKey('checkoutNamedCredential'));
+        Assert.isTrue(urls.containsKey('managementApiNamedCredential'));
+        Assert.isTrue(urls.containsKey('permissionSet'));
+        Assert.isTrue(urls.get('checkoutNamedCredential').startsWith(baseUrl + '/lightning/setup/NamedCredential/'));
+        Assert.isTrue(urls.get('managementApiNamedCredential').startsWith(baseUrl + '/lightning/setup/NamedCredential/'));
+    }
 }
