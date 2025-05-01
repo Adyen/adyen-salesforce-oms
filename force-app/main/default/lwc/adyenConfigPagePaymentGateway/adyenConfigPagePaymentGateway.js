@@ -4,7 +4,6 @@ import getExistingPaymentGateways from '@salesforce/apex/AdyenConfigPageControll
 import createPaymentGateways from '@salesforce/apex/AdyenConfigPageController.createPaymentGateways';
 
 export default class AdyenConfigPagePaymentGateway extends LightningElement {
-    isLoading = true;
     showSpinner = false;
     @track standardGateway = {
         gatewayName: 'Adyen',
