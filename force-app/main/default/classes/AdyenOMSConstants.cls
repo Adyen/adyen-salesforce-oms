@@ -16,7 +16,8 @@ public with sharing class AdyenOMSConstants {
     public static final String ALTERNATIVE_PAYMENT_METHOD_OBJECT = 'AlternativePaymentMethod';
 
     public static final String PAYMENT_GATEWAY_PROVIDER = 'Adyen_OMS_Provider';
-    public static final String NAMED_CREDENTIAL = 'AdyenCheckout';
+    public static final String CHECKOUT_NAMED_CREDENTIAL = 'AdyenCheckout';
+    public static final String MANAGEMENT_API_NAMED_CREDENTIAL = 'AdyenManagementAPI';
 
     public static final String PAYMENT_INSTRUMENT_ADYEN_COMPONENT = 'Adyen_Component';
     public static final String PAYMENT_INSTRUMENT_ADYEN_POS = 'Adyen_POS';
