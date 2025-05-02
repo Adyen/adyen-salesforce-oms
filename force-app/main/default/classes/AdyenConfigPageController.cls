@@ -70,6 +70,10 @@ public with sharing class AdyenConfigPageController {
         String baseUrl = URL.getOrgDomainUrl().toExternalForm();
         String checkoutNamedCredentialId = getNamedCredential(AdyenOMSConstants.CHECKOUT_NAMED_CREDENTIAL)?.Id;
         String managementApiNamedCredentialId = getNamedCredential(AdyenOMSConstants.MANAGEMENT_API_NAMED_CREDENTIAL)?.Id;
+
+        if (checkoutNamedCredentialId == null || managementApiNamedCredentialId == null) {
+            throw new AuraHandledException('One or more required Named Credentials are missing.');
+        }
     
         setupUrls.put('checkoutNamedCredential', baseUrl + '/lightning/setup/NamedCredential/' + checkoutNamedCredentialId + '/view');
         setupUrls.put('managementApiNamedCredential', baseUrl + '/lightning/setup/NamedCredential/' + managementApiNamedCredentialId + '/view');
