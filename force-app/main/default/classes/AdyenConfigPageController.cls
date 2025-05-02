@@ -14,7 +14,7 @@ public with sharing class AdyenConfigPageController {
         }
 
         PaymentGatewayProvider gatewayProvider = getPaymentGatewayProvider();
-        NamedCredential merchantCredential = getNamedCredential();
+        NamedCredential merchantCredential = getNamedCredential(AdyenOMSConstants.CHECKOUT_NAMED_CREDENTIAL);
 
         if (gatewayProvider == null) {
             throw new AuraHandledException('Payment Gateway Provider not found.');
@@ -63,6 +63,25 @@ public with sharing class AdyenConfigPageController {
         ];
     }
 
+    @AuraEnabled
+    public static Map<String, String> getSetupPageUrls() {
+        Map<String, String> setupUrls = new Map<String, String>();
+        
+        String baseUrl = URL.getOrgDomainUrl().toExternalForm();
+        String checkoutNamedCredentialId = getNamedCredential(AdyenOMSConstants.CHECKOUT_NAMED_CREDENTIAL)?.Id;
+        String managementApiNamedCredentialId = getNamedCredential(AdyenOMSConstants.MANAGEMENT_API_NAMED_CREDENTIAL)?.Id;
+
+        if (checkoutNamedCredentialId == null || managementApiNamedCredentialId == null) {
+            throw new AuraHandledException('One or more required Named Credentials are missing.');
+        }
+    
+        setupUrls.put('checkoutNamedCredential', baseUrl + '/lightning/setup/NamedCredential/' + checkoutNamedCredentialId + '/view');
+        setupUrls.put('managementApiNamedCredential', baseUrl + '/lightning/setup/NamedCredential/' + managementApiNamedCredentialId + '/view');
+        setupUrls.put('permissionSet', baseUrl + '/lightning/setup/PermSets/home');
+    
+        return setupUrls;
+    }
+
     private static PaymentGatewayProvider getPaymentGatewayProvider() {
         List<PaymentGatewayProvider> gatewayProviders = [
             SELECT Id 
@@ -74,11 +93,11 @@ public with sharing class AdyenConfigPageController {
         return gatewayProviders.isEmpty() ? null : gatewayProviders[0];
     }
     
-    private static NamedCredential getNamedCredential() {
+    public static NamedCredential getNamedCredential(String developerName) {
         List<NamedCredential> namedCredentials = [
             SELECT Id 
             FROM NamedCredential 
-            WHERE DeveloperName = :AdyenOMSConstants.NAMED_CREDENTIAL
+            WHERE DeveloperName = :developerName
             LIMIT 1
         ];
     
