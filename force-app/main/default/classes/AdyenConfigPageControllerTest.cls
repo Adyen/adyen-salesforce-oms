@@ -76,12 +76,13 @@ private class AdyenConfigPageControllerTest {
 
         // Then
         Assert.areNotEqual(null, urls);
-        Assert.areEqual(3, urls.size());
+        Assert.areEqual(5, urls.size());
 
         Assert.isTrue(urls.containsKey('checkoutNamedCredential'));
         Assert.isTrue(urls.containsKey('managementApiNamedCredential'));
         Assert.isTrue(urls.containsKey('permissionSet'));
         Assert.isTrue(urls.get('checkoutNamedCredential').startsWith(baseUrl + '/lightning/setup/NamedCredential/'));
         Assert.isTrue(urls.get('managementApiNamedCredential').startsWith(baseUrl + '/lightning/setup/NamedCredential/'));
+        Assert.isTrue(urls.get('webhookNamedCredential').startsWith(baseUrl + '/lightning/setup/NamedCredential/'));
     }
 }

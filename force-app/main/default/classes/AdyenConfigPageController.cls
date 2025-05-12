@@ -70,14 +70,17 @@ public with sharing class AdyenConfigPageController {
         String baseUrl = URL.getOrgDomainUrl().toExternalForm();
         String checkoutNamedCredentialId = getNamedCredential(AdyenOMSConstants.CHECKOUT_NAMED_CREDENTIAL)?.Id;
         String managementApiNamedCredentialId = getNamedCredential(AdyenOMSConstants.MANAGEMENT_API_NAMED_CREDENTIAL)?.Id;
+        String webhookNamedCredentialId =  getNamedCredential(AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME)?.Id;
 
-        if (checkoutNamedCredentialId == null || managementApiNamedCredentialId == null) {
+        if (checkoutNamedCredentialId == null || managementApiNamedCredentialId == null || webhookNamedCredentialId == null) {
             throw new AuraHandledException('One or more required Named Credentials are missing.');
         }
     
         setupUrls.put('checkoutNamedCredential', baseUrl + '/lightning/setup/NamedCredential/' + checkoutNamedCredentialId + '/view');
         setupUrls.put('managementApiNamedCredential', baseUrl + '/lightning/setup/NamedCredential/' + managementApiNamedCredentialId + '/view');
         setupUrls.put('permissionSet', baseUrl + '/lightning/setup/PermSets/home');
+        setupUrls.put('siteSetup', baseUrl + '/lightning/setup/CustomDomain/home');
+        setupUrls.put('webhookNamedCredential', baseUrl + '/lightning/setup/NamedCredential/' + getNamedCredential(AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME)?.Id + '/view');
     
         return setupUrls;
     }
