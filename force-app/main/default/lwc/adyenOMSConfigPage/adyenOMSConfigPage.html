@@ -1,0 +1,112 @@
+<template>
+    <lightning-card title="Adyen OMS Configuration" icon-name="custom:custom63">
+        <div slot="actions">
+            <lightning-button 
+                variant="neutral" 
+                label="Previous Step" 
+                icon-name="utility:back"
+                icon-position="left"
+                onclick={handlePreviousStep}
+                disabled={isFirstStep}
+                class="slds-m-right_x-small">
+            </lightning-button>
+            <lightning-button 
+                variant="neutral" 
+                label="Next Step" 
+                icon-name="utility:forward"
+                icon-position="right"
+                onclick={handleNextStep}
+                disabled={isLastStep}
+                class="slds-m-right_x-small">
+            </lightning-button>
+        </div>
+        
+        <div class="slds-p-around_medium">
+            <div class="slds-path">
+                <div class="slds-grid slds-path__track">
+                    <div class="slds-grid slds-path__scroller-container">
+                        <div class="slds-path__scroller">
+                            <div class="slds-path__scroller_inner">
+                                <ul class="slds-path__nav" role="listbox" aria-orientation="horizontal">
+                                  
+                                    <li class={paymentGatewayStepClass} role="presentation">
+                                        <a class="slds-path__link" data-step="paymentGateway" onclick={handleStepClick} role="option" tabindex="0">
+                                            <span class="slds-path__stage">
+                                                <lightning-icon icon-name="utility:check" size="x-small" variant="inverse"></lightning-icon>
+                                            </span>
+                                            <span class="slds-path__title">Payment Gateway</span>
+                                        </a>
+                                    </li>
+                                    
+                                 
+                                    <li class={namedCredentialStepClass} role="presentation">
+                                        <a class="slds-path__link" data-step="namedCredential" onclick={handleStepClick} role="option" tabindex="-1">
+                                            <span class="slds-path__stage">
+                                                <lightning-icon icon-name="utility:check" size="x-small" variant="inverse"></lightning-icon>
+                                            </span>
+                                            <span class="slds-path__title">Named Credentials</span>
+                                        </a>
+                                    </li>
+                                    
+                               
+                                    <li class={siteURLStepClass} role="presentation">
+                                        <a class="slds-path__link" data-step="siteURL" onclick={handleStepClick} role="option" tabindex="-1">
+                                            <span class="slds-path__stage">
+                                                <lightning-icon icon-name="utility:check" size="x-small" variant="inverse"></lightning-icon>
+                                            </span>
+                                            <span class="slds-path__title">Site URL Setup</span>
+                                        </a>
+                                    </li>
+                                    
+                                   
+                                    <li class={merchantAccountStepClass} role="presentation">
+                                        <a class="slds-path__link" data-step="merchantAccount" onclick={handleStepClick} role="option" tabindex="-1">
+                                            <span class="slds-path__stage">
+                                                <lightning-icon icon-name="utility:check" size="x-small" variant="inverse"></lightning-icon>
+                                            </span>
+                                            <span class="slds-path__title">Merchant Account</span>
+                                        </a>
+                                    </li>
+                                    
+                                    <li class={webhookSetupStepClass} role="presentation">
+                                        <a class="slds-path__link" data-step="webhookSetup" onclick={handleStepClick} role="option" tabindex="-1">
+                                            <span class="slds-path__stage">
+                                                <lightning-icon icon-name="utility:check" size="x-small" variant="inverse"></lightning-icon>
+                                            </span>
+                                            <span class="slds-path__title">Webhook Setup</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slds-m-top_large">
+                <template if:true={isPaymentGatewayStep}>
+                    <c-adyen-config-page-payment-gateway 
+                        onstepcomplete={handleStepComplete}>
+                    </c-adyen-config-page-payment-gateway>
+                </template>
+                
+                <template if:true={isNamedCredentialStep}>
+                    <c-adyen-config-page-named-credential>
+                    </c-adyen-config-page-named-credential>
+                </template>
+                
+                <template if:true={isSiteURLStep}>
+                    <!-- Placeholder for the Site URL Setup component -->
+                </template>
+                
+                <template if:true={isMerchantAccountStep}>
+                    <!-- Placeholder for the Merchant Account Setup component -->
+                </template>
+
+                <template if:true={isWebhookSetupStep}>
+                    <!-- Placeholder for the Webhook Setup component -->
+                </template>
+            </div>
+        </div>
+    </lightning-card>
+</template>
