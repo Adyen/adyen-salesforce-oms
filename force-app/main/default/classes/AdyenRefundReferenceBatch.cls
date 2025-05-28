@@ -22,7 +22,7 @@ public with sharing class AdyenRefundReferenceBatch implements Database.Batchabl
             if (gatewayLog.Request != null && gatewayLog.ReferencedEntityId != null) {
                 Map<String, Object> jsonMap = (Map<String, Object>) JSON.deserializeUntyped(gatewayLog.Request);
                 String reference = (String) jsonMap.get('reference');
-                if (reference != null) {
+                if (String.isNotBlank(reference)) {
                     refundIdToReferenceMap.put(gatewayLog.ReferencedEntityId, reference);
                 }
             }
