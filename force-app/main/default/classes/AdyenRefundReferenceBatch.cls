@@ -17,34 +17,32 @@ public with sharing class AdyenRefundReferenceBatch implements Database.Batchabl
     
     public void execute(Database.BatchableContext batchContext, List<PaymentGatewayLog> gatewayLogs) {
         try {
-            
-            Map<Id, String> refundIdToReferenceMap = new Map<Id, String>();
-    
+            Map<Id, Refund> refundsToUpdate = new Map<Id, Refund>();
+
             for (PaymentGatewayLog gatewayLog : gatewayLogs) {
                 if (gatewayLog.Request != null && gatewayLog.ReferencedEntityId != null) {
                     Map<String, Object> jsonMap = (Map<String, Object>) JSON.deserializeUntyped(gatewayLog.Request);
                     String reference = (String) jsonMap.get('reference');
                     if (String.isNotBlank(reference)) {
-                        refundIdToReferenceMap.put(gatewayLog.ReferencedEntityId, reference);
+                        refundsToUpdate.put(
+                            gatewayLog.ReferencedEntityId,
+                            new Refund(
+                                Id = gatewayLog.ReferencedEntityId,
+                                Refund_Reference__c = reference
+                            )
+                        );
                     }
                 }
             }
-            
-            if (!refundIdToReferenceMap.isEmpty()) {
-                List<Refund> refundsToUpdate = new List<Refund>();
-                for (Id refundId : refundIdToReferenceMap.keySet()) {
-                    refundsToUpdate.add(new Refund(
-                        Id = refundId,
-                        Refund_Reference__c = refundIdToReferenceMap.get(refundId)
-                    ));
-                }
-                update refundsToUpdate;
+
+            if (!refundsToUpdate.isEmpty()) {
+                update refundsToUpdate.values();
             }
         } catch (Exception e) {
-            System.debug('Exception occured during batch execution: ' + e.getMessage());
+            System.debug('Exception occurred during batch execution: ' + e.getMessage());
         }
     }
-    
+
     public void finish(Database.BatchableContext batchContext) {
         // No additional logic needed after batch execution
     }
