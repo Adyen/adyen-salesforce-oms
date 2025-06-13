@@ -391,6 +391,17 @@ public class TestDataFactory {
         }
     }
 
+    public class MockMerchantAccountCallout implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockFetchMerchantAccountResponse(), 200);
+        }
+    }
+    public class MockMerchantAccountCalloutFailure implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockFetchMerchantAccountErrorResponse(), 401);
+        }
+    }
+
     public static HttpResponse mockHttpResponse(String body, Integer code) {
         HttpResponse res = new HttpResponse();
         res.setHeader('Content-Type', 'text/json');
@@ -427,6 +438,14 @@ public class TestDataFactory {
     public static String mockPblWebhookRequest(String eventCode, String pspReference, String paymentLinkId, String merchantRef, Boolean success) {
         String merchantAccountName = [SELECT Merchant_Account__c FROM Adyen_Adapter__mdt LIMIT 1].Merchant_Account__c;
         return '{"live": "false", "notificationItems": [{"NotificationRequestItem": {"additionalData": {"hmacSignature": "testsignature", "paymentLinkId": "'+ paymentLinkId +'"}, "amount": {"currency": "'+ ACTIVE_CURRENCY +'", "value": 1000}, "eventCode": "' + eventCode + '", "eventDate": "2024-01-01T01:00:00+01:00", "merchantAccountCode": "' + merchantAccountName + '", "merchantReference": "' + merchantRef + '", "paymentMethod": "visa", "pspReference": "' + pspReference + '", "reason": "null", "success": "' + success + '"}}]}';
+    }
+
+    private static String mockFetchMerchantAccountResponse() {
+        return '{"data":[{"id":"merchant_1","name":"Merchant One","status":"Active","description":"Desc 1","companyId":"C1","captureDelay":"manual"},{"id":"merchant_2","name":"Merchant Two","status":"Inactive","description":"Desc 2","companyId":"C2","captureDelay":"auto"}],"itemsTotal":2,"pagesTotal":1}';
+    }
+
+    private static String mockFetchMerchantAccountErrorResponse() {
+        return '{"title":"Unauthorized"}';
     }
 
     public static Adyen_Adapter__mdt createMockAdapter() {
