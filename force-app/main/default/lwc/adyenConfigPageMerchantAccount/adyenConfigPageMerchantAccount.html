@@ -1,0 +1,149 @@
+<template>
+    <div class="slds-grid slds-gutters">
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-m-bottom_medium slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Merchant Account Configuration</h2>
+                
+                <template if:true={isLoading}>
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </template>
+                
+                <div class="slds-box slds-is-relative" style="min-height: 300px; max-height: 300px;">
+                    <div class="slds-m-bottom_large">
+                        <div class="slds-media slds-media_center slds-p-bottom_medium slds-border_bottom">
+                            <div class="slds-media__figure">
+                                <span class="slds-icon_container slds-icon-standard-account">
+                                    <lightning-icon icon-name="standard:account" size="small"></lightning-icon>
+                                </span>
+                            </div>
+                            <div class="slds-media__body">
+                                <div class="slds-text-heading_small slds-text-title_bold">Adyen Merchant Account</div>
+                                <div class="slds-text-body_small">Configure the merchant account for Adyen integration</div>
+                            </div>
+                        </div>
+                        
+                        <template if:true={apiError}>
+                            <div class="slds-p-around_medium slds-m-top_medium">
+                                <div class="slds-box slds-theme_error">
+                                    <div class="slds-grid slds-grid_vertical-align-center">
+                                        <div class="slds-col slds-size_11-of-12">
+                                            <p class="slds-text-body_regular">{apiError}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-grid slds-grid_align-end slds-m-top_medium">
+                                    <lightning-button 
+                                        variant="neutral" 
+                                        label="Retry" 
+                                        icon-name="utility:refresh"
+                                        onclick={handleRetry} 
+                                        disabled={isLoading}>
+                                    </lightning-button>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <template if:true={merchantAccountFetched}>
+                            <div class="slds-p-around_medium slds-m-top_medium">
+                                <template if:true={selectedMerchantAccount}>
+                                    <div class="slds-box slds-theme_success slds-m-bottom_medium">
+                                        <div class="slds-grid slds-grid_vertical-align-center">
+                                            <div class="slds-col slds-size_11-of-12">
+                                                <p class="slds-text-body_regular">
+                                                    <strong>Name:</strong> {selectedMerchantAccount.name}
+                                                </p>
+                                                <p class="slds-text-body_regular">  
+                                                    <strong>Id:</strong> {selectedMerchantAccount.id}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="slds-m-bottom_medium">
+                                        Please verify this is the correct merchant account for your integration and click "Confirm" to save the configuration.
+                                    </p>
+                                    
+                                    <div class="slds-grid slds-grid_align-end">
+                                        <lightning-button 
+                                            variant="neutral" 
+                                            label="Cancel" 
+                                            onclick={handleCancel} 
+                                            class="slds-m-right_x-small"
+                                            disabled={isLoading}>
+                                        </lightning-button>
+                                        <lightning-button 
+                                            variant="brand" 
+                                            label="Confirm & Save" 
+                                            onclick={handleConfirmMerchantAccount} 
+                                            disabled={isLoading}>
+                                        </lightning-button>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                        
+                        <template if:true={showMerchantAccountSection}>
+                            <template if:false={deploymentTimedOut}>
+                                <div class="slds-p-around_medium slds-m-top_medium">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label">Merchant Account</label>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-grid slds-grid_vertical-align-center">
+                                                <div class="slds-col slds-size_10-of-12">
+                                                    <div class="slds-box slds-box_xx-small slds-theme_shade">
+                                                        <template if:true={currentMerchantAccount}>
+                                                            <p class="slds-text-body_regular">{currentMerchantAccount}</p>
+                                                        </template>
+                                                        <template if:false={currentMerchantAccount}>
+                                                            <p class="slds-text-body_regular slds-text-color_weak">No merchant account configured</p>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                                <div class="slds-col slds-size_2-of-12 slds-p-left_medium">
+                                                    <lightning-button 
+                                                        variant="neutral" 
+                                                        label="Fetch" 
+                                                        icon-name="utility:refresh"
+                                                        icon-position="left"
+                                                        onclick={handleFetch} 
+                                                        class="slds-button_stretch"
+                                                        disabled={isLoading}>
+                                                    </lightning-button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Instructions</h2>
+                
+                <div class="slds-box slds-is-relative slds-scrollable" style="min-height: 300px; max-height: 300px;">
+                    <div class="slds-p-around_medium">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small">
+                            Merchant Account Configuration
+                        </h3>
+                        <p class="slds-m-bottom_medium">
+                            Merchant account will be fetched from Adyen using your configured API key.
+                        </p>
+                        <ol class="slds-list_ordered slds-m-left_medium">
+                            <li>Click <strong>Fetch</strong> to retrieve your merchant account from Adyen.</li>
+                            <li>Verify the merchant account information displayed.</li>
+                            <li>Click <strong>Confirm & Save</strong> to update the configuration.</li>
+                        </ol>
+                        <p class="slds-m-top_medium slds-text-color_weak">
+                            Note: Your API key must have access to exactly one merchant account.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
