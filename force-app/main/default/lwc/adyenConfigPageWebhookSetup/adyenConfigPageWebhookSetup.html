@@ -1,0 +1,169 @@
+<template>
+    <div class="slds-grid slds-gutters">
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-m-bottom_medium slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Webhook Configuration</h2>
+                
+                <template if:true={isLoading}>
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </template>
+                
+                <div class="slds-box slds-is-relative" style="min-height: 300px; max-height: 300px;">
+                    <div class="slds-m-bottom_large">
+                    <template if:true={hasSetupError}>
+                        <div class="slds-p-around_medium">
+                            <div class="slds-box slds-theme_error">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col slds-size_11-of-12">
+                                        <p class="slds-text-body_regular"><strong>Webhook Setup Failed</strong></p>
+                                        <p class="slds-text-body_small slds-m-top_x-small">{setupError}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-m-top_medium slds-text-align_right">
+                                <lightning-button 
+                                    variant="neutral" 
+                                    label="Try Again" 
+                                    icon-name="utility:refresh"
+                                    onclick={handleRefresh} 
+                                    disabled={isLoading}>
+                                </lightning-button>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <template if:true={webhookConfigured}>
+                        <div class="slds-p-around_medium">
+                            <div class="slds-box slds-theme_success">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col slds-size_11-of-12">
+                                        <p class="slds-text-body_regular"><strong>Webhook Successfully Configured!</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <template if:true={showContent}>
+                        <div class="slds-p-around_medium">
+                            <div class="slds-form-element slds-m-bottom_large">
+                                <div class="slds-form-element__control">
+                                    <lightning-input
+                                        id="description-input"
+                                        type="text"
+                                        label="Description"
+                                        value={description}
+                                        onchange={handleDescriptionChange}
+                                        placeholder="Enter webhook description"
+                                        required>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                            
+                            <div class="slds-form-element slds-m-bottom_large">
+                                <label class="slds-form-element__label" id="event-types-label">
+                                    <abbr class="slds-required" title="required">*</abbr>
+                                    Event Types
+                                </label>
+                                <div class="slds-form-element__control">
+                                    <div class={dropdownClass} aria-expanded={isDropdownOpen} aria-haspopup="listbox" role="combobox" data-id="event-dropdown" onfocusout={handleDropdownFocusOut} tabindex="0">
+                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                            <button 
+                                                class="slds-input slds-combobox__input slds-combobox__input-value slds-text-align_left" 
+                                                type="button"
+                                                aria-labelledby="event-types-label"
+                                                aria-controls="event-types-dropdown"
+                                                aria-expanded={isDropdownOpen}
+                                                data-id="dropdown-button"
+                                                onclick={handleDropdownToggle}>
+                                                <span class="slds-truncate">{selectedEventLabels}</span>
+                                            </button>
+                                            <span class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right">
+                                                <lightning-icon icon-name="utility:down" size="x-small" alternative-text="Show Options"></lightning-icon>
+                                            </span>
+                                        </div>
+                                        
+                                        <div id="event-types-dropdown" class="slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox">
+                                            <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                                <template for:each={eventCodeOptionsWithSelection} for:item="option">
+                                                    <li key={option.value} role="presentation" class="slds-listbox__item">
+                                                        <div class="slds-media slds-listbox__option slds-listbox__option_entity" role="option">
+                                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                                <lightning-input 
+                                                                    type="checkbox" 
+                                                                    checked={option.isSelected}
+                                                                    data-event={option.value}
+                                                                    onchange={handleEventSelectionChange}
+                                                                    variant="label-hidden">
+                                                                </lightning-input>
+                                                            </span>
+                                                            <span class="slds-media__body" style="cursor: pointer;" data-event={option.value} onclick={handleEventSelectionChange}>
+                                                                <span class="slds-text-body_regular">{option.label}</span>
+                                                            </span>
+                                                        </div>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-form-element__help">
+                                    Select the webhook events you want to receive notifications for
+                                </div>
+                            </div>
+                            
+                            <!-- Action Button -->
+                            <div class="slds-grid slds-grid_align-end slds-m-top_large">
+                                <lightning-button 
+                                    variant="brand" 
+                                    label="Setup Webhook" 
+                                    onclick={handleSetupWebhook} 
+                                    disabled={isSetupDisabled}
+                                    class="slds-button_stretch">
+                                </lightning-button>
+                            </div>
+                        </div>
+                    </template>
+                     
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+             <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Instructions</h2>
+                
+                <div class="slds-box slds-is-relative slds-scrollable" style="min-height: 300px; max-height: 300px;">
+                    <div class="slds-p-around_medium">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small">
+                            Webhook Setup
+                        </h3>
+                        <p class="slds-m-bottom_medium">
+                            Configure webhooks to receive payment notifications from Adyen to your Salesforce org.
+                        </p>
+                        <ol class="slds-list_ordered slds-m-left_medium">
+                            <li>Enter a description for your webhook</li>
+                            <li>Select the event types</li>
+                            <li>Click <strong>Setup Webhook</strong> to create the webhook</li>
+                        </ol>
+                        
+                        <div class="slds-p-around_small slds-m-top_medium slds-border_top">
+                            <p class="slds-text-heading_small slds-m-bottom_x-small">Event Types:</p>
+                            <ul class="slds-list_dotted slds-m-left_medium">
+                                <li><strong>CAPTURE/CAPTURE_FAILED:</strong> Payment capture events</li>
+                                <li><strong>REFUND/REFUND_FAILED:</strong> Refund processing events</li>
+                                <li><strong>CANCELLATION:</strong> Payment cancellation events</li>
+                                <li><strong>AUTHORISATION:</strong> Payment authorization events</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="slds-m-top_medium slds-text-color_weak">
+                            Note: Your API key must have create webhook permissions in Adyen.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
