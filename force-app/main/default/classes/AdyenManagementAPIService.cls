@@ -78,7 +78,7 @@ public with sharing class AdyenManagementAPIService {
         });
     }
     
-    private static HttpResponse makeHttpRequest(String method, String endpoint, String requestBody) {
+    public static HttpResponse makeHttpRequest(String method, String endpoint, String requestBody) {
         Http http = new Http();
         HttpRequest request = new HttpRequest();
         request.setEndpoint(endpoint);
@@ -93,7 +93,7 @@ public with sharing class AdyenManagementAPIService {
         return response;
     }
     
-    private static String parseErrorMessage(HttpResponse response) {
+    public static String parseErrorMessage(HttpResponse response) {
         String errorMessage = 'HTTP ' + response.getStatusCode() + ': ' + response.getStatus();
         try {
             String responseBody = response.getBody();
