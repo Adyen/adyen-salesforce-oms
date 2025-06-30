@@ -20,9 +20,17 @@ public with sharing class AdyenWebhookService {
             WebhookSetupRequest webhookRequest = buildWebhookRequest(webhookUrl, description);
             String requestBody = JSON.serialize(webhookRequest, true);
             String endpoint = buildEndpoint(adyenAdapter);
-            String responseBody = makeHttpRequest('POST', endpoint, requestBody);
-            return (WebhookSetupResponse) JSON.deserialize(responseBody, WebhookSetupResponse.class);
+            HttpResponse response = AdyenManagementAPIService.makeHttpRequest('POST', endpoint, requestBody);
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                return (WebhookSetupResponse) JSON.deserialize(response.getBody(), WebhookSetupResponse.class);
+            } else {
+                String errorMessage = AdyenManagementAPIService.parseErrorMessage(response);
+                throw new AdyenWebhookException(errorMessage);
+            }
         } catch (Exception e) {
+            if (e instanceof AdyenWebhookException) {
+                throw e;
+            }
             throw new AdyenWebhookException('Error setting up webhook: ' + e.getMessage());
         }
     }
@@ -63,22 +71,5 @@ public with sharing class AdyenWebhookService {
         });
     }
 
-    private static String makeHttpRequest(String method, String endpoint, String requestBody) {
-        Http http = new Http();
-        HttpRequest request = new HttpRequest();
-        request.setEndpoint(endpoint);
-        request.setMethod(method);
-        request.setHeader('Content-Type', 'application/json');
-        if (method != 'GET' && String.isNotBlank(requestBody)) {
-            request.setBody(requestBody);
-        }
-        HttpResponse response = http.send(request);
-        if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-            return response.getBody();
-        } else {
-            throw new AdyenWebhookException('HTTP error: ' + response.getStatusCode() + ' ' + response.getStatus() + ', Body: ' + response.getBody());
-        }
-    }
-    
     public class AdyenWebhookException extends Exception {}
 }
