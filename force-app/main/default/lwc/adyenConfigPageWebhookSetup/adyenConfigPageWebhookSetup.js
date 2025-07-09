@@ -1,7 +1,11 @@
 import { LightningElement } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { subscribe, unsubscribe } from 'lightning/empApi';
 import getWebhookUrl from '@salesforce/apex/AdyenWebhookSetupController.getWebhookUrl';
 import setupWebhook from '@salesforce/apex/AdyenWebhookSetupController.setupWebhook';
+import saveHmacToMetadata from '@salesforce/apex/AdyenWebhookSetupController.saveHmacToMetadata';
+
+const METADATA_UPDATE_TIMEOUT = 10000;
 
 export default class AdyenConfigPageWebhookSetup extends LightningElement {
     description = 'Adyen Webhook for Salesforce OMS';
@@ -11,6 +15,19 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     webhookSetupResult = null;
     setupError = '';
     isDropdownOpen = false;
+    
+    hmacKey = '';
+    hmacGenerationFailed = false;
+    hmacErrorMessage = '';
+    hmacSavedToMetadata = false;
+    isHmacVisible = false;
+    
+    channelName = '/event/Adyen_Metadata_Deployment_Result__e';
+    subscription = null;
+    timeoutId = null;
+    pendingDeploymentId = '';
+    deploymentTimedOut = false;
+    isMetadataSaveLoading = false;
 
     eventCodeOptions = [
         { label: 'CAPTURE', value: 'CAPTURE' },
@@ -23,6 +40,68 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     
     connectedCallback() {
         this.loadWebhookUrl();
+        this.subscribeToDeploymentEvents();
+    }
+    
+    disconnectedCallback() {
+        this.unsubscribeFromDeploymentEvents();
+        this.clearTimeout();
+    }
+    
+    subscribeToDeploymentEvents() {
+        subscribe(this.channelName, -1, (event) => this.handleDeploymentEvent(event))
+            .then(response => {
+                this.subscription = response;
+            })
+            .catch(error => {
+                this.handleError(error);
+            });
+    }
+    
+    unsubscribeFromDeploymentEvents() {
+        if (this.subscription) {
+            unsubscribe(this.subscription);
+            this.subscription = null;
+        }
+    }
+    
+    handleDeploymentEvent(event) {
+        const eventData = event.data.payload;
+        if (eventData.Deployment_Id__c === this.pendingDeploymentId) {
+            this.clearTimeout();
+            this.isMetadataSaveLoading = false;
+            this.pendingDeploymentId = '';
+            
+            if (eventData.Is_Success__c) {
+                this.handleMetadataSaveSuccess();
+            } else {
+                this.handleMetadataSaveError(eventData.Error_Message__c);
+            }
+        }
+    }
+    
+    startTimeout() {
+        this.clearTimeout();
+        this.deploymentTimedOut = false;
+        this.timeoutId = setTimeout(() => {
+            if (this.pendingDeploymentId) {
+                this.isMetadataSaveLoading = false;
+                this.deploymentTimedOut = true;
+                
+                this.showToast(
+                    'Save Taking Longer Than Expected',
+                    'The HMAC key save is still processing. You can continue with other setup steps.',
+                    'warning'
+                );
+            }
+        }, METADATA_UPDATE_TIMEOUT);
+    }
+    
+    clearTimeout() {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+        }
     }
     
     handleDropdownFocusOut(event) {
@@ -89,6 +168,10 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         this.isLoading = true;
         this.setupError = '';
         this.webhookSetupResult = null;
+        this.hmacKey = '';
+        this.hmacGenerationFailed = false;
+        this.hmacErrorMessage = '';
+        this.hmacSavedToMetadata = false;
         
         try {
             const result = await setupWebhook({
@@ -98,10 +181,21 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             
             if (result.isSuccess) {
                 this.webhookSetupResult = result.webhookResponse;
+                this.hmacKey = result.hmacKey || '';
+                this.hmacGenerationFailed = result.hmacGenerationFailed || false;
+                this.hmacErrorMessage = result.hmacErrorMessage || '';
+                
+                let toastMessage = 'Webhook has been successfully configured';
+                if (this.hmacGenerationFailed) {
+                    toastMessage += ', but HMAC generation failed';
+                } else if (this.hmacKey) {
+                    toastMessage += ' with HMAC key generated';
+                }
+                
                 this.showToast(
                     'Webhook Setup Successful',
-                    'Webhook has been successfully configured',
-                    'success'
+                    toastMessage,
+                    this.hmacGenerationFailed ? 'warning' : 'success'
                 );
             } else {
                 this.setupError = result.errorMessage;
@@ -112,6 +206,62 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             this.handleError(error, 'Setup Failed');
         } finally {
             this.isLoading = false;
+        }
+    }
+    
+    async handleSaveHmacToMetadata() {
+        if (!this.hmacKey) {
+            this.showToast('Error', 'No HMAC key available to save.', 'error');
+            return;
+        }
+        
+        this.isMetadataSaveLoading = true;
+        this.deploymentTimedOut = false;
+        
+        try {
+            const deploymentId = await saveHmacToMetadata({ hmacKey: this.hmacKey });
+            
+            this.pendingDeploymentId = deploymentId;
+            this.startTimeout();
+            
+            this.showToast(
+                'HMAC Key Save In Progress',
+                'Saving HMAC key to metadata. This may take a moment.',
+                'info'
+            );
+            
+        } catch (error) {
+            this.isMetadataSaveLoading = false;
+            this.handleError(error, 'Save Failed');
+        }
+    }
+    
+    handleMetadataSaveSuccess() {
+        this.hmacSavedToMetadata = true;
+        this.showToast(
+            'Success',
+            'HMAC key has been saved to metadata successfully.',
+            'success'
+        );
+        
+        this.hmacKey = '';
+    }
+    
+    handleMetadataSaveError(errorMessage) {
+        this.showToast(
+            'Error',
+            'Failed to save HMAC key: ' + (errorMessage || 'Unknown error'),
+            'error'
+        );
+    }
+    
+    handleCopyHmacKey() {
+        if (this.hmacKey) {
+            navigator.clipboard.writeText(this.hmacKey).then(() => {
+                this.showToast('Success', 'HMAC key copied to clipboard', 'success');
+            }).catch(() => {
+                this.showToast('Error', 'Failed to copy HMAC key to clipboard', 'error');
+            });
         }
     }
     
@@ -128,10 +278,18 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         
         return true;
     }
+
+    handleToggleHmacVisibility() {
+        this.isHmacVisible = !this.isHmacVisible;
+    }
     
     handleRefresh() {
         this.webhookSetupResult = null;
         this.setupError = '';
+        this.hmacKey = '';
+        this.hmacGenerationFailed = false;
+        this.hmacErrorMessage = '';
+        this.hmacSavedToMetadata = false;
         this.loadWebhookUrl();
     }
     
@@ -183,5 +341,33 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             ...option,
             isSelected: this.selectedEventCodes.includes(option.value)
         }));
+    }
+    
+    get showHmacSection() {
+        return this.webhookConfigured && (this.hmacKey || this.hmacGenerationFailed || this.hmacSavedToMetadata);
+    }
+    
+    get showHmacKey() {
+        return this.hmacKey && !this.hmacSavedToMetadata;
+    }
+    
+    get showSaveButton() {
+        return this.hmacKey && !this.hmacSavedToMetadata && !this.isMetadataSaveLoading;
+    }
+    
+    get showHmacError() {
+        return this.hmacGenerationFailed && this.hmacErrorMessage;
+    }
+
+    get hmacInputType() {
+        return this.isHmacVisible ? 'text' : 'password';
+    }
+
+    get hmacVisibilityIcon() {
+        return this.isHmacVisible ? 'utility:hide' : 'utility:preview';
+    }
+
+    get hmacVisibilityTitle() {
+        return this.isHmacVisible ? 'Hide HMAC Key' : 'Show HMAC Key';
     }
 }
