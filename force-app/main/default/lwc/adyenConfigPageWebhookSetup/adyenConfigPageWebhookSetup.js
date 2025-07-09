@@ -40,16 +40,16 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     
     connectedCallback() {
         this.loadWebhookUrl();
-        this.subscribeToDeploymentEvents();
+        this.subscribeToHmacDeploymentEvents();
     }
     
     disconnectedCallback() {
-        this.unsubscribeFromDeploymentEvents();
+        this.unsubscribeFromHmacDeploymentEvents();
         this.clearTimeout();
     }
     
-    subscribeToDeploymentEvents() {
-        subscribe(this.channelName, -1, (event) => this.handleDeploymentEvent(event))
+    subscribeToHmacDeploymentEvents() {
+        subscribe(this.channelName, -1, (event) => this.handleHmacDeploymentEvent(event))
             .then(response => {
                 this.subscription = response;
             })
@@ -58,14 +58,14 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             });
     }
     
-    unsubscribeFromDeploymentEvents() {
+    unsubscribeFromHmacDeploymentEvents() {
         if (this.subscription) {
             unsubscribe(this.subscription);
             this.subscription = null;
         }
     }
     
-    handleDeploymentEvent(event) {
+    handleHmacDeploymentEvent(event) {
         const eventData = event.data.payload;
         if (eventData.Deployment_Id__c === this.pendingDeploymentId) {
             this.clearTimeout();

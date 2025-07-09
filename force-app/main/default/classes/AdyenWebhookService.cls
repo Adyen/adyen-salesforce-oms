@@ -79,18 +79,7 @@ public with sharing class AdyenWebhookService {
     }
 
     private static String buildWebhookEndpoint(Adyen_Adapter__mdt adyenAdapter) {
-        if (Test.isRunningTest() && mockAdapter != null) {
-            adyenAdapter = mockAdapter;
-        }
-        if (String.isBlank(adyenAdapter.Management_API_Named_Credential__c)) {
-            throw new AdyenWebhookException('Management API Named Credential field is not configured');
-        }
-        if (String.isBlank(adyenAdapter.Management_API_Version__c)) {
-            throw new AdyenWebhookException('Management API Version field is not configured');
-        }
-        if (String.isBlank(adyenAdapter.Management_API_Webhook_Endpoint__c)) {
-            throw new AdyenWebhookException('Management API Endpoint field is not configured');
-        }
+        adyenAdapter = validateAdapterFields(adyenAdapter);
         String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
         String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
         return String.format('{0}{1}{2}{3}', new List<String>{
@@ -102,6 +91,20 @@ public with sharing class AdyenWebhookService {
     }
     
     private static String buildHmacGenerationEndpoint(Adyen_Adapter__mdt adyenAdapter, String webhookId) {
+        adyenAdapter = validateAdapterFields(adyenAdapter);
+        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
+        String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
+        String safeWebhookId = String.escapeSingleQuotes(webhookId);
+        return String.format('{0}{1}{2}{3}/{4}/generateHmac', new List<String>{
+            baseUrl,
+            adyenAdapter.Management_API_Version__c,
+            adyenAdapter.Management_API_Endpoint_Path__c,
+            adyenAdapter.Management_API_Webhook_Endpoint__c.replace('{merchantId}', adyenAdapter.Merchant_Account__c),
+            safeWebhookId
+        });
+    }
+
+    private static Adyen_Adapter__mdt validateAdapterFields(Adyen_Adapter__mdt adyenAdapter) {
         if (Test.isRunningTest() && mockAdapter != null) {
             adyenAdapter = mockAdapter;
         }
@@ -114,16 +117,7 @@ public with sharing class AdyenWebhookService {
         if (String.isBlank(adyenAdapter.Management_API_Webhook_Endpoint__c)) {
             throw new AdyenWebhookException('Management API Endpoint field is not configured');
         }
-        
-        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
-        String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
-        return String.format('{0}{1}{2}{3}/{4}/generateHmac', new List<String>{
-            baseUrl,
-            adyenAdapter.Management_API_Version__c,
-            adyenAdapter.Management_API_Endpoint_Path__c,
-            adyenAdapter.Management_API_Webhook_Endpoint__c.replace('{merchantId}', adyenAdapter.Merchant_Account__c),
-            webhookId
-        });
+        return adyenAdapter;
     }
 
     public class AdyenWebhookException extends Exception {}
