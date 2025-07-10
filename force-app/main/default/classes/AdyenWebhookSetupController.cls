@@ -7,9 +7,16 @@ public with sharing class AdyenWebhookSetupController {
         public String errorMessage { get; set; }
         @AuraEnabled
         public WebhookSetupResponse webhookResponse { get; set; }
+        @AuraEnabled
+        public String hmacKey { get; set; }
+        @AuraEnabled
+        public Boolean hmacGenerationFailed { get; set; }
+        @AuraEnabled
+        public String hmacErrorMessage { get; set; }
         
         public WebhookSetupResult() {
             this.isSuccess = false;
+            this.hmacGenerationFailed = false;
         }
     }
     
@@ -53,11 +60,35 @@ public with sharing class AdyenWebhookSetupController {
             result.isSuccess = true;
             result.webhookResponse = webhookResponse;
             
+            try {
+                String hmacKey = AdyenWebhookService.generateHmacKey(adyenAdapter, webhookResponse.id);
+                result.hmacKey = hmacKey;
+            } catch (Exception hmacException) {
+                result.hmacGenerationFailed = true;
+                result.hmacErrorMessage = hmacException.getMessage();
+            }
+            
         } catch (Exception e) {
             result.isSuccess = false;
             result.errorMessage = e.getMessage();
         }
         
         return result;
+    }
+    
+    @AuraEnabled
+    public static String saveHmacToMetadata(String hmacKey) {
+        try {
+            if (String.isBlank(hmacKey)) {
+                throw new AuraHandledException('HMAC Key cannot be empty.');
+            }
+            
+            Adyen_Adapter__mdt adapterData = AdyenCustomMetadataService.getDefaultAdapter();
+            adapterData.HMAC_Key__c = hmacKey;
+            
+            return AdyenCustomMetadataService.updateDefaultAdapter(adapterData);
+        } catch (Exception e) {
+            throw new AuraHandledException('Error saving HMAC key to metadata: ' + e.getMessage());
+        }
     }
 }

@@ -96,15 +96,18 @@
                 </template>
                 
                 <template if:true={isSiteURLStep}>
-                    <!-- Placeholder for the Site URL Setup component -->
+                    <c-adyen-config-page-site-endpoint>
+                    </c-adyen-config-page-site-endpoint>
                 </template>
                 
                 <template if:true={isMerchantAccountStep}>
-                    <!-- Placeholder for the Merchant Account Setup component -->
+                    <c-adyen-config-page-merchant-account>
+                    </c-adyen-config-page-merchant-account>
                 </template>
 
                 <template if:true={isWebhookSetupStep}>
-                    <!-- Placeholder for the Webhook Setup component -->
+                    <c-adyen-config-page-webhook-setup>
+                    </c-adyen-config-page-webhook-setup>
                 </template>
             </div>
         </div>

@@ -391,6 +391,40 @@ public class TestDataFactory {
         }
     }
 
+    public class HmacGenerationMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockHmacGenerationResponse(), 200);
+        }
+    }
+
+    public class WebhookSetupWithHmacMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.contains('webhooks') && !endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockWebhookSetupResponse(), 200);
+            } else if (endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockHmacGenerationResponse(), 200);
+            }
+            
+            return mockHttpResponse(mockWebhookSetupResponse(), 200);
+        }
+    }
+
+    public class WebhookSetupWithHmacFailureMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.contains('webhooks') && !endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockWebhookSetupResponse(), 200);
+            } else if (endpoint.contains('generateHmac')) {
+                return mockHttpResponse(genericErrorResponse(), 400);
+            }
+            
+            return mockHttpResponse(mockWebhookSetupResponse(), 200);
+        }
+    }
+
     public class MockMerchantAccountCallout implements HttpCalloutMock {
         public HttpResponse respond(HttpRequest req) {
             return mockHttpResponse(mockFetchMerchantAccountResponse(), 200);
@@ -428,6 +462,10 @@ public class TestDataFactory {
     
     private static String mockWebhookSetupResponse() {
         return '{ "id": "WBHK12345678912345678912345678", "type": "standard", "description": "Test webhook" }';
+    }
+
+    private static String mockHmacGenerationResponse() {
+        return '{ "hmacKey": "test-hmac-key-123456789" }';
     }
 
     public static String mockWebhookRequest(String eventCode, String pspReference, String originalReference, String merchantRef, Boolean success) {
