@@ -21,16 +21,16 @@ public with sharing class AdyenWebhookService {
             String requestBody = JSON.serialize(webhookRequest, true);
             String endpoint = buildWebhookEndpoint(adyenAdapter);
             HttpResponse response = AdyenManagementAPIService.makeHttpRequest('POST', endpoint, requestBody);
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                return (WebhookSetupResponse) JSON.deserialize(response.getBody(), WebhookSetupResponse.class);
-            } else {
+            
+            if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
                 String errorMessage = AdyenManagementAPIService.parseErrorMessage(response);
                 throw new AdyenWebhookException(errorMessage);
             }
+            
+            return (WebhookSetupResponse) JSON.deserialize(response.getBody(), WebhookSetupResponse.class);
+        } catch (AdyenWebhookException e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof AdyenWebhookException) {
-                throw e;
-            }
             throw new AdyenWebhookException('Error setting up webhook: ' + e.getMessage());
         }
     }
@@ -47,17 +47,16 @@ public with sharing class AdyenWebhookService {
             String endpoint = buildHmacGenerationEndpoint(adyenAdapter, webhookId);
             HttpResponse response = AdyenManagementAPIService.makeHttpRequest('POST', endpoint, '{}');
             
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                HmacGenerationResponse hmacResponse = (HmacGenerationResponse) JSON.deserialize(response.getBody(), HmacGenerationResponse.class);
-                return hmacResponse.hmacKey;
-            } else {
+            if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
                 String errorMessage = AdyenManagementAPIService.parseErrorMessage(response);
                 throw new AdyenWebhookException('HMAC generation failed: ' + errorMessage);
             }
+            
+            HmacGenerationResponse hmacResponse = (HmacGenerationResponse) JSON.deserialize(response.getBody(), HmacGenerationResponse.class);
+            return hmacResponse.hmacKey;
+        } catch (AdyenWebhookException e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof AdyenWebhookException) {
-                throw e;
-            }
             throw new AdyenWebhookException('Error generating HMAC key: ' + e.getMessage());
         }
     }
@@ -75,27 +74,26 @@ public with sharing class AdyenWebhookService {
             String requestBody = buildWebhookTestRequest();
             HttpResponse response = AdyenManagementAPIService.makeHttpRequest('POST', endpoint, requestBody);
             
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                WebhookTestResponse testResponse = (WebhookTestResponse) JSON.deserialize(response.getBody(), WebhookTestResponse.class);
-                
-                if (testResponse.data != null && !testResponse.data.isEmpty()) {
-                    for (TestNotificationItem item : testResponse.data) {
-                        if (item.status != null && item.status.toLowerCase() == 'failed') {
-                            throw new AdyenWebhookException('Webhook test failed: ' + 
-                                (String.isNotBlank(item.output) ? item.output : 'Test notification was not successfully delivered'));
-                        }
-                    }
-                }
-                
-                return testResponse;
-            } else {
+            if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
                 String errorMessage = AdyenManagementAPIService.parseErrorMessage(response);
                 throw new AdyenWebhookException('Webhook test failed: ' + errorMessage);
             }
-        } catch (Exception e) {
-            if (e instanceof AdyenWebhookException) {
-                throw e;
+            
+            WebhookTestResponse testResponse = (WebhookTestResponse) JSON.deserialize(response.getBody(), WebhookTestResponse.class);
+            
+            if (testResponse.data != null) {
+                for (TestNotificationItem item : testResponse.data) {
+                    if (item.status != null && item.status.toLowerCase() == 'failed') {
+                        throw new AdyenWebhookException('Webhook test failed: ' + 
+                            (String.isNotBlank(item.output) ? item.output : 'Test notification was not successfully delivered'));
+                    }
+                }
             }
+            
+            return testResponse;
+        } catch (AdyenWebhookException e) {
+            throw e;
+        } catch (Exception e) {
             throw new AdyenWebhookException('Error testing webhook: ' + e.getMessage());
         }
     }
