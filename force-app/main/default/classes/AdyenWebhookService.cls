@@ -62,6 +62,44 @@ public with sharing class AdyenWebhookService {
         }
     }
 
+    public static WebhookTestResponse testWebhook(Adyen_Adapter__mdt adyenAdapter, String webhookId) {
+        if (adyenAdapter == null || String.isBlank(adyenAdapter.Merchant_Account__c)) {
+            throw new AdyenWebhookException('Merchant Account is required for webhook testing');
+        }
+        if (String.isBlank(webhookId)) {
+            throw new AdyenWebhookException('Webhook ID is required for webhook testing');
+        }
+        
+        try {
+            String endpoint = buildWebhookTestEndpoint(adyenAdapter, webhookId);
+            String requestBody = buildWebhookTestRequest();
+            HttpResponse response = AdyenManagementAPIService.makeHttpRequest('POST', endpoint, requestBody);
+            
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                WebhookTestResponse testResponse = (WebhookTestResponse) JSON.deserialize(response.getBody(), WebhookTestResponse.class);
+                
+                if (testResponse.data != null && !testResponse.data.isEmpty()) {
+                    for (TestNotificationItem item : testResponse.data) {
+                        if (item.status != null && item.status.toLowerCase() == 'failed') {
+                            throw new AdyenWebhookException('Webhook test failed: ' + 
+                                (String.isNotBlank(item.output) ? item.output : 'Test notification was not successfully delivered'));
+                        }
+                    }
+                }
+                
+                return testResponse;
+            } else {
+                String errorMessage = AdyenManagementAPIService.parseErrorMessage(response);
+                throw new AdyenWebhookException('Webhook test failed: ' + errorMessage);
+            }
+        } catch (Exception e) {
+            if (e instanceof AdyenWebhookException) {
+                throw e;
+            }
+            throw new AdyenWebhookException('Error testing webhook: ' + e.getMessage());
+        }
+    }
+
     private static WebhookSetupRequest buildWebhookRequest(String webhookUrl, String description, List<String> eventCodes) {
         WebhookSetupRequest webhookRequest = new WebhookSetupRequest();
         webhookRequest.url = webhookUrl;
@@ -104,6 +142,36 @@ public with sharing class AdyenWebhookService {
         });
     }
 
+    private static String buildWebhookTestEndpoint(Adyen_Adapter__mdt adyenAdapter, String webhookId) {
+        adyenAdapter = validateAdapterFields(adyenAdapter);
+        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
+        String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
+        String safeWebhookId = String.escapeSingleQuotes(webhookId);
+        return String.format('{0}{1}{2}{3}/{4}/test', new List<String>{
+            baseUrl,
+            adyenAdapter.Management_API_Version__c,
+            adyenAdapter.Management_API_Endpoint_Path__c,
+            adyenAdapter.Management_API_Webhook_Endpoint__c.replace('{merchantId}', adyenAdapter.Merchant_Account__c),
+            safeWebhookId
+        });
+    }
+
+    private static String buildWebhookTestRequest() {
+        WebhookTestRequest testRequest = new WebhookTestRequest();
+        testRequest.notification = new TestNotification();
+        testRequest.notification.paymentMethod = 'visa';
+        testRequest.notification.eventCode = 'CAPTURE';
+        testRequest.notification.amount = new TestAmount();
+        testRequest.notification.amount.currency_x = 'EUR';
+        testRequest.notification.amount.value = 1000;
+        testRequest.notification.reason = '';
+        testRequest.notification.success = true;
+        testRequest.types = new List<String>{'CUSTOM'};
+        
+        String jsonRequest = JSON.serialize(testRequest, true);
+        return AdyenPaymentUtility.makeAdyenCompatible(jsonRequest);
+    }
+
     private static Adyen_Adapter__mdt validateAdapterFields(Adyen_Adapter__mdt adyenAdapter) {
         if (Test.isRunningTest() && mockAdapter != null) {
             adyenAdapter = mockAdapter;
@@ -124,5 +192,37 @@ public with sharing class AdyenWebhookService {
     
     public class HmacGenerationResponse {
         public String hmacKey { get; set; }
+    }
+
+    public class WebhookTestResponse {
+        public String status { get; set; }
+        public List<TestNotificationItem> data { get; set; }
+    }
+
+    public class TestNotificationItem {
+        public String merchantId { get; set; }
+        public String output { get; set; }
+        public String requestSent { get; set; }
+        public String responseCode { get; set; }
+        public String responseTime { get; set; }
+        public String status { get; set; }
+    }
+
+    public class WebhookTestRequest {
+        public TestNotification notification { get; set; }
+        public List<String> types { get; set; }
+    }
+
+    public class TestNotification {
+        public String paymentMethod { get; set; }
+        public String eventCode { get; set; }
+        public TestAmount amount { get; set; }
+        public String reason { get; set; }
+        public Boolean success { get; set; }
+    }
+
+    public class TestAmount {
+        public String currency_x { get; set; }
+        public Integer value { get; set; }
     }
 }

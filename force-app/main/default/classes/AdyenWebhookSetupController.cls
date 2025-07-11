@@ -4,6 +4,8 @@ public with sharing class AdyenWebhookSetupController {
         @AuraEnabled
         public Boolean isSuccess { get; set; }
         @AuraEnabled
+        public String webhookId { get; set; }
+        @AuraEnabled
         public String errorMessage { get; set; }
         @AuraEnabled
         public WebhookSetupResponse webhookResponse { get; set; }
@@ -17,6 +19,19 @@ public with sharing class AdyenWebhookSetupController {
         public WebhookSetupResult() {
             this.isSuccess = false;
             this.hmacGenerationFailed = false;
+        }
+    }
+
+    public class WebhookTestResult {
+        @AuraEnabled
+        public Boolean isSuccess { get; set; }
+        @AuraEnabled
+        public String errorMessage { get; set; }
+        @AuraEnabled
+        public AdyenWebhookService.WebhookTestResponse testResponse { get; set; }
+        
+        public WebhookTestResult() {
+            this.isSuccess = false;
         }
     }
     
@@ -59,6 +74,7 @@ public with sharing class AdyenWebhookSetupController {
             
             result.isSuccess = true;
             result.webhookResponse = webhookResponse;
+            result.webhookId = webhookResponse.id;
             
             try {
                 String hmacKey = AdyenWebhookService.generateHmacKey(adyenAdapter, webhookResponse.id);
@@ -90,5 +106,29 @@ public with sharing class AdyenWebhookSetupController {
         } catch (Exception e) {
             throw new AuraHandledException('Error saving HMAC key to metadata: ' + e.getMessage());
         }
+    }
+
+    @AuraEnabled
+    public static WebhookTestResult testWebhook(String webhookId) {
+        WebhookTestResult result = new WebhookTestResult();
+        
+        try {
+            if (String.isBlank(webhookId)) {
+                throw new HandledException('Webhook ID cannot be empty.');
+            }
+            
+            Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
+            
+            AdyenWebhookService.WebhookTestResponse testResponse = AdyenWebhookService.testWebhook(adyenAdapter, webhookId);
+            
+            result.isSuccess = true;
+            result.testResponse = testResponse;
+            
+        } catch (Exception e) {
+            result.isSuccess = false;
+            result.errorMessage = e.getMessage();
+        }
+        
+        return result;
     }
 }
