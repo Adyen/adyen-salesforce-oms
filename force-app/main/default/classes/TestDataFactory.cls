@@ -397,6 +397,44 @@ public class TestDataFactory {
         }
     }
 
+    public class WebhookTestMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            if (req.getBody() != null && req.getBody().contains('notification') && req.getBody().contains('types')) {
+                Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
+                Map<String, Object> notification = (Map<String, Object>)requestBody.get('notification');
+                List<Object> types = (List<Object>)requestBody.get('types');
+                
+                if (notification != null && types != null && types.contains('CUSTOM')) {
+                    Map<String, Object> amount = (Map<String, Object>)notification.get('amount');
+                    if (amount != null && amount.containsKey('currency') && amount.get('currency') == 'EUR') {
+                        return mockHttpResponse(mockWebhookTestResponse(), 200);
+                    }
+                }
+            }
+            
+            return mockHttpResponse('{"status": "error", "message": "Invalid request body"}', 400);
+        }
+    }
+
+    public class WebhookTestFailureMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            if (req.getBody() != null && req.getBody().contains('notification') && req.getBody().contains('types')) {
+                Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
+                Map<String, Object> notification = (Map<String, Object>)requestBody.get('notification');
+                List<Object> types = (List<Object>)requestBody.get('types');
+                
+                if (notification != null && types != null && types.contains('CUSTOM')) {
+                    Map<String, Object> amount = (Map<String, Object>)notification.get('amount');
+                    if (amount != null && amount.containsKey('currency') && amount.get('currency') == 'EUR') {
+                        return mockHttpResponse(mockWebhookTestFailureResponse(), 200);
+                    }
+                }
+            }
+            
+            return mockHttpResponse('{"status": "error", "message": "Invalid request body"}', 400);
+        }
+    }
+
     public class WebhookSetupWithHmacMockResponse implements HttpCalloutMock {
         public HttpResponse respond(HttpRequest req) {
             String endpoint = req.getEndpoint();
@@ -466,6 +504,14 @@ public class TestDataFactory {
 
     private static String mockHmacGenerationResponse() {
         return '{ "hmacKey": "test-hmac-key-123456789" }';
+    }
+
+    private static String mockWebhookTestResponse() {
+        return '{ "data": [{"merchantId": "TestMerchantAccount", "output": "", "requestSent": "{\\"live\\":\\"false\\",\\"notificationItems\\":[{\\"NotificationRequestItem\\":{\\"amount\\":{\\"currency\\":\\"EUR\\",\\"value\\":1000},\\"eventCode\\":\\"CAPTURE\\",\\"eventDate\\":\\"2024-01-01T01:00:00+01:00\\",\\"merchantAccountCode\\":\\"TestMerchantAccount\\",\\"merchantReference\\":\\"TEST-REF\\",\\"paymentMethod\\":\\"visa\\",\\"pspReference\\":\\"TEST-PSP-REF\\",\\"reason\\":\\"\\",\\"success\\":\\"true\\"}}]}", "responseCode": "200", "responseTime": "123 ms", "status": "success"}] }';
+    }
+
+    private static String mockWebhookTestFailureResponse() {
+        return '{ "data": [{"merchantId": "TestMerchantAccount", "output": "Connection refused", "requestSent": "{\\"live\\":\\"false\\",\\"notificationItems\\":[{\\"NotificationRequestItem\\":{\\"amount\\":{\\"currency\\":\\"EUR\\",\\"value\\":1000},\\"eventCode\\":\\"CAPTURE\\",\\"eventDate\\":\\"2024-01-01T01:00:00+01:00\\",\\"merchantAccountCode\\":\\"TestMerchantAccount\\",\\"merchantReference\\":\\"TEST-REF\\",\\"paymentMethod\\":\\"visa\\",\\"pspReference\\":\\"TEST-PSP-REF\\",\\"reason\\":\\"\\",\\"success\\":\\"true\\"}}]}", "responseCode": "500", "responseTime": "5000 ms", "status": "failed"}] }';
     }
 
     public static String mockWebhookRequest(String eventCode, String pspReference, String originalReference, String merchantRef, Boolean success) {

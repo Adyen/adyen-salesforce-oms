@@ -171,4 +171,126 @@ private class AdyenWebhookServiceTest {
         }
         Test.stopTest();
     }
+
+    @IsTest
+    static void testWebhookSuccessTest() {
+        // Given
+        AdyenWebhookService.mockAdapter = new Adyen_Adapter__mdt(
+            Merchant_Account__c = 'TestMerchant',
+            Management_API_Named_Credential__c = 'TestCredential',
+            Management_API_Version__c = 'v3',
+            Management_API_Webhook_Endpoint__c = '/{merchantId}/webhooks',
+            Management_API_Endpoint_Path__c = '/merchants',
+            Package_Namespace__c = ''
+        );
+        String webhookId = 'test-webhook-id';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.WebhookTestMockResponse());
+
+        // When
+        Test.startTest();
+        AdyenWebhookService.WebhookTestResponse result = AdyenWebhookService.testWebhook(AdyenWebhookService.mockAdapter, webhookId);
+        Test.stopTest();
+
+        // Then
+        Assert.isNotNull(result);
+        Assert.isNotNull(result.data);
+        Assert.isTrue(result.data.size() > 0);
+        Assert.areEqual('success', result.data[0].status);
+    }
+
+    @IsTest
+    static void testWebhookFailureTest() {
+        // Given
+        AdyenWebhookService.mockAdapter = new Adyen_Adapter__mdt(
+            Merchant_Account__c = 'TestMerchant',
+            Management_API_Named_Credential__c = 'TestCredential',
+            Management_API_Version__c = 'v3',
+            Management_API_Webhook_Endpoint__c = '/{merchantId}/webhooks',
+            Management_API_Endpoint_Path__c = '/merchants',
+            Package_Namespace__c = ''
+        );
+        String webhookId = 'test-webhook-id';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.WebhookTestFailureMockResponse());
+
+        // When
+        Test.startTest();
+        try {
+            AdyenWebhookService.testWebhook(AdyenWebhookService.mockAdapter, webhookId);
+            Assert.fail('Expected Exception was not thrown');
+        } catch (Exception e) {
+            // Then
+            Assert.isInstanceOfType(e, AdyenWebhookService.AdyenWebhookException.class);
+            Assert.isTrue(e.getMessage().contains('Webhook test failed'));
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void testWebhookMissingMerchantAccountTest() {
+        // Given & When
+        Test.startTest();
+        try {
+            AdyenWebhookService.testWebhook(null, 'test-webhook-id');
+            Assert.fail('Expected Exception was not thrown');
+        } catch (Exception e) {
+            // Then
+            Assert.isInstanceOfType(e, AdyenWebhookService.AdyenWebhookException.class);
+            Assert.areEqual('Merchant Account is required for webhook testing', e.getMessage());
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void testWebhookMissingWebhookIdTest() {
+        // Given
+        AdyenWebhookService.mockAdapter = new Adyen_Adapter__mdt(
+            Merchant_Account__c = 'TestMerchant',
+            Management_API_Named_Credential__c = 'TestCredential',
+            Management_API_Version__c = 'v3',
+            Management_API_Webhook_Endpoint__c = '/{merchantId}/webhooks',
+            Management_API_Endpoint_Path__c = '/merchants',
+            Package_Namespace__c = ''
+        );
+
+        // When
+        Test.startTest();
+        try {
+            AdyenWebhookService.testWebhook(AdyenWebhookService.mockAdapter, null);
+            Assert.fail('Expected Exception was not thrown');
+        } catch (Exception e) {
+            // Then
+            Assert.isInstanceOfType(e, AdyenWebhookService.AdyenWebhookException.class);
+            Assert.areEqual('Webhook ID is required for webhook testing', e.getMessage());
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void testWebhookHttpFailureTest() {
+        // Given
+        AdyenWebhookService.mockAdapter = new Adyen_Adapter__mdt(
+            Merchant_Account__c = 'TestMerchant',
+            Management_API_Named_Credential__c = 'TestCredential',
+            Management_API_Version__c = 'v3',
+            Management_API_Webhook_Endpoint__c = '/{merchantId}/webhooks',
+            Management_API_Endpoint_Path__c = '/merchants',
+            Package_Namespace__c = ''
+        );
+        String webhookId = 'test-webhook-id';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.FailureResponse());
+
+        // When
+        Test.startTest();
+        try {
+            AdyenWebhookService.testWebhook(AdyenWebhookService.mockAdapter, webhookId);
+            Assert.fail('Expected Exception was not thrown');
+        } catch (Exception e) {
+            // Then
+            Assert.isInstanceOfType(e, AdyenWebhookService.AdyenWebhookException.class);
+        }
+        Test.stopTest();
+    }
 }
