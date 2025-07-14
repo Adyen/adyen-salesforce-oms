@@ -4,6 +4,7 @@ import { subscribe, unsubscribe } from 'lightning/empApi';
 import getWebhookUrl from '@salesforce/apex/AdyenWebhookSetupController.getWebhookUrl';
 import setupWebhook from '@salesforce/apex/AdyenWebhookSetupController.setupWebhook';
 import saveHmacToMetadata from '@salesforce/apex/AdyenWebhookSetupController.saveHmacToMetadata';
+import testWebhook from '@salesforce/apex/AdyenWebhookSetupController.testWebhook';
 
 const METADATA_UPDATE_TIMEOUT = 10000;
 
@@ -180,7 +181,7 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             });
             
             if (result.isSuccess) {
-                this.webhookSetupResult = result.webhookResponse;
+                this.webhookSetupResult = result;
                 this.hmacKey = result.hmacKey || '';
                 this.hmacGenerationFailed = result.hmacGenerationFailed || false;
                 this.hmacErrorMessage = result.hmacErrorMessage || '';
@@ -254,7 +255,42 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             'error'
         );
     }
-    
+
+    async handleTestWebhook() {
+        if (!this.webhookSetupResult?.webhookId) {
+            this.showToast('Error', 'No webhook ID available for testing.', 'error');
+            return;
+        }
+
+        this.isLoading = true;
+
+        try {
+            const result = await testWebhook({ webhookId: this.webhookSetupResult.webhookId });
+            
+            if (result.isSuccess) {
+                this.showToast(
+                    'Webhook Test Successful',
+                    'Webhook test completed successfully. Your webhook is working properly.',
+                    'success'
+                );
+            } else {
+                this.showToast(
+                    'Webhook Test Failed',
+                    result.errorMessage || 'Webhook test failed. Please check your configuration.',
+                    'error'
+                );
+            }
+        } catch (error) {
+            this.showToast(
+                'Webhook Test Error',
+                error.message || 'An error occurred while testing the webhook.',
+                'error'
+            );
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
     handleCopyHmacKey() {
         if (this.hmacKey) {
             navigator.clipboard.writeText(this.hmacKey).then(() => {
@@ -357,6 +393,10 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     
     get showHmacError() {
         return this.hmacGenerationFailed && this.hmacErrorMessage;
+    }
+
+    get showTestWebhookButton() {
+        return this.webhookConfigured && this.webhookSetupResult?.webhookId && this.hmacSavedToMetadata;
     }
 
     get hmacInputType() {

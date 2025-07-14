@@ -173,4 +173,84 @@ private class AdyenWebhookSetupControllerTest {
         }
         Test.stopTest();
     }
+
+    @IsTest
+    static void testWebhookSuccessTest() {
+        // Given
+        String webhookId = 'WBHK12345678912345678912345678';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.WebhookTestMockResponse());
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookTestResult result = AdyenWebhookSetupController.testWebhook(webhookId);
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isTrue(result.isSuccess, 'Test should be successful');
+        Assert.isNotNull(result.testResponse.data, 'Test response data should not be null');
+        Assert.isTrue(result.testResponse.data.size() > 0, 'Test response data should contain items');
+        Assert.areEqual('success', result.testResponse.data[0].status, 'Test response status should be success');
+    }
+
+    @IsTest
+    static void testWebhookFailureTest() {
+        // Given
+        String webhookId = 'WBHK12345678912345678912345678';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.WebhookTestFailureMockResponse());
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookTestResult result = AdyenWebhookSetupController.testWebhook(webhookId);
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isFalse(result.isSuccess, 'Test should fail');
+        Assert.isNull(result.testResponse, 'Test response should be null on failure');
+    }
+
+    @IsTest
+    static void testWebhookEmptyWebhookIdTest() {
+        // Given
+        String webhookId = '';
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookTestResult result = AdyenWebhookSetupController.testWebhook(webhookId);
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isFalse(result.isSuccess, 'Test should fail');
+    }
+
+    @IsTest
+    static void testWebhookHttpFailureTest() {
+        // Given
+        String webhookId = 'WBHK12345678912345678912345678';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.FailureResponse());
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookTestResult result = AdyenWebhookSetupController.testWebhook(webhookId);
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isFalse(result.isSuccess, 'Test should fail');
+        Assert.isNotNull(result.errorMessage, 'Error message should not be null');
+        Assert.isNull(result.testResponse, 'Test response should be null on failure');
+    }
 }
