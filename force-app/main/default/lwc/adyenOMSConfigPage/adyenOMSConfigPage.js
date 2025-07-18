@@ -9,7 +9,8 @@ export default class AdyenOMSConfigPage extends LightningElement {
         { value: 'namedCredential', label: 'Named Credentials' },
         { value: 'siteURL', label: 'Site URL Setup' },
         { value: 'merchantAccount', label: 'Merchant Account' },
-        { value: 'webhookSetup', label: 'Webhook Setup' }
+        { value: 'webhookSetup', label: 'Webhook Setup' },
+        { value: 'pageLayoutSetup', label: 'Page Layout Setup' }
     ];
     
     handleStepClick(event) {
@@ -77,6 +78,10 @@ export default class AdyenOMSConfigPage extends LightningElement {
     get isWebhookSetupStep() {
         return this.currentStep === 'webhookSetup';
     }
+
+    get isPageLayoutSetupStep() {
+        return this.currentStep === 'pageLayoutSetup';
+    }
     
     get isFirstStep() {
         const currentIndex = this.steps.findIndex(step => step.value === this.currentStep);
@@ -121,6 +126,10 @@ export default class AdyenOMSConfigPage extends LightningElement {
     
     get webhookSetupStepClass() {
         return this.getStepClass('webhookSetup');
+    }
+
+    get pageLayoutSetupStepClass() {
+        return this.getStepClass('pageLayoutSetup');
     }
 
 }

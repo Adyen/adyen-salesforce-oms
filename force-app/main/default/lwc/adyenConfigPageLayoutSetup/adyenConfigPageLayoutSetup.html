@@ -1,0 +1,140 @@
+<template>
+    <div class="slds-grid slds-gutters">
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-m-bottom_medium slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Set up Page Layouts</h2>
+                
+                <template if:true={showSpinner}>
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </template>
+                
+                <div class="slds-box slds-is-relative" style="min-height: 300px;">
+                    <div class="slds-m-bottom_large">
+                        <div class="slds-grid slds-grid_align-spread slds-p-vertical_medium">
+                            <div class="slds-col slds-size_3-of-5">
+                                <lightning-button 
+                                    variant="neutral" 
+                                    label="Setup Sales Channel Layouts"
+                                    icon-name="utility:page"
+                                    icon-position="left"
+                                    data-action="salesChannelLayout"
+                                    data-instructiontype="salesChannelLayout"
+                                    onmouseover={handleButtonMouseOver}
+                                    onclick={handleSetupSalesChannelLayout} 
+                                    stretch>
+                                </lightning-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="slds-m-bottom_large">
+                        <div class="slds-grid slds-grid_align-spread slds-p-vertical_medium">
+                            <div class="slds-col slds-size_3-of-5">
+                                <lightning-button 
+                                    variant="neutral" 
+                                    label="Setup Payment Layout"
+                                    icon-name="utility:page"
+                                    icon-position="left"
+                                    data-action="paymentLayout"
+                                    data-instructiontype="paymentLayout"
+                                    onmouseover={handleButtonMouseOver}
+                                    onclick={handleSetupPaymentLayout} 
+                                    stretch>
+                                </lightning-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="slds-m-bottom_large">
+                        <div class="slds-grid slds-grid_align-spread slds-p-vertical_medium">
+                            <div class="slds-col slds-size_3-of-5">
+                                <lightning-button 
+                                    variant="neutral" 
+                                    label="Setup Payment Authorization Layout"
+                                    icon-name="utility:page"
+                                    icon-position="left"
+                                    data-action="paymentAuthorizationLayout"
+                                    data-instructiontype="paymentAuthorizationLayout"
+                                    onmouseover={handleButtonMouseOver}
+                                    onclick={handleSetupPaymentAuthorizationLayout} 
+                                    stretch>
+                                </lightning-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Instructions</h2>
+                
+                <div class="slds-box slds-is-relative slds-scrollable" style="min-height: 300px; max-height: 300px;">
+                    <template if:true={showDefaultInstructions}>
+                        <div class="slds-p-around_medium">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small">
+                                Set up page layouts for Adyen fields across different objects.
+                            </h3>
+                            <ol class="slds-list_dotted slds-m-left_medium">
+                                <li>Hover over each button to view step-by-step instructions.</li>
+                                <li>Click a button to open the relevant Page Layouts setup page.</li>
+                                <li>Add the required Adyen fields to your page layouts.</li>
+                            </ol>
+                        </div>
+                    </template>
+                    
+                    <template if:true={showSalesChannelLayoutInstructions}>
+                        <div class="slds-p-around_medium">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small">Setup Sales Channel Page Layout</h3>
+                            <ol class="slds-list_ordered slds-m-left_medium">
+                                <li>Select the page layout that you want the new Adyen Merchant Account field to appear in.</li>
+                                <li>Drag and drop the <strong>Adyen Merchant Account</strong> field to your selected layout.</li>
+                                <li>Click Save.</li>
+                            </ol>
+                            <div class="slds-m-top_medium slds-p-around_small slds-theme_shade">
+                                <p class="slds-text-body_small">
+                                    <strong>Note:</strong> The Adyen Merchant Account field is used to associate each Sales Channel with the appropriate Adyen merchant account.
+                                </p>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <template if:true={showPaymentLayoutInstructions}>
+                        <div class="slds-p-around_medium">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small">Setup Payment Page Layout</h3>
+                            <ol class="slds-list_ordered slds-m-left_medium">
+                                <li>Select the page layout that you want the new Adyen fields to appear in.</li>
+                                <li>Drag and drop the <strong>Adyen Payment Method</strong> field to your selected layout.</li>
+                                <li>Drag and drop the <strong>Adyen Payment Method Variant</strong> field to your selected layout.</li>
+                                <li>Click Save.</li>
+                            </ol>
+                            <div class="slds-m-top_medium slds-p-around_small slds-theme_shade">
+                                <p class="slds-text-body_small">
+                                    <strong>Note:</strong> These fields provide visibility into payment method details.
+                                </p>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <template if:true={showPaymentAuthorizationLayoutInstructions}>
+                        <div class="slds-p-around_medium">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small">Setup Payment Authorization Page Layout</h3>
+                            <ol class="slds-list_ordered slds-m-left_medium">
+                                <li>Click on Page Layouts and select the page layout that you want the new Adyen fields to appear in.</li>
+                                <li>Drag and drop the <strong>Adyen Payment Method</strong> field to your selected layout.</li>
+                                <li>Drag and drop the <strong>Adyen Payment Method Variant</strong> field to your selected layout.</li>
+                                <li>Click Save.</li>
+                            </ol>
+                            <div class="slds-m-top_medium slds-p-around_small slds-theme_shade">
+                                <p class="slds-text-body_small">
+                                    <strong>Note:</strong> These fields provide visibility into payment method details.
+                                </p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
