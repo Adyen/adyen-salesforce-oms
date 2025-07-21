@@ -2,6 +2,18 @@ import { LightningElement } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getSetupPageUrls from '@salesforce/apex/AdyenConfigPageController.getSetupPageUrls';
 
+const BUTTON_CONFIG = {
+    salesChannelLayout: {
+        urlKey: 'salesChannelLayouts',
+    },
+    paymentLayout: {
+        urlKey: 'paymentLayouts',
+    },
+    paymentAuthorizationLayout: {
+        urlKey: 'paymentAuthorizationLayouts',
+    }
+};
+
 export default class AdyenConfigPageLayoutSetup extends LightningElement {
     setupUrls = {};
     showSpinner = false;
@@ -39,33 +51,15 @@ export default class AdyenConfigPageLayoutSetup extends LightningElement {
         }
     }
     
-    handleSetupSalesChannelLayout() {
-        if (this.setupUrls.salesChannelLayouts) {
-            window.open(this.setupUrls.salesChannelLayouts, '_blank');
-        } else {
-            this.showToast('Error', 'Unable to open Sales Channel page layouts setup page.', 'error');
-        }
-    }
-    
-    handleSetupPaymentLayout() {
-        if (this.setupUrls.paymentLayouts) {
-            window.open(this.setupUrls.paymentLayouts, '_blank');
-        } else {
-            this.showToast('Error', 'Unable to open Payment page layouts setup page.', 'error');
-        }
-    }
-    
-    handleSetupPaymentAuthorizationLayout() {
-        if (this.setupUrls.paymentAuthorizationLayouts) {
-            window.open(this.setupUrls.paymentAuthorizationLayouts, '_blank');
-        } else {
-            this.showToast('Error', 'Unable to open Payment Authorization page layouts setup page.', 'error');
-        }
-    }
+    handleNavigateToSetup(event) {
+        const action = event.currentTarget.dataset.action;
+        const config = BUTTON_CONFIG[action];
 
-    handleButtonMouseOver(event) {
-        const instructionType = event.currentTarget.dataset.instructiontype;
-        this.currentInstructionSet = instructionType;
+        if (config && this.setupUrls[config.urlKey]) {
+            window.open(this.setupUrls[config.urlKey], '_blank');
+        } else {
+            this.showToast('Error', 'Unable to open the page layouts setup page.', 'error');
+        }
     }
     
     handleError(error) {
@@ -81,5 +75,9 @@ export default class AdyenConfigPageLayoutSetup extends LightningElement {
                 variant: variant
             })
         );
+    }
+
+    handleButtonMouseOver(event) {
+        this.currentInstructionSet = event.currentTarget.dataset.action;
     }
 }

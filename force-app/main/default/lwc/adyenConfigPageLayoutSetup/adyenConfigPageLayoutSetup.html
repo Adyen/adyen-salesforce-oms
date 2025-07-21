@@ -18,9 +18,8 @@
                                     icon-name="utility:page"
                                     icon-position="left"
                                     data-action="salesChannelLayout"
-                                    data-instructiontype="salesChannelLayout"
                                     onmouseover={handleButtonMouseOver}
-                                    onclick={handleSetupSalesChannelLayout} 
+                                    onclick={handleNavigateToSetup} 
                                     stretch>
                                 </lightning-button>
                             </div>
@@ -36,9 +35,8 @@
                                     icon-name="utility:page"
                                     icon-position="left"
                                     data-action="paymentLayout"
-                                    data-instructiontype="paymentLayout"
                                     onmouseover={handleButtonMouseOver}
-                                    onclick={handleSetupPaymentLayout} 
+                                    onclick={handleNavigateToSetup} 
                                     stretch>
                                 </lightning-button>
                             </div>
@@ -54,9 +52,8 @@
                                     icon-name="utility:page"
                                     icon-position="left"
                                     data-action="paymentAuthorizationLayout"
-                                    data-instructiontype="paymentAuthorizationLayout"
                                     onmouseover={handleButtonMouseOver}
-                                    onclick={handleSetupPaymentAuthorizationLayout} 
+                                    onclick={handleNavigateToSetup} 
                                     stretch>
                                 </lightning-button>
                             </div>
@@ -121,7 +118,7 @@
                         <div class="slds-p-around_medium">
                             <h3 class="slds-text-heading_small slds-m-bottom_small">Setup Payment Authorization Page Layout</h3>
                             <ol class="slds-list_ordered slds-m-left_medium">
-                                <li>Click on Page Layouts and select the page layout that you want the new Adyen fields to appear in.</li>
+                                <li>Select the page layout that you want the new Adyen fields to appear in.</li>
                                 <li>Drag and drop the <strong>Adyen Payment Method</strong> field to your selected layout.</li>
                                 <li>Drag and drop the <strong>Adyen Payment Method Variant</strong> field to your selected layout.</li>
                                 <li>Click Save.</li>
