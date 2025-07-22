@@ -76,13 +76,19 @@ private class AdyenConfigPageControllerTest {
 
         // Then
         Assert.areNotEqual(null, urls);
-        Assert.areEqual(5, urls.size());
+        Assert.areEqual(8, urls.size());
 
         Assert.isTrue(urls.containsKey('checkoutNamedCredential'));
         Assert.isTrue(urls.containsKey('managementApiNamedCredential'));
         Assert.isTrue(urls.containsKey('permissionSet'));
+        Assert.isTrue(urls.containsKey('salesChannelLayouts'));
+        Assert.isTrue(urls.containsKey('paymentLayouts'));
+        Assert.isTrue(urls.containsKey('paymentAuthorizationLayouts'));
         Assert.isTrue(urls.get('checkoutNamedCredential').startsWith(baseUrl + '/lightning/setup/NamedCredential/'));
         Assert.isTrue(urls.get('managementApiNamedCredential').startsWith(baseUrl + '/lightning/setup/NamedCredential/'));
         Assert.isTrue(urls.get('webhookNamedCredential').startsWith(baseUrl + '/lightning/setup/NamedCredential/'));
+        Assert.isTrue(urls.get('salesChannelLayouts').startsWith(baseUrl + '/lightning/setup/ObjectManager/SalesChannel/PageLayouts/'));
+        Assert.isTrue(urls.get('paymentLayouts').startsWith(baseUrl + '/lightning/setup/ObjectManager/Payment/PageLayouts/'));
+        Assert.isTrue(urls.get('paymentAuthorizationLayouts').startsWith(baseUrl + '/lightning/setup/ObjectManager/PaymentAuthorization/PageLayouts/'));
     }
 }
