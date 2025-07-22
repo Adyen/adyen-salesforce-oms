@@ -81,6 +81,9 @@ public with sharing class AdyenConfigPageController {
         setupUrls.put('permissionSet', baseUrl + '/lightning/setup/PermSets/home');
         setupUrls.put('siteSetup', baseUrl + '/lightning/setup/CustomDomain/home');
         setupUrls.put('webhookNamedCredential', baseUrl + '/lightning/setup/NamedCredential/' + getNamedCredential(AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME)?.Id + '/view');
+        setupUrls.put('salesChannelLayouts', baseUrl + '/lightning/setup/ObjectManager/SalesChannel/PageLayouts/view');
+        setupUrls.put('paymentLayouts', baseUrl + '/lightning/setup/ObjectManager/Payment/PageLayouts/view');
+        setupUrls.put('paymentAuthorizationLayouts', baseUrl + '/lightning/setup/ObjectManager/PaymentAuthorization/PageLayouts/view');
     
         return setupUrls;
     }
