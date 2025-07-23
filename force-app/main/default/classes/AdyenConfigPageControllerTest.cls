@@ -96,7 +96,7 @@ private class AdyenConfigPageControllerTest {
     static void testGetPermissionSetUrls() {
         // Given
         List<PermissionSet> existingPermSets = [
-            SELECT Id, Name, Label 
+            SELECT Id
             FROM PermissionSet 
             WHERE Name = :AdyenOMSConstants.ORDER_MANAGEMENT_B2C_SERVICE_PERMISSION_SET
             LIMIT 1

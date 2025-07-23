@@ -88,9 +88,9 @@ public with sharing class AdyenConfigPageController {
         return setupUrls;
     }
 
-    public static PermissionSet getOrderManagementPermissionSet() {
+    private static PermissionSet getOrderManagementPermissionSet() {
         List<PermissionSet> permissionSets = [
-            SELECT Id, Name, Label
+            SELECT Id
             FROM PermissionSet 
             WHERE Name = :AdyenOMSConstants.ORDER_MANAGEMENT_B2C_SERVICE_PERMISSION_SET
             LIMIT 1
