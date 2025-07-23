@@ -76,8 +76,8 @@
                                             <span class="slds-path__title">Webhook Setup</span>
                                         </a>
                                     </li>
-
-                                     <li class={pageLayoutSetupStepClass} role="presentation">
+                                    
+                                    <li class={pageLayoutSetupStepClass} role="presentation">
                                         <a class="slds-path__link" data-step="pageLayoutSetup" onclick={handleStepClick} role="option" tabindex="-1">
                                             <span class="slds-path__stage">
                                                 <lightning-icon icon-name="utility:check" size="x-small" variant="inverse"></lightning-icon>
@@ -85,7 +85,15 @@
                                             <span class="slds-path__title">Page Layout Setup</span>
                                         </a>
                                     </li>
-
+                                    
+                                    <li class={permissionSetupStepClass} role="presentation">
+                                        <a class="slds-path__link" data-step="permissionSetup" onclick={handleStepClick} role="option" tabindex="-1">
+                                            <span class="slds-path__stage">
+                                                <lightning-icon icon-name="utility:check" size="x-small" variant="inverse"></lightning-icon>
+                                            </span>
+                                            <span class="slds-path__title">Permission Setup</span>
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -119,9 +127,15 @@
                     <c-adyen-config-page-webhook-setup>
                     </c-adyen-config-page-webhook-setup>
                 </template>
+
                 <template if:true={isPageLayoutSetupStep}>
                     <c-adyen-config-page-layout-setup>
                     </c-adyen-config-page-layout-setup>
+                </template>
+
+                <template if:true={isPermissionSetupStep}>
+                    <c-adyen-config-page-permission-setup>
+                    </c-adyen-config-page-permission-setup>
                 </template>
             </div>
         </div>

@@ -88,6 +88,38 @@ public with sharing class AdyenConfigPageController {
         return setupUrls;
     }
 
+    public static PermissionSet getOrderManagementPermissionSet() {
+        List<PermissionSet> permissionSets = [
+            SELECT Id, Name, Label
+            FROM PermissionSet 
+            WHERE Name = :AdyenOMSConstants.ORDER_MANAGEMENT_B2C_SERVICE_PERMISSION_SET
+            LIMIT 1
+        ];
+        
+        if (permissionSets.isEmpty()) {
+            throw new HandledException('Order Management permission set (sfdc_ccordermanagement) not found.');
+        }
+        
+        return permissionSets[0];
+    }
+
+    @AuraEnabled
+    public static Map<String, String> getPermissionSetUrls() {
+        Map<String, String> permissionUrls = new Map<String, String>();
+        
+        try {
+            String baseUrl = URL.getOrgDomainUrl().toExternalForm();
+            PermissionSet permissionSet = getOrderManagementPermissionSet();
+    
+            permissionUrls.put('omsB2cPermissionSetUrl', baseUrl + '/lightning/r/PermissionSet/' + permissionSet.Id + '/view');
+            
+        } catch (Exception e) {
+            throw new AuraHandledException('Error generating permission set URL: ' + e.getMessage());
+        }
+        
+        return permissionUrls;
+    }
+
     private static PaymentGatewayProvider getPaymentGatewayProvider() {
         List<PaymentGatewayProvider> gatewayProviders = [
             SELECT Id 
