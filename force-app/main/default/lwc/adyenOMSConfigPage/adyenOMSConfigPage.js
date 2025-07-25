@@ -10,7 +10,8 @@ export default class AdyenOMSConfigPage extends LightningElement {
         { value: 'siteURL', label: 'Site URL Setup' },
         { value: 'merchantAccount', label: 'Merchant Account' },
         { value: 'webhookSetup', label: 'Webhook Setup' },
-        { value: 'pageLayoutSetup', label: 'Page Layout Setup' }
+        { value: 'pageLayoutSetup', label: 'Page Layout Setup' },
+        { value: 'permissionSetup', label: 'Permission Setup' }
     ];
     
     handleStepClick(event) {
@@ -75,12 +76,16 @@ export default class AdyenOMSConfigPage extends LightningElement {
         return this.currentStep === 'merchantAccount';
     }
 
+    get isPageLayoutSetupStep() {
+        return this.currentStep === 'pageLayoutSetup';
+    }
+
     get isWebhookSetupStep() {
         return this.currentStep === 'webhookSetup';
     }
 
-    get isPageLayoutSetupStep() {
-        return this.currentStep === 'pageLayoutSetup';
+    get isPermissionSetupStep() {
+        return this.currentStep === 'permissionSetup';
     }
     
     get isFirstStep() {
@@ -124,12 +129,16 @@ export default class AdyenOMSConfigPage extends LightningElement {
         return this.getStepClass('merchantAccount');
     }
     
+    get pageLayoutSetupStepClass() {
+        return this.getStepClass('pageLayoutSetup');
+    }
+    
     get webhookSetupStepClass() {
         return this.getStepClass('webhookSetup');
     }
 
-    get pageLayoutSetupStepClass() {
-        return this.getStepClass('pageLayoutSetup');
+    get permissionSetupStepClass() {
+        return this.getStepClass('permissionSetup');
     }
 
 }

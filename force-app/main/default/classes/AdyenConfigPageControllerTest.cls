@@ -91,4 +91,38 @@ private class AdyenConfigPageControllerTest {
         Assert.isTrue(urls.get('paymentLayouts').startsWith(baseUrl + '/lightning/setup/ObjectManager/Payment/PageLayouts/'));
         Assert.isTrue(urls.get('paymentAuthorizationLayouts').startsWith(baseUrl + '/lightning/setup/ObjectManager/PaymentAuthorization/PageLayouts/'));
     }
+
+    @isTest 
+    static void testGetPermissionSetUrls() {
+        // Given
+        List<PermissionSet> existingPermSets = [
+            SELECT Id
+            FROM PermissionSet 
+            WHERE Name = :AdyenOMSConstants.ORDER_MANAGEMENT_B2C_SERVICE_PERMISSION_SET
+            LIMIT 1
+        ];
+        
+        PermissionSet permSet;
+        if (existingPermSets.isEmpty()) {
+            permSet = new PermissionSet(
+                Name = AdyenOMSConstants.ORDER_MANAGEMENT_B2C_SERVICE_PERMISSION_SET,
+                Label = 'OMS Order Management B2C Service'
+            );
+            insert permSet;
+        } else {
+            
+            permSet = existingPermSets[0];
+        }
+        
+        // When
+        Test.startTest();
+        Map<String, String> urls = AdyenConfigPageController.getPermissionSetUrls();
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(urls);
+        Assert.isTrue(urls.containsKey('omsB2cPermissionSetUrl'));
+        Assert.isTrue(urls.get('omsB2cPermissionSetUrl').contains(permSet.Id));
+        
+    }
 }
