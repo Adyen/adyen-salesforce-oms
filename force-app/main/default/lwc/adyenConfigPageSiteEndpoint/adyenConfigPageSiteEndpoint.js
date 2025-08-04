@@ -40,7 +40,7 @@ export default class AdyenConfigPageSiteEndpoint extends LightningElement {
             ]);
             this.setupUrls = urls;
             if (status.hasError) {
-                this.handleError(status.errorMessage);
+                this.showToast('Error', status.errorMessage, 'error');
                 return;
             }
    

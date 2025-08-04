@@ -135,7 +135,6 @@ private class AdyenConfigPageControllerTest {
         
         // Then
         Assert.isNotNull(status);
-        Assert.isNotNull(status.hasError != null);
         Assert.areEqual(false, status.hasError);
         Assert.isNull(status.errorMessage);
     }
