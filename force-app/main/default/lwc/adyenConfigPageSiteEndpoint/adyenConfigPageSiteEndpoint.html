@@ -9,65 +9,87 @@
                 </template>
                 
                 <div class="slds-box slds-is-relative" style="min-height: 300px;">
-                    <div class="slds-m-bottom_large">
-                        <div class="slds-media slds-media_center slds-p-bottom_medium slds-border_bottom">
-                            <div class="slds-media__figure">
-                                <span class="slds-icon_container slds-icon-standard-account">
-                                    <lightning-icon icon-name="standard:apex_plugin" size="small"></lightning-icon>
-                                </span>
-                            </div>
-                            <div class="slds-media__body">
-                                <div class="slds-text-heading_small slds-text-title_bold">Salesforce Site Endpoint</div>
-                                <div class="slds-text-body_small">Create a new Salesforce Site for the webhook notifications</div>
-                            </div>
-                        </div>
-                        
-                        <div class="slds-grid slds-grid_align-spread slds-p-vertical_medium">
-                            <div class="slds-col slds-size_3-of-5">
-                                <lightning-button 
-                                    variant="neutral" 
-                                    label="Setup Salesforce Site Endpoint"
-                                    icon-name="utility:link"
-                                    icon-position="left"
-                                    data-action="siteEndpoint"
-                                    data-instructiontype="siteEndpoint"
-                                    onmouseover={handleButtonMouseOver}
-                                    onclick={handleSetupSiteEndpoint} 
-                                    stretch>
-                                </lightning-button>
+                    <template if:true={showExistingConfigInfo}>
+                        <div class="slds-box slds-theme_info slds-p-around_medium">
+                            <div class="slds-media">
+                                <div class="slds-media__figure">
+                                    <lightning-icon icon-name="utility:info" alternative-text="Info" variant="inverse" size="small"></lightning-icon>
+                                </div>
+                                <div class="slds-media__body">
+                                    <p>The Named Credential is already configured, and a site exists. Verify the configuration and permissions per the provided instructions.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                        <div class="slds-grid slds-grid_align-end slds-m-top_medium">
+                            <lightning-button 
+                                variant="brand" 
+                                label="Continue"
+                                onclick={handleProceed}>
+                            </lightning-button>
+                        </div>
+                    </template>
 
-                    <div class="slds-m-top_x-large">
-                        <div class="slds-media slds-media_center slds-p-bottom_medium slds-border_bottom">
-                            <div class="slds-media__figure">
-                                <span class="slds-icon_container slds-icon-standard-account">
-                                    <lightning-icon icon-name="standard:apex_plugin" size="small"></lightning-icon>
-                                </span>
+                    <template if:false={showExistingConfigInfo}>
+                        <div class="slds-m-bottom_large">
+                            <div class="slds-media slds-media_center slds-p-bottom_medium slds-border_bottom">
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon_container slds-icon-standard-account">
+                                        <lightning-icon icon-name="standard:apex_plugin" size="small"></lightning-icon>
+                                    </span>
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_small slds-text-title_bold">Salesforce Site Endpoint</div>
+                                    <div class="slds-text-body_small">Create a new Salesforce Site for the webhook notifications</div>
+                                </div>
                             </div>
-                            <div class="slds-media__body">
-                                <div class="slds-text-heading_small slds-text-title_bold">Update Named Credential</div>
-                                <div class="slds-text-body_small">Add the new site URL to your Named Credential</div>
+                            
+                            <div class="slds-grid slds-grid_align-spread slds-p-vertical_medium">
+                                <div class="slds-col slds-size_3-of-5">
+                                    <lightning-button 
+                                        variant="neutral" 
+                                        label="Setup Salesforce Site Endpoint"
+                                        icon-name="utility:link"
+                                        icon-position="left"
+                                        data-action="siteEndpoint"
+                                        data-instructiontype="siteEndpoint"
+                                        onmouseover={handleButtonMouseOver}
+                                        onclick={handleSetupSiteEndpoint} 
+                                        stretch>
+                                    </lightning-button>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div class="slds-grid slds-grid_align-spread slds-p-vertical_medium">
-                            <div class="slds-col slds-size_3-of-5">
-                                <lightning-button 
-                                    variant="neutral" 
-                                    label="Update Site URL on Named Credential"
-                                    icon-name="utility:link"
-                                    icon-position="left"
-                                    data-action="updateUrl"
-                                    data-instructiontype="updateUrl"
-                                    onmouseover={handleButtonMouseOver}
-                                    onclick={handleUpdateSiteUrl} 
-                                    stretch>
-                                </lightning-button>
+
+                        <div class="slds-m-top_x-large">
+                            <div class="slds-media slds-media_center slds-p-bottom_medium slds-border_bottom">
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon_container slds-icon-standard-account">
+                                        <lightning-icon icon-name="standard:apex_plugin" size="small"></lightning-icon>
+                                    </span>
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_small slds-text-title_bold">Update Named Credential</div>
+                                    <div class="slds-text-body_small">Add the new site URL to your Named Credential</div>
+                                </div>
+                            </div>
+                            
+                            <div class="slds-grid slds-grid_align-spread slds-p-vertical_medium">
+                                <div class="slds-col slds-size_3-of-5">
+                                    <lightning-button 
+                                        variant="neutral" 
+                                        label="Update Site URL on Named Credential"
+                                        icon-name="utility:link"
+                                        icon-position="left"
+                                        data-action="updateUrl"
+                                        data-instructiontype="updateUrl"
+                                        onmouseover={handleButtonMouseOver}
+                                        onclick={handleUpdateSiteUrl} 
+                                        stretch>
+                                    </lightning-button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -115,7 +137,6 @@
                                 <li>On the Named Credential page, click on Edit. This opens a modal window.</li>
                                 <li>In the “URL” field, Enter the Site URL that was created on the previous step.</li>
                                 <li>Make sure that the “Enable for Callouts” checkbox is checked.</li>
-                                <li>Update the URL field with the Site URL you copied from the previous step.</li>
                                 <li>Click on Save</li>
                             </ol>
                         </div>

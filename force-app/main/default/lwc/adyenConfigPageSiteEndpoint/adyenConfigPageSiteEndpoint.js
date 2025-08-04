@@ -1,12 +1,15 @@
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getSetupPageUrls from '@salesforce/apex/AdyenConfigPageController.getSetupPageUrls';
+import getSiteEndpointStatus from '@salesforce/apex/AdyenConfigPageController.getSiteEndpointStatus';
 
 export default class AdyenConfigPageSiteEndpoint extends LightningElement {
     @track setupUrls = {};
     showSpinner = false;
     stepName = 'siteUrl';
     currentInstructionSet = 'default';
+    isAlreadyConfigured = false;
+    acknowledgedExistingConfig = false;
     
     get showDefaultInstructions() {
         return this.currentInstructionSet === 'default';
@@ -19,22 +22,38 @@ export default class AdyenConfigPageSiteEndpoint extends LightningElement {
     get showUpdateUrlInstructions() {
         return this.currentInstructionSet === 'updateUrl';
     }
-    
-    connectedCallback() {
-        this.fetchSetupUrls();
+
+    get showExistingConfigInfo() {
+        return this.isAlreadyConfigured && !this.acknowledgedExistingConfig;
     }
     
-    async fetchSetupUrls() {
-           this.showSpinner = true;
-           try {
-               this.setupUrls = await getSetupPageUrls();
-           } catch (error) {
-               this.handleError(error);
-           } finally {
-               this.showSpinner = false;
-           }
-       }
+    connectedCallback() {
+        this.loadInitialData();
+    }
     
+    async loadInitialData() {
+        this.showSpinner = true;
+        try {
+            const [urls, status] = await Promise.all([
+                getSetupPageUrls(),
+                getSiteEndpointStatus()
+            ]);
+            this.setupUrls = urls;
+            if (status.hasError) {
+                this.handleError(status.errorMessage);
+                return;
+            }
+   
+            if (status.isNamedCredentialConfigured && status.siteExists) {
+                this.isAlreadyConfigured = true;
+            }
+        } catch (error) {
+            this.handleError(error);
+        } finally {
+            this.showSpinner = false;
+        }
+    }
+
     handleSetupSiteEndpoint() {
         if (this.setupUrls.siteSetup) {
             window.open(this.setupUrls.siteSetup, '_blank');
@@ -56,6 +75,10 @@ export default class AdyenConfigPageSiteEndpoint extends LightningElement {
         this.currentInstructionSet = instructionType;
     }
     
+    handleProceed() {
+        this.acknowledgedExistingConfig = true;
+    }
+
     handleError(error) {
         const errorMessage = error.body ? error.body.message : error.message;
         this.showToast('Error', errorMessage, 'error');
