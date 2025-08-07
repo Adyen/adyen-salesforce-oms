@@ -150,7 +150,7 @@ public with sharing class AdyenWebhookSetupController {
             WebhookCheckResult result = new WebhookCheckResult();
             result.webhookExists = true;
             result.webhookId = adyenAdapter.Webhook_ID__c;
-            result.webhookActive = existingWebhook.active == true;
+            result.webhookActive = existingWebhook.active;
             result.webhookUrl = existingWebhook.url;
             result.webhookDescription = existingWebhook.description;
             

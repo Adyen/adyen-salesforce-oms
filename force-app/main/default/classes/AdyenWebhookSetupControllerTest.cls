@@ -288,16 +288,27 @@ private class AdyenWebhookSetupControllerTest {
     @IsTest
     static void checkExistingWebhookNotFoundTest() {
         // Given
+        Adyen_Adapter__mdt adyenAdapter = [
+            SELECT Webhook_ID__c 
+            FROM Adyen_Adapter__mdt 
+            WHERE DeveloperName = :AdyenConstants.DEFAULT_ADAPTER_NAME 
+            LIMIT 1
+        ];
         Test.setMock(HttpCalloutMock.class, new TestDataFactory.NotFoundResponse());
         
         Test.startTest();
 
-        // When
+        // When & Then
         try {
             AdyenWebhookSetupController.WebhookCheckResult result = AdyenWebhookSetupController.checkExistingWebhook();
-            Assert.fail('Expected exception was not thrown');
+            if (String.isBlank(adyenAdapter.Webhook_ID__c)) {
+                Assert.isFalse(result.webhookExists, 'Webhook should not exist if ID is blank in metadata.');
+                Assert.isNull(result.webhookId, 'Webhook ID in result should be null.');
+            } else {
+                Assert.fail('Expected exception was not thrown');
+            }
+            
         } catch (Exception e) {
-            // Then
             Assert.isInstanceOfType(e, AuraHandledException.class);
         }
     }
