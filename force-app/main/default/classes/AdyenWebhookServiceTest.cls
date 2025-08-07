@@ -293,4 +293,53 @@ private class AdyenWebhookServiceTest {
         }
         Test.stopTest();
     }
+
+    @IsTest
+    static void getWebhookSuccessTest() {
+        // Given
+        AdyenWebhookService.mockAdapter = new Adyen_Adapter__mdt(
+            Merchant_Account__c = 'TestMerchant',
+            Management_API_Named_Credential__c = 'TestCredential',
+            Management_API_Version__c = 'v3',
+            Management_API_Webhook_Endpoint__c = '/{merchantId}/webhooks',
+            Management_API_Endpoint_Path__c = '/merchants',
+            Package_Namespace__c = ''
+        );
+        String webhookId = 'test-webhook-id';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.WebhookGetMockResponse());
+
+        // When
+        Test.startTest();
+        WebhookSetupResponse result = AdyenWebhookService.getWebhook(AdyenWebhookService.mockAdapter, webhookId);
+        Test.stopTest();
+
+        // Then
+        Assert.isNotNull(result);
+        Assert.areEqual('test-webhook-id', result.id);
+        Assert.areEqual('Test webhook description', result.description);
+    }
+    
+    @IsTest
+    static void getWebhookMissingParametersTest() {
+        // Given & When & Then
+        Test.startTest();
+        try {
+            AdyenWebhookService.getWebhook(null, 'test-webhook-id');
+            Assert.fail('Expected Exception was not thrown');
+        } catch (Exception e) {
+            Assert.isInstanceOfType(e, AdyenWebhookService.AdyenWebhookException.class);
+            Assert.isTrue(e.getMessage().contains('Merchant Account is required for webhook retrieval'));
+        }
+
+        try {
+            AdyenWebhookService.mockAdapter = new Adyen_Adapter__mdt(Merchant_Account__c = 'TestMerchant');
+            AdyenWebhookService.getWebhook(AdyenWebhookService.mockAdapter, null);
+            Assert.fail('Expected Exception was not thrown');
+        } catch (Exception e) {
+            Assert.isInstanceOfType(e, AdyenWebhookService.AdyenWebhookException.class);
+            Assert.isTrue(e.getMessage().contains('Webhook ID is required for webhook retrieval'));
+        }
+        Test.stopTest();
+    }
 }
