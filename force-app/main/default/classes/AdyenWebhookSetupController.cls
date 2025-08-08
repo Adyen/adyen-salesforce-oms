@@ -131,4 +131,56 @@ public with sharing class AdyenWebhookSetupController {
         
         return result;
     }
+
+    @AuraEnabled
+    public static WebhookCheckResult checkExistingWebhook() {
+        try {
+            Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
+            
+            if (String.isBlank(adyenAdapter.Webhook_ID__c)) {
+                return new WebhookCheckResult();
+            }
+            
+            WebhookSetupResponse existingWebhook = AdyenWebhookService.getWebhook(adyenAdapter, adyenAdapter.Webhook_ID__c);
+            
+            if (existingWebhook == null) {
+                return new WebhookCheckResult();
+            }
+
+            WebhookCheckResult result = new WebhookCheckResult();
+            result.webhookExists = true;
+            result.webhookId = adyenAdapter.Webhook_ID__c;
+            result.webhookActive = existingWebhook.active;
+            result.webhookUrl = existingWebhook.url;
+            result.webhookDescription = existingWebhook.description;
+            
+            if (existingWebhook.additionalSettings?.includeEventCodes != null) {
+                result.webhookEventCodes = existingWebhook.additionalSettings.includeEventCodes;
+            }
+            return result;
+        } catch (Exception e) {
+            throw new AuraHandledException('Error checking for existing webhook: ' + e.getMessage());
+        }
+    }
+
+    public class WebhookCheckResult {
+        @AuraEnabled
+        public Boolean webhookExists { get; set; }
+        @AuraEnabled
+        public String webhookId { get; set; }
+        @AuraEnabled
+        public Boolean webhookActive { get; set; }
+        @AuraEnabled
+        public String webhookUrl { get; set; }
+        @AuraEnabled
+        public String webhookDescription { get; set; }
+        @AuraEnabled
+        public List<String> webhookEventCodes { get; set; }
+        
+        public WebhookCheckResult() {
+            this.webhookExists = false;
+            this.webhookActive = false;
+            this.webhookEventCodes = new List<String>();
+        }
+    }
 }

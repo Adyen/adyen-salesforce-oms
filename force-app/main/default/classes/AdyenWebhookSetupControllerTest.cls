@@ -253,4 +253,63 @@ private class AdyenWebhookSetupControllerTest {
         Assert.isNotNull(result.errorMessage, 'Error message should not be null');
         Assert.isNull(result.testResponse, 'Test response should be null on failure');
     }
+
+    @IsTest
+    static void checkExistingWebhookTest() {
+
+        // Given
+        Adyen_Adapter__mdt adyenAdapter = [
+            SELECT Webhook_ID__c 
+            FROM Adyen_Adapter__mdt 
+            WHERE DeveloperName = :AdyenConstants.DEFAULT_ADAPTER_NAME 
+            LIMIT 1
+        ];
+
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.WebhookGetMockResponse());
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookCheckResult result = AdyenWebhookSetupController.checkExistingWebhook();
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+
+        if (String.isBlank(adyenAdapter.Webhook_ID__c)) {
+            Assert.isFalse(result.webhookExists, 'Webhook should not exist if ID is blank in metadata.');
+            Assert.isNull(result.webhookId, 'Webhook ID in result should be null.');
+        } else {
+            Assert.isTrue(result.webhookExists, 'Webhook should exist if ID is present in metadata.');
+        }
+    }
+
+    @IsTest
+    static void checkExistingWebhookNotFoundTest() {
+        // Given
+        Adyen_Adapter__mdt adyenAdapter = [
+            SELECT Webhook_ID__c 
+            FROM Adyen_Adapter__mdt 
+            WHERE DeveloperName = :AdyenConstants.DEFAULT_ADAPTER_NAME 
+            LIMIT 1
+        ];
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.NotFoundResponse());
+        
+        Test.startTest();
+
+        // When & Then
+        try {
+            AdyenWebhookSetupController.WebhookCheckResult result = AdyenWebhookSetupController.checkExistingWebhook();
+            if (String.isBlank(adyenAdapter.Webhook_ID__c)) {
+                Assert.isFalse(result.webhookExists, 'Webhook should not exist if ID is blank in metadata.');
+                Assert.isNull(result.webhookId, 'Webhook ID in result should be null.');
+            } else {
+                Assert.fail('Expected exception was not thrown');
+            }
+            
+        } catch (Exception e) {
+            Assert.isInstanceOfType(e, AuraHandledException.class);
+        }
+    }
 }

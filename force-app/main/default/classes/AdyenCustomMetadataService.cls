@@ -9,7 +9,7 @@ public with sharing class AdyenCustomMetadataService {
                 Merchant_Account__c, HMAC_Key__c, Auto_Capture_Enabled__c,
                 Manual_Capture_Payment_Methods__c, System_Integrator_Name__c,
                 Payment_Link_Return_Url__c, Payment_Link_Theme_Id__c,
-                Payment_Link_Expiry_Duration__c
+                Payment_Link_Expiry_Duration__c, Webhook_Id__c
                 FROM Adyen_Adapter__mdt
                 WHERE DeveloperName = :AdyenConstants.DEFAULT_ADAPTER_NAME
                 LIMIT 1
@@ -51,6 +51,7 @@ public with sharing class AdyenCustomMetadataService {
             addFieldIfNotNull(adapterMetadata, namespacePrefix + 'Payment_Link_Return_Url__c', adapterData.Payment_Link_Return_Url__c);
             addFieldIfNotNull(adapterMetadata, namespacePrefix + 'Payment_Link_Theme_Id__c', adapterData.Payment_Link_Theme_Id__c);
             addFieldIfNotNull(adapterMetadata, namespacePrefix + 'Payment_Link_Expiry_Duration__c', adapterData.Payment_Link_Expiry_Duration__c);
+            addFieldIfNotNull(adapterMetadata, namespacePrefix + 'Webhook_Id__c', adapterData.Webhook_Id__c);
 
             mdContainer.addMetadata(adapterMetadata);
 

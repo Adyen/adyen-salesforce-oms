@@ -4,6 +4,7 @@ import { subscribe, unsubscribe } from 'lightning/empApi';
 import getWebhookUrl from '@salesforce/apex/AdyenWebhookSetupController.getWebhookUrl';
 import setupWebhook from '@salesforce/apex/AdyenWebhookSetupController.setupWebhook';
 import saveHmacToMetadata from '@salesforce/apex/AdyenWebhookSetupController.saveHmacToMetadata';
+import checkExistingWebhook from '@salesforce/apex/AdyenWebhookSetupController.checkExistingWebhook';
 import testWebhook from '@salesforce/apex/AdyenWebhookSetupController.testWebhook';
 
 const METADATA_UPDATE_TIMEOUT = 10000;
@@ -22,6 +23,13 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     hmacErrorMessage = '';
     hmacSavedToMetadata = false;
     isHmacVisible = false;
+    
+    webhookId = '';
+    existingWebhookFound = false;
+    isUpdateMode = false;
+    showWebhookExistsDialog = false;
+    existingWebhookDetails = null;
+    showWebhookDetails = false;
     
     channelName = '/event/Adyen_Metadata_Deployment_Result__e';
     subscription = null;
@@ -42,6 +50,7 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     connectedCallback() {
         this.loadWebhookUrl();
         this.subscribeToHmacDeploymentEvents();
+        this.checkForExistingWebhook();
     }
     
     disconnectedCallback() {
@@ -409,5 +418,61 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
 
     get hmacVisibilityTitle() {
         return this.isHmacVisible ? 'Hide HMAC Key' : 'Show HMAC Key';
+    }
+
+    async checkForExistingWebhook() {
+        try {
+            const result = await checkExistingWebhook();
+            
+            if (result.webhookExists && result.webhookId) {
+                this.existingWebhookFound = true;
+                this.webhookId = result.webhookId;
+                this.existingWebhookDetails = result;
+                this.isUpdateMode = true;
+                this.showWebhookExistsDialog = true;
+            
+                if (result.webhookDescription) {
+                    this.description = result.webhookDescription;
+                }
+                if (result.webhookEventCodes && result.webhookEventCodes.length > 0) {
+                    this.selectedEventCodes = result.webhookEventCodes;
+                }
+            }
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+    handleContinueWithUpdate() {
+        this.showWebhookExistsDialog = false;
+        this.showToast(
+            'Ready to Update',
+            'You can now modify the webhook configuration below.',
+            'info'
+        );
+    }
+
+    handleToggleWebhookDetails() {
+        this.showWebhookDetails = !this.showWebhookDetails;
+    }
+
+    handleDismissDialog() {
+        this.showWebhookExistsDialog = false;
+    }
+
+    get setupButtonLabel() {
+        return this.isUpdateMode ? 'Update Webhook' : 'Setup Webhook';
+    }
+
+    get webhookDetailsToggleIcon() {
+        return this.showWebhookDetails ? 'utility:chevrondown' : 'utility:chevronright';
+    }
+
+    get webhookDetailsToggleLabel() {
+        return this.showWebhookDetails ? 'Hide Details' : 'Show Details';
+    }
+
+    get existingWebhookEventCodesDisplay() {
+        return this.existingWebhookDetails?.webhookEventCodes?.join(', ') || 'No events configured';
     }
 }

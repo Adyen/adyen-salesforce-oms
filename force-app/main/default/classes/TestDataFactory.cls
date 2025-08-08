@@ -473,6 +473,17 @@ public class TestDataFactory {
             return mockHttpResponse(mockFetchMerchantAccountErrorResponse(), 401);
         }
     }
+    public class WebhookGetMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockWebhookGetResponse(), 200);
+        }
+    }
+
+    public class NotFoundResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse('{"status": 404, "errorCode": "702", "message": "Resource not found", "errorType": "validation"}', 404);
+        }
+    }
 
     public static HttpResponse mockHttpResponse(String body, Integer code) {
         HttpResponse res = new HttpResponse();
@@ -512,6 +523,10 @@ public class TestDataFactory {
 
     private static String mockWebhookTestFailureResponse() {
         return '{ "data": [{"merchantId": "TestMerchantAccount", "output": "Connection refused", "requestSent": "{\\"live\\":\\"false\\",\\"notificationItems\\":[{\\"NotificationRequestItem\\":{\\"amount\\":{\\"currency\\":\\"EUR\\",\\"value\\":1000},\\"eventCode\\":\\"CAPTURE\\",\\"eventDate\\":\\"2024-01-01T01:00:00+01:00\\",\\"merchantAccountCode\\":\\"TestMerchantAccount\\",\\"merchantReference\\":\\"TEST-REF\\",\\"paymentMethod\\":\\"visa\\",\\"pspReference\\":\\"TEST-PSP-REF\\",\\"reason\\":\\"\\",\\"success\\":\\"true\\"}}]}", "responseCode": "500", "responseTime": "5000 ms", "status": "failed"}] }';
+    }
+
+    private static String mockWebhookGetResponse() {
+        return '{ "id": "test-webhook-id", "type": "standard", "description": "Test webhook description", "url": "https://test.webhook.url", "active": true, "communicationFormat": "json", "encryptionProtocol": "TLSv1.3", "additionalSettings": { "includeEventCodes": ["CAPTURE", "REFUND"] } }';
     }
 
     public static String mockWebhookRequest(String eventCode, String pspReference, String originalReference, String merchantRef, Boolean success) {
