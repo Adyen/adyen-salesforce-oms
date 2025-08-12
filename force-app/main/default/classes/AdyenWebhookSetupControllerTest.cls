@@ -312,4 +312,114 @@ private class AdyenWebhookSetupControllerTest {
             Assert.isInstanceOfType(e, AuraHandledException.class);
         }
     }
+
+    @IsTest(SeeAllData=true)
+    static void updateWebhookSuccessTest() {
+        // Given
+        String description = 'Updated Test Webhook Description';
+        List<String> eventCodes = new List<String>{'CAPTURE', 'REFUND', 'CANCELLATION'};
+        String webhookId = 'WBHK12345678912345678912345678';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.WebhookUpdateWithHmacMockResponse());
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookSetupResult result = AdyenWebhookSetupController.updateWebhook(description, eventCodes, webhookId);
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isTrue(result.isSuccess, 'Update should be successful');
+        Assert.isNull(result.errorMessage, 'Error message should be null on success');
+        Assert.isNotNull(result.webhookResponse, 'Webhook response should not be null');
+        Assert.areEqual(webhookId, result.webhookId, 'Webhook ID should match');
+    }
+
+    @IsTest
+    static void updateWebhookEmptyDescriptionTest() {
+        // Given
+        String description = '';
+        List<String> eventCodes = new List<String>{'CAPTURE'};
+        String webhookId = 'WBHK12345678912345678912345678';
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookSetupResult result = AdyenWebhookSetupController.updateWebhook(description, eventCodes, webhookId);
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isFalse(result.isSuccess, 'Update should fail with empty description');
+        Assert.isNotNull(result.errorMessage, 'Error message should not be null');
+        Assert.isTrue(result.errorMessage.contains('Description cannot be empty'), 'Should contain proper error message');
+    }
+
+    @IsTest
+    static void updateWebhookEmptyEventCodesTest() {
+        // Given
+        String description = 'Test Description';
+        List<String> eventCodes = new List<String>();
+        String webhookId = 'WBHK12345678912345678912345678';
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookSetupResult result = AdyenWebhookSetupController.updateWebhook(description, eventCodes, webhookId);
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isFalse(result.isSuccess, 'Update should fail with empty event codes');
+        Assert.isNotNull(result.errorMessage, 'Error message should not be null');
+        Assert.isTrue(result.errorMessage.contains('At least one event code must be selected'), 'Should contain proper error message');
+    }
+
+    @IsTest
+    static void updateWebhookEmptyWebhookIdTest() {
+        // Given
+        String description = 'Test Description';
+        List<String> eventCodes = new List<String>{'CAPTURE'};
+        String webhookId = '';
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookSetupResult result = AdyenWebhookSetupController.updateWebhook(description, eventCodes, webhookId);
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isFalse(result.isSuccess, 'Update should fail with empty webhook ID');
+        Assert.isNotNull(result.errorMessage, 'Error message should not be null');
+        Assert.isTrue(result.errorMessage.contains('Webhook ID cannot be empty'), 'Should contain proper error message');
+    }
+
+    @IsTest(SeeAllData=true)
+    static void updateWebhookServiceExceptionTest() {
+        // Given
+        String description = 'Test Webhook Description';
+        List<String> eventCodes = new List<String>{'CAPTURE', 'REFUND'};
+        String webhookId = 'WBHK12345678912345678912345678';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.FailureResponse());
+        
+        Test.startTest();
+        
+        // When
+        AdyenWebhookSetupController.WebhookSetupResult result = AdyenWebhookSetupController.updateWebhook(description, eventCodes, webhookId);
+        
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(result, 'Result should not be null');
+        Assert.isFalse(result.isSuccess, 'Update should fail when service throws exception');
+        Assert.isNull(result.webhookResponse, 'Webhook response should be null on failure');
+    }
+
 }

@@ -163,6 +163,55 @@ public with sharing class AdyenWebhookSetupController {
         }
     }
 
+    @AuraEnabled
+    public static WebhookSetupResult updateWebhook(String description, List<String> eventCodes, String webhookId) {
+        WebhookSetupResult result = new WebhookSetupResult();
+        
+        try {
+            if (String.isBlank(description)) {
+                throw new HandledException('Description cannot be empty.');
+            }
+            
+            if (eventCodes == null || eventCodes.isEmpty()) {
+                throw new HandledException('At least one event code must be selected.');
+            }
+            
+            if (String.isBlank(webhookId)) {
+                throw new HandledException('Webhook ID cannot be empty.');
+            }
+            
+            Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
+            
+            String webhookUrl = getWebhookUrl();
+            
+            WebhookSetupResponse webhookResponse = AdyenWebhookService.updateWebhook(
+                adyenAdapter, 
+                webhookId,
+                webhookUrl, 
+                eventCodes, 
+                description
+            );
+            
+            result.isSuccess = true;
+            result.webhookResponse = webhookResponse;
+            result.webhookId = webhookResponse.id;
+            
+            try {
+                String hmacKey = AdyenWebhookService.generateHmacKey(adyenAdapter, webhookResponse.id);
+                result.hmacKey = hmacKey;
+            } catch (Exception hmacException) {
+                result.hmacGenerationFailed = true;
+                result.hmacErrorMessage = hmacException.getMessage();
+            }
+            
+        } catch (Exception e) {
+            result.isSuccess = false;
+            result.errorMessage = e.getMessage();
+        }
+        
+        return result;
+    }
+
     public class WebhookCheckResult {
         @AuraEnabled
         public Boolean webhookExists { get; set; }
