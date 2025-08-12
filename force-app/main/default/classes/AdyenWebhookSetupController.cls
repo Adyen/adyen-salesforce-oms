@@ -1,5 +1,4 @@
 public with sharing class AdyenWebhookSetupController {
-    
     public class WebhookSetupResult {
         @AuraEnabled
         public Boolean isSuccess { get; set; }
@@ -34,7 +33,22 @@ public with sharing class AdyenWebhookSetupController {
             this.isSuccess = false;
         }
     }
-    
+
+    public class WebhookCheckResult {
+        @AuraEnabled public Boolean webhookExists { get; set; }
+        @AuraEnabled public String webhookId { get; set; }
+        @AuraEnabled public Boolean webhookActive { get; set; }
+        @AuraEnabled public String webhookUrl { get; set; }
+        @AuraEnabled public String webhookDescription { get; set; }
+        @AuraEnabled public List<String> webhookEventCodes { get; set; }
+        
+        public WebhookCheckResult() {
+            this.webhookExists = false;
+            this.webhookActive = false;
+            this.webhookEventCodes = new List<String>();
+        }
+    }
+
     @AuraEnabled
     public static String getWebhookUrl() {
         try {
@@ -47,61 +61,15 @@ public with sharing class AdyenWebhookSetupController {
             throw new AuraHandledException('Error retrieving webhook URL: ' + e.getMessage());
         }
     }
-    
-    @AuraEnabled
-    public static WebhookSetupResult setupWebhook(String description, List<String> eventCodes) {
-        WebhookSetupResult result = new WebhookSetupResult();
-        
-        try {
-            if (String.isBlank(description)) {
-                throw new HandledException('Description cannot be empty.');
-            }
-            
-            if (eventCodes == null || eventCodes.isEmpty()) {
-                throw new HandledException('At least one event code must be selected.');
-            }
-            
-            Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
-            
-            String webhookUrl = getWebhookUrl();
-            
-            WebhookSetupResponse webhookResponse = AdyenWebhookService.setupWebhook(
-                adyenAdapter, 
-                webhookUrl, 
-                eventCodes, 
-                description
-            );
-            
-            result.isSuccess = true;
-            result.webhookResponse = webhookResponse;
-            result.webhookId = webhookResponse.id;
-            
-            try {
-                String hmacKey = AdyenWebhookService.generateHmacKey(adyenAdapter, webhookResponse.id);
-                result.hmacKey = hmacKey;
-            } catch (Exception hmacException) {
-                result.hmacGenerationFailed = true;
-                result.hmacErrorMessage = hmacException.getMessage();
-            }
-            
-        } catch (Exception e) {
-            result.isSuccess = false;
-            result.errorMessage = e.getMessage();
-        }
-        
-        return result;
-    }
-    
+
     @AuraEnabled
     public static String saveHmacToMetadata(String hmacKey) {
         try {
             if (String.isBlank(hmacKey)) {
                 throw new AuraHandledException('HMAC Key cannot be empty.');
             }
-            
             Adyen_Adapter__mdt adapterData = AdyenCustomMetadataService.getDefaultAdapter();
             adapterData.HMAC_Key__c = hmacKey;
-            
             return AdyenCustomMetadataService.updateDefaultAdapter(adapterData);
         } catch (Exception e) {
             throw new AuraHandledException('Error saving HMAC key to metadata: ' + e.getMessage());
@@ -111,24 +79,18 @@ public with sharing class AdyenWebhookSetupController {
     @AuraEnabled
     public static WebhookTestResult testWebhook(String webhookId) {
         WebhookTestResult result = new WebhookTestResult();
-        
         try {
             if (String.isBlank(webhookId)) {
                 throw new HandledException('Webhook ID cannot be empty.');
             }
-            
             Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
-            
             AdyenWebhookService.WebhookTestResponse testResponse = AdyenWebhookService.testWebhook(adyenAdapter, webhookId);
-            
             result.isSuccess = true;
             result.testResponse = testResponse;
-            
         } catch (Exception e) {
             result.isSuccess = false;
             result.errorMessage = e.getMessage();
         }
-        
         return result;
     }
 
@@ -136,13 +98,10 @@ public with sharing class AdyenWebhookSetupController {
     public static WebhookCheckResult checkExistingWebhook() {
         try {
             Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
-            
             if (String.isBlank(adyenAdapter.Webhook_ID__c)) {
                 return new WebhookCheckResult();
             }
-            
             WebhookSetupResponse existingWebhook = AdyenWebhookService.getWebhook(adyenAdapter, adyenAdapter.Webhook_ID__c);
-            
             if (existingWebhook == null) {
                 return new WebhookCheckResult();
             }
@@ -153,7 +112,6 @@ public with sharing class AdyenWebhookSetupController {
             result.webhookActive = existingWebhook.active;
             result.webhookUrl = existingWebhook.url;
             result.webhookDescription = existingWebhook.description;
-            
             if (existingWebhook.additionalSettings?.includeEventCodes != null) {
                 result.webhookEventCodes = existingWebhook.additionalSettings.includeEventCodes;
             }
@@ -164,72 +122,59 @@ public with sharing class AdyenWebhookSetupController {
     }
 
     @AuraEnabled
+    public static WebhookSetupResult setupWebhook(String description, List<String> eventCodes) {
+        return processWebhookRequest(description, eventCodes, null);
+    }
+
+    @AuraEnabled
     public static WebhookSetupResult updateWebhook(String description, List<String> eventCodes, String webhookId) {
+        if (String.isBlank(webhookId)) {
+            throw new AuraHandledException('Webhook ID cannot be empty for an update.');
+        }
+        return processWebhookRequest(description, eventCodes, webhookId);
+    }
+
+    private static WebhookSetupResult processWebhookRequest(String description, List<String> eventCodes, String webhookId) {
         WebhookSetupResult result = new WebhookSetupResult();
-        
+
         try {
             if (String.isBlank(description)) {
                 throw new HandledException('Description cannot be empty.');
             }
-            
             if (eventCodes == null || eventCodes.isEmpty()) {
                 throw new HandledException('At least one event code must be selected.');
             }
-            
-            if (String.isBlank(webhookId)) {
-                throw new HandledException('Webhook ID cannot be empty.');
-            }
-            
+
             Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
-            
             String webhookUrl = getWebhookUrl();
-            
-            WebhookSetupResponse webhookResponse = AdyenWebhookService.updateWebhook(
-                adyenAdapter, 
-                webhookId,
-                webhookUrl, 
-                eventCodes, 
-                description
-            );
-            
+            WebhookSetupResponse webhookResponse;
+
+            if (String.isBlank(webhookId)) {
+                webhookResponse = AdyenWebhookService.setupWebhook(
+                    adyenAdapter, webhookUrl, eventCodes, description
+                );
+            } else {
+                webhookResponse = AdyenWebhookService.updateWebhook(
+                    adyenAdapter, webhookId, webhookUrl, eventCodes, description
+                );
+            }
+
             result.isSuccess = true;
             result.webhookResponse = webhookResponse;
             result.webhookId = webhookResponse.id;
-            
+
             try {
-                String hmacKey = AdyenWebhookService.generateHmacKey(adyenAdapter, webhookResponse.id);
-                result.hmacKey = hmacKey;
+                result.hmacKey = AdyenWebhookService.generateHmacKey(adyenAdapter, webhookResponse.id);
             } catch (Exception hmacException) {
                 result.hmacGenerationFailed = true;
                 result.hmacErrorMessage = hmacException.getMessage();
             }
-            
+
         } catch (Exception e) {
             result.isSuccess = false;
             result.errorMessage = e.getMessage();
         }
-        
-        return result;
-    }
 
-    public class WebhookCheckResult {
-        @AuraEnabled
-        public Boolean webhookExists { get; set; }
-        @AuraEnabled
-        public String webhookId { get; set; }
-        @AuraEnabled
-        public Boolean webhookActive { get; set; }
-        @AuraEnabled
-        public String webhookUrl { get; set; }
-        @AuraEnabled
-        public String webhookDescription { get; set; }
-        @AuraEnabled
-        public List<String> webhookEventCodes { get; set; }
-        
-        public WebhookCheckResult() {
-            this.webhookExists = false;
-            this.webhookActive = false;
-            this.webhookEventCodes = new List<String>();
-        }
+        return result;
     }
 }
