@@ -342,4 +342,83 @@ private class AdyenWebhookServiceTest {
         }
         Test.stopTest();
     }
+
+        @IsTest
+    static void updateWebhookSuccessTest() {
+        // Given
+        AdyenWebhookService.mockAdapter = new Adyen_Adapter__mdt(
+            Merchant_Account__c = 'TestMerchant',
+            Management_API_Named_Credential__c = 'TestCredential',
+            Management_API_Version__c = 'v3',
+            Management_API_Webhook_Endpoint__c = '/{merchantId}/webhooks',
+            Management_API_Endpoint_Path__c = '/merchants',
+            Package_Namespace__c = ''
+        );
+        String webhookId = 'test-webhook-id';
+        String webhookUrl = 'https://testwebhook.com';
+        List<String> eventCodes = new List<String>{'AUTHORISATION', 'CAPTURE'};
+        String description = 'Updated test webhook';
+        
+        Test.setMock(HttpCalloutMock.class, new TestDataFactory.WebhookUpdateMockResponse());
+
+        // When
+        Test.startTest();
+        WebhookSetupResponse result = AdyenWebhookService.updateWebhook(
+            AdyenWebhookService.mockAdapter, 
+            webhookId, 
+            webhookUrl, 
+            eventCodes, 
+            description
+        );
+        Test.stopTest();
+
+        // Then
+        Assert.isNotNull(result);
+        Assert.areEqual(description, result.description);
+    }
+
+    @IsTest
+    static void updateWebhookMissingParametersTest() {
+        // Given
+        AdyenWebhookService.mockAdapter = new Adyen_Adapter__mdt(
+            Merchant_Account__c = 'TestMerchant',
+            Management_API_Named_Credential__c = 'TestCredential',
+            Management_API_Version__c = 'v3',
+            Management_API_Webhook_Endpoint__c = '/{merchantId}/webhooks',
+            Management_API_Endpoint_Path__c = '/merchants',
+            Package_Namespace__c = ''
+        );
+
+        Test.startTest();
+        // When & Then
+        try {
+            AdyenWebhookService.updateWebhook(
+                AdyenWebhookService.mockAdapter, 
+                null, 
+                'https://test.com', 
+                new List<String>{'CAPTURE'}, 
+                'Test'
+            );
+            Assert.fail('Expected Exception was not thrown');
+        } catch (Exception e) {
+            Assert.isInstanceOfType(e, AdyenWebhookService.AdyenWebhookException.class);
+            Assert.isTrue(e.getMessage().contains('Webhook ID is required for webhook update'));
+        }
+
+        // When & Then
+        try {
+            AdyenWebhookService.updateWebhook(
+                AdyenWebhookService.mockAdapter, 
+                'test-webhook-id', 
+                'https://test.com', 
+                new List<String>(), 
+                'Test'
+            );
+            Assert.fail('Expected Exception was not thrown');
+        } catch (Exception e) {
+            Assert.isInstanceOfType(e, AdyenWebhookService.AdyenWebhookException.class);
+            Assert.isTrue(e.getMessage().contains('At least one event code must be specified'));
+        }
+        Test.stopTest();
+    }
 }

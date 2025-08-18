@@ -484,6 +484,25 @@ public class TestDataFactory {
             return mockHttpResponse('{"status": 404, "errorCode": "702", "message": "Resource not found", "errorType": "validation"}', 404);
         }
     }
+    public class WebhookUpdateMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockWebhookUpdateResponse(), 200);
+        }
+    }
+
+    public class WebhookUpdateWithHmacMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.contains('webhooks') && !endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockWebhookUpdateResponse(), 200);
+            } else if (endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockHmacGenerationResponse(), 200);
+            }
+            
+            return mockHttpResponse(mockWebhookUpdateResponse(), 200);
+        }
+    }
 
     public static HttpResponse mockHttpResponse(String body, Integer code) {
         HttpResponse res = new HttpResponse();
@@ -527,6 +546,10 @@ public class TestDataFactory {
 
     private static String mockWebhookGetResponse() {
         return '{ "id": "test-webhook-id", "type": "standard", "description": "Test webhook description", "url": "https://test.webhook.url", "active": true, "communicationFormat": "json", "encryptionProtocol": "TLSv1.3", "additionalSettings": { "includeEventCodes": ["CAPTURE", "REFUND"] } }';
+    }
+
+    private static String mockWebhookUpdateResponse() {
+        return '{ "id": "WBHK12345678912345678912345678", "type": "standard", "description": "Updated test webhook", "url": "https://test.webhook.url", "active": true, "communicationFormat": "json", "encryptionProtocol": "TLSv1.3", "additionalSettings": { "includeEventCodes": ["CAPTURE", "REFUND", "CANCELLATION"] } }';
     }
 
     public static String mockWebhookRequest(String eventCode, String pspReference, String originalReference, String merchantRef, Boolean success) {

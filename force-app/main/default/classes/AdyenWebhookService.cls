@@ -2,25 +2,36 @@ public with sharing class AdyenWebhookService {
     private static final String DEFAULT_COMMUNICATION_FORMAT = 'json';
     private static final String DEFAULT_ENCRYPTION_PROTOCOL = 'TLSv1.3';
     private static final String DEFAULT_WEBHOOK_TYPE = 'standard';
-    
+
     @TestVisible
     private static Adyen_Adapter__mdt mockAdapter;
 
     public static WebhookSetupResponse setupWebhook(Adyen_Adapter__mdt adyenAdapter, String webhookUrl, List<String> eventCodes, String description) {
-        if (adyenAdapter == null || String.isBlank(adyenAdapter.Merchant_Account__c)) {
-            throw new AdyenWebhookException('Merchant Account is required');
+        validateCommonInputs(adyenAdapter, webhookUrl, eventCodes);
+
+        String endpoint = buildManagementApiEndpoint(adyenAdapter, null, null);
+        WebhookSetupRequest webhookRequest = buildWebhookRequest(webhookUrl, description, eventCodes, true);
+        String requestBody = JSON.serialize(webhookRequest, true);
+        
+        return executeWebhookOperation('POST', endpoint, requestBody, 'Error setting up webhook: ');
+    }
+
+    public static WebhookSetupResponse updateWebhook(Adyen_Adapter__mdt adyenAdapter, String webhookId, String webhookUrl, List<String> eventCodes, String description) {
+        validateCommonInputs(adyenAdapter, webhookUrl, eventCodes);
+        if (String.isBlank(webhookId)) {
+            throw new AdyenWebhookException('Webhook ID is required for webhook update');
         }
-        if (String.isBlank(webhookUrl)) {
-            throw new AdyenWebhookException('Webhook URL is required');
-        }
-        if (eventCodes == null || eventCodes.isEmpty()) {
-            throw new AdyenWebhookException('At least one event code must be specified');
-        }
+
+        String endpoint = buildManagementApiEndpoint(adyenAdapter, webhookId, null);
+        WebhookSetupRequest webhookRequest = buildWebhookRequest(webhookUrl, description, eventCodes, false);
+        String requestBody = JSON.serialize(webhookRequest, true);
+
+        return executeWebhookOperation('PATCH', endpoint, requestBody, 'Error updating webhook: ');
+    }
+    
+    private static WebhookSetupResponse executeWebhookOperation(String httpMethod, String endpoint, String requestBody, String errorMessagePrefix) {
         try {
-            WebhookSetupRequest webhookRequest = buildWebhookRequest(webhookUrl, description, eventCodes);
-            String requestBody = JSON.serialize(webhookRequest, true);
-            String endpoint = buildWebhookEndpoint(adyenAdapter);
-            HttpResponse response = AdyenManagementAPIService.makeHttpRequest('POST', endpoint, requestBody);
+            HttpResponse response = AdyenManagementAPIService.makeHttpRequest(httpMethod, endpoint, requestBody);
             
             if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
                 String errorMessage = AdyenManagementAPIService.parseErrorMessage(response);
@@ -31,9 +42,10 @@ public with sharing class AdyenWebhookService {
         } catch (AdyenWebhookException e) {
             throw e;
         } catch (Exception e) {
-            throw new AdyenWebhookException('Error setting up webhook: ' + e.getMessage());
+            throw new AdyenWebhookException(errorMessagePrefix + e.getMessage());
         }
     }
+    
 
     public static String generateHmacKey(Adyen_Adapter__mdt adyenAdapter, String webhookId) {
         if (adyenAdapter == null || String.isBlank(adyenAdapter.Merchant_Account__c)) {
@@ -44,7 +56,7 @@ public with sharing class AdyenWebhookService {
         }
         
         try {
-            String endpoint = buildHmacGenerationEndpoint(adyenAdapter, webhookId);
+            String endpoint = buildManagementApiEndpoint(adyenAdapter, webhookId, '/generateHmac');
             HttpResponse response = AdyenManagementAPIService.makeHttpRequest('POST', endpoint, '{}');
             
             if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
@@ -70,7 +82,7 @@ public with sharing class AdyenWebhookService {
         }
         
         try {
-            String endpoint = buildWebhookTestEndpoint(adyenAdapter, webhookId);
+            String endpoint = buildManagementApiEndpoint(adyenAdapter, webhookId, '/test');
             String requestBody = buildWebhookTestRequest();
             HttpResponse response = AdyenManagementAPIService.makeHttpRequest('POST', endpoint, requestBody);
             
@@ -84,8 +96,7 @@ public with sharing class AdyenWebhookService {
             if (testResponse.data != null) {
                 for (TestNotificationItem item : testResponse.data) {
                     if (item.status != null && item.status.toLowerCase() == 'failed') {
-                        throw new AdyenWebhookException('Webhook test failed: ' + 
-                            (String.isNotBlank(item.output) ? item.output : 'Test notification was not successfully delivered'));
+                        throw new AdyenWebhookException('Webhook test failed: ' + (String.isNotBlank(item.output) ? item.output : 'Test notification was not successfully delivered'));
                     }
                 }
             }
@@ -107,7 +118,7 @@ public with sharing class AdyenWebhookService {
         }
         
         try {
-            String endpoint = buildWebhookRetrievalEndpoint(adyenAdapter, webhookId);
+            String endpoint = buildManagementApiEndpoint(adyenAdapter, webhookId, null);
             HttpResponse response = AdyenManagementAPIService.makeHttpRequest('GET', endpoint, null);
             
             if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
@@ -123,13 +134,51 @@ public with sharing class AdyenWebhookService {
         }
     }
 
-    private static WebhookSetupRequest buildWebhookRequest(String webhookUrl, String description, List<String> eventCodes) {
+    private static String buildManagementApiEndpoint(Adyen_Adapter__mdt adyenAdapter, String webhookId, String suffix) {
+        adyenAdapter = validateAdapterFields(adyenAdapter);
+        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
+        String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
+        
+        String endpoint = String.format('{0}{1}{2}{3}', new List<String>{
+            baseUrl,
+            adyenAdapter.Management_API_Version__c,
+            adyenAdapter.Management_API_Endpoint_Path__c,
+            adyenAdapter.Management_API_Webhook_Endpoint__c.replace('{merchantId}', adyenAdapter.Merchant_Account__c)
+        });
+
+        if (String.isNotBlank(webhookId)) {
+            endpoint += '/' + String.escapeSingleQuotes(webhookId);
+        }
+
+        if (String.isNotBlank(suffix)) {
+            endpoint += suffix;
+        }
+        
+        return endpoint;
+    }
+
+    private static void validateCommonInputs(Adyen_Adapter__mdt adyenAdapter, String webhookUrl, List<String> eventCodes) {
+        if (adyenAdapter == null || String.isBlank(adyenAdapter.Merchant_Account__c)) {
+            throw new AdyenWebhookException('Merchant Account is required');
+        }
+        if (String.isBlank(webhookUrl)) {
+            throw new AdyenWebhookException('Webhook URL is required');
+        }
+        if (eventCodes == null || eventCodes.isEmpty()) {
+            throw new AdyenWebhookException('At least one event code must be specified');
+        }
+    }
+
+    private static WebhookSetupRequest buildWebhookRequest(String webhookUrl, String description, List<String> eventCodes, Boolean isCreate) {
         WebhookSetupRequest webhookRequest = new WebhookSetupRequest();
         webhookRequest.url = webhookUrl;
         webhookRequest.active = true;
         webhookRequest.communicationFormat = DEFAULT_COMMUNICATION_FORMAT;
         webhookRequest.encryptionProtocol = DEFAULT_ENCRYPTION_PROTOCOL;
-        webhookRequest.type = DEFAULT_WEBHOOK_TYPE;
+        
+        if (isCreate) {
+            webhookRequest.type = DEFAULT_WEBHOOK_TYPE;
+        }
         if (String.isNotBlank(description)) {
             webhookRequest.description = description;
         }
@@ -138,61 +187,7 @@ public with sharing class AdyenWebhookService {
 
         return webhookRequest;
     }
-
-    private static String buildWebhookEndpoint(Adyen_Adapter__mdt adyenAdapter) {
-        adyenAdapter = validateAdapterFields(adyenAdapter);
-        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
-        String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
-        return String.format('{0}{1}{2}{3}', new List<String>{
-            baseUrl,
-            adyenAdapter.Management_API_Version__c,
-            adyenAdapter.Management_API_Endpoint_Path__c,
-            adyenAdapter.Management_API_Webhook_Endpoint__c.replace('{merchantId}', adyenAdapter.Merchant_Account__c)
-        });
-    }
     
-    private static String buildHmacGenerationEndpoint(Adyen_Adapter__mdt adyenAdapter, String webhookId) {
-        adyenAdapter = validateAdapterFields(adyenAdapter);
-        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
-        String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
-        String safeWebhookId = String.escapeSingleQuotes(webhookId);
-        return String.format('{0}{1}{2}{3}/{4}/generateHmac', new List<String>{
-            baseUrl,
-            adyenAdapter.Management_API_Version__c,
-            adyenAdapter.Management_API_Endpoint_Path__c,
-            adyenAdapter.Management_API_Webhook_Endpoint__c.replace('{merchantId}', adyenAdapter.Merchant_Account__c),
-            safeWebhookId
-        });
-    }
-
-    private static String buildWebhookTestEndpoint(Adyen_Adapter__mdt adyenAdapter, String webhookId) {
-        adyenAdapter = validateAdapterFields(adyenAdapter);
-        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
-        String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
-        String safeWebhookId = String.escapeSingleQuotes(webhookId);
-        return String.format('{0}{1}{2}{3}/{4}/test', new List<String>{
-            baseUrl,
-            adyenAdapter.Management_API_Version__c,
-            adyenAdapter.Management_API_Endpoint_Path__c,
-            adyenAdapter.Management_API_Webhook_Endpoint__c.replace('{merchantId}', adyenAdapter.Merchant_Account__c),
-            safeWebhookId
-        });
-    }
-
-    private static String buildWebhookRetrievalEndpoint(Adyen_Adapter__mdt adyenAdapter, String webhookId) {
-        adyenAdapter = validateAdapterFields(adyenAdapter);
-        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
-        String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
-        String safeWebhookId = String.escapeSingleQuotes(webhookId);
-        return String.format('{0}{1}{2}{3}/{4}', new List<String>{
-            baseUrl,
-            adyenAdapter.Management_API_Version__c,
-            adyenAdapter.Management_API_Endpoint_Path__c,
-            adyenAdapter.Management_API_Webhook_Endpoint__c.replace('{merchantId}', adyenAdapter.Merchant_Account__c),
-            safeWebhookId
-        });
-    }
-
     private static String buildWebhookTestRequest() {
         WebhookTestRequest testRequest = new WebhookTestRequest();
         testRequest.notification = new TestNotification();
@@ -208,7 +203,7 @@ public with sharing class AdyenWebhookService {
         String jsonRequest = JSON.serialize(testRequest, true);
         return AdyenPaymentUtility.makeAdyenCompatible(jsonRequest);
     }
-
+    
     private static Adyen_Adapter__mdt validateAdapterFields(Adyen_Adapter__mdt adyenAdapter) {
         if (Test.isRunningTest() && mockAdapter != null) {
             adyenAdapter = mockAdapter;

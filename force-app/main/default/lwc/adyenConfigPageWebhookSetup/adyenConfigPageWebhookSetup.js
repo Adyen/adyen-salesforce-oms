@@ -3,6 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { subscribe, unsubscribe } from 'lightning/empApi';
 import getWebhookUrl from '@salesforce/apex/AdyenWebhookSetupController.getWebhookUrl';
 import setupWebhook from '@salesforce/apex/AdyenWebhookSetupController.setupWebhook';
+import updateWebhook from '@salesforce/apex/AdyenWebhookSetupController.updateWebhook';
 import saveHmacToMetadata from '@salesforce/apex/AdyenWebhookSetupController.saveHmacToMetadata';
 import checkExistingWebhook from '@salesforce/apex/AdyenWebhookSetupController.checkExistingWebhook';
 import testWebhook from '@salesforce/apex/AdyenWebhookSetupController.testWebhook';
@@ -184,18 +185,30 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         this.hmacSavedToMetadata = false;
         
         try {
-            const result = await setupWebhook({
-                description: this.description,
-                eventCodes: this.selectedEventCodes
-            });
+            let result;
+            if (this.isUpdateMode && this.webhookId) {
+                result = await updateWebhook({
+                    description: this.description,
+                    eventCodes: this.selectedEventCodes,
+                    webhookId: this.webhookId
+                });
+            } else {
+                result = await setupWebhook({
+                    description: this.description,
+                    eventCodes: this.selectedEventCodes
+                });
+            }
             
             if (result.isSuccess) {
                 this.webhookSetupResult = result;
                 this.hmacKey = result.hmacKey || '';
+                this.webhookId = result.webhookId || '';
                 this.hmacGenerationFailed = result.hmacGenerationFailed || false;
                 this.hmacErrorMessage = result.hmacErrorMessage || '';
                 
-                let toastMessage = 'Webhook has been successfully configured';
+                let toastMessage = this.isUpdateMode 
+                    ? 'Webhook has been successfully updated' 
+                    : 'Webhook has been successfully configured';
                 if (this.hmacGenerationFailed) {
                     toastMessage += ', but HMAC generation failed';
                 } else if (this.hmacKey) {
@@ -203,17 +216,17 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
                 }
                 
                 this.showToast(
-                    'Webhook Setup Successful',
+                    this.isUpdateMode ? 'Webhook Update Successful' : 'Webhook Setup Successful',
                     toastMessage,
                     this.hmacGenerationFailed ? 'warning' : 'success'
                 );
             } else {
                 this.setupError = result.errorMessage;
-                this.handleError(result.errorMessage, 'Setup Failed');
+                this.handleError(result.errorMessage, this.isUpdateMode ? 'Update Failed' : 'Setup Failed');
             }
         } catch (error) {
             this.setupError = error.message;
-            this.handleError(error, 'Setup Failed');
+            this.handleError(error, this.isUpdateMode ? 'Update Failed' : 'Setup Failed');
         } finally {
             this.isLoading = false;
         }
@@ -430,7 +443,7 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
                 this.existingWebhookDetails = result;
                 this.isUpdateMode = true;
                 this.showWebhookExistsDialog = true;
-            
+
                 if (result.webhookDescription) {
                     this.description = result.webhookDescription;
                 }
