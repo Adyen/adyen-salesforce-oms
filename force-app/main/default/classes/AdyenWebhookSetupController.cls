@@ -63,20 +63,6 @@ public with sharing class AdyenWebhookSetupController {
     }
 
     @AuraEnabled
-    public static String saveHmacToMetadata(String hmacKey) {
-        try {
-            if (String.isBlank(hmacKey)) {
-                throw new AuraHandledException('HMAC Key cannot be empty.');
-            }
-            Adyen_Adapter__mdt adapterData = AdyenCustomMetadataService.getDefaultAdapter();
-            adapterData.HMAC_Key__c = hmacKey;
-            return AdyenCustomMetadataService.updateDefaultAdapter(adapterData);
-        } catch (Exception e) {
-            throw new AuraHandledException('Error saving HMAC key to metadata: ' + e.getMessage());
-        }
-    }
-
-    @AuraEnabled
     public static WebhookTestResult testWebhook(String webhookId) {
         WebhookTestResult result = new WebhookTestResult();
         try {
@@ -92,6 +78,26 @@ public with sharing class AdyenWebhookSetupController {
             result.errorMessage = e.getMessage();
         }
         return result;
+    }
+
+    @AuraEnabled
+    public static String saveWebhookDataToMetadata(String hmacKey, String webhookId) {
+        try {
+            if (String.isBlank(hmacKey)) {
+                throw new AuraHandledException('HMAC Key cannot be empty.');
+            }
+            if (String.isBlank(webhookId)) {
+                throw new AuraHandledException('Webhook ID cannot be empty.');
+            }
+            
+            Adyen_Adapter__mdt adapterData = AdyenCustomMetadataService.getDefaultAdapter();
+            adapterData.HMAC_Key__c = hmacKey;
+            adapterData.Webhook_ID__c = webhookId;
+            
+            return AdyenCustomMetadataService.updateDefaultAdapter(adapterData);
+        } catch (Exception e) {
+            throw new AuraHandledException('Error saving webhook data to metadata: ' + e.getMessage());
+        }
     }
 
     @AuraEnabled

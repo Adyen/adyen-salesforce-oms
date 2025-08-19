@@ -4,7 +4,7 @@ import { subscribe, unsubscribe } from 'lightning/empApi';
 import getWebhookUrl from '@salesforce/apex/AdyenWebhookSetupController.getWebhookUrl';
 import setupWebhook from '@salesforce/apex/AdyenWebhookSetupController.setupWebhook';
 import updateWebhook from '@salesforce/apex/AdyenWebhookSetupController.updateWebhook';
-import saveHmacToMetadata from '@salesforce/apex/AdyenWebhookSetupController.saveHmacToMetadata';
+import saveWebhookDataToMetadata from '@salesforce/apex/AdyenWebhookSetupController.saveWebhookDataToMetadata';
 import checkExistingWebhook from '@salesforce/apex/AdyenWebhookSetupController.checkExistingWebhook';
 import testWebhook from '@salesforce/apex/AdyenWebhookSetupController.testWebhook';
 
@@ -100,8 +100,8 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
                 this.deploymentTimedOut = true;
                 
                 this.showToast(
-                    'Save Taking Longer Than Expected',
-                    'The HMAC key save is still processing. You can continue with other setup steps.',
+                    'Taking Longer Than Expected',
+                    'The custom metadata update is still processing. You can continue with other setup steps.',
                     'warning'
                 );
             }
@@ -232,9 +232,14 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         }
     }
     
-    async handleSaveHmacToMetadata() {
+    async handleSaveToMetadata() {
         if (!this.hmacKey) {
             this.showToast('Error', 'No HMAC key available to save.', 'error');
+            return;
+        }
+        
+        if (!this.webhookId) {
+            this.showToast('Error', 'No webhook ID available to save.', 'error');
             return;
         }
         
@@ -242,14 +247,17 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         this.deploymentTimedOut = false;
         
         try {
-            const deploymentId = await saveHmacToMetadata({ hmacKey: this.hmacKey });
+            const deploymentId = await saveWebhookDataToMetadata({ 
+                hmacKey: this.hmacKey, 
+                webhookId: this.webhookId
+            });
             
             this.pendingDeploymentId = deploymentId;
             this.startTimeout();
             
             this.showToast(
-                'HMAC Key Save In Progress',
-                'Saving HMAC key to metadata. This may take a moment.',
+                'Webhook Data Save In Progress',
+                'Saving webhook data to metadata. This may take a moment.',
                 'info'
             );
             
@@ -263,7 +271,7 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         this.hmacSavedToMetadata = true;
         this.showToast(
             'Success',
-            'HMAC key has been saved to metadata successfully.',
+            'The webhook data has been saved to metadata successfully.',
             'success'
         );
         
@@ -273,7 +281,7 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     handleMetadataSaveError(errorMessage) {
         this.showToast(
             'Error',
-            'Failed to save HMAC key: ' + (errorMessage || 'Unknown error'),
+            'Failed to save webhook data to metadata: ' + (errorMessage || 'Unknown error'),
             'error'
         );
     }
@@ -477,6 +485,14 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         return this.isUpdateMode ? 'Update Webhook' : 'Setup Webhook';
     }
 
+    get webhookIdDisplay() {
+        return this.webhookId || this.webhookSetupResult?.webhookId;
+    }
+
+    get showWebhookId() {
+        return this.webhookConfigured && this.webhookIdDisplay;
+    }
+
     get webhookDetailsToggleIcon() {
         return this.showWebhookDetails ? 'utility:chevrondown' : 'utility:chevronright';
     }
@@ -487,5 +503,15 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
 
     get existingWebhookEventCodesDisplay() {
         return this.existingWebhookDetails?.webhookEventCodes?.join(', ') || 'No events configured';
+    }
+
+    handleCopyWebhookId() {
+        if (this.webhookIdDisplay) {
+            navigator.clipboard.writeText(this.webhookIdDisplay).then(() => {
+                this.showToast('Copied', 'Webhook ID copied to clipboard', 'success');
+            }).catch(() => {
+                this.showToast('Error', 'Failed to copy webhook ID', 'error');
+            });
+        }
     }
 }
