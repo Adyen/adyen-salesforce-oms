@@ -60,19 +60,9 @@
                                     
                                     <template if:true={showHmacKey}>
                                         <div class="slds-theme_default slds-m-bottom_medium">
-                                            <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
-                                                <div class="slds-col slds-size_1-of-12">
-                                                    <lightning-icon icon-name="utility:key" size="small" variant="brand"></lightning-icon>
-                                                </div>
-                                                <div class="slds-col slds-size_11-of-12">
-                                                    <p class="slds-text-body_regular"><strong>HMAC Key Generated</strong></p>
-                                                    <p class="slds-text-body_small slds-text-color_weak">
-                                                        This key is used to verify webhook notifications. Save it to metadata before proceeding.
-                                                    </p>
-                                                </div>
-                                            </div>
+                                            <p class="slds-text-body_regular"><strong>Save HMAC Key & Webhook ID to Custom Metadata before proceeding.</strong></p>
                                             
-                                            <div class="slds-form-element slds-m-bottom_medium">
+                                            <div class="slds-form-element">
                                                 <label class="slds-form-element__label">HMAC Key</label>
                                                 <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
                                                     <div class="slds-grid slds-gutters_small slds-wrap">
@@ -110,6 +100,38 @@
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <template if:true={showWebhookId}>
+                                                <div class="slds-theme_default">
+                                                    <div class="slds-form-element slds-m-bottom_medium">
+                                                        <label class="slds-form-element__label">Webhook ID</label>
+                                                        <div class="slds-form-element__control">
+                                                            <div class="slds-grid slds-gutters_small slds-wrap">
+                                                                <div class="slds-col slds-size_10-of-12">
+                                                                    <lightning-input 
+                                                                        type="text"
+                                                                        value={webhookIdDisplay}
+                                                                        readonly
+                                                                        variant="label-hidden"
+                                                                        class="slds-input_bare">
+                                                                    </lightning-input>
+                                                                </div>
+                                                            
+                                                                <div class="slds-col slds-size_2-of-12">
+                                                                    <lightning-button-icon  
+                                                                        onclick={handleCopyWebhookId}
+                                                                        variant="border-filled"
+                                                                        title="Copy Webhook ID"
+                                                                        icon-name="utility:copy"
+                                                                        size="small"
+                                                                        alternative-text="Copy">
+                                                                    </lightning-button-icon>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
                                             
                                             <template if:true={showSaveButton}>
                                                 <div class="slds-grid slds-grid_align-end">
@@ -118,7 +140,7 @@
                                                         label="Save to Metadata" 
                                                         icon-name="utility:save"
                                                         icon-position="left"
-                                                        onclick={handleSaveHmacToMetadata} 
+                                                        onclick={handleSaveToMetadata} 
                                                         disabled={isMetadataSaveLoading}>
                                                     </lightning-button>
                                                 </div>
@@ -128,12 +150,14 @@
                                                 <div class="slds-grid slds-grid_align-center slds-m-top_medium">
                                                     <div class="slds-grid slds-grid_vertical-align-center">
                                                         <lightning-spinner size="small" alternative-text="Saving"></lightning-spinner>
-                                                        <span class="slds-m-left_small">Saving HMAC key to metadata...</span>
+                                                        <span class="slds-m-left_small">Saving Webhook data to the custom metadata...</span>
                                                     </div>
                                                 </div>
                                             </template>
                                         </div>
                                     </template>
+                                    
+                                    
                                     
                                     <template if:true={hmacSavedToMetadata}>
                                         <div class="slds-box slds-theme_success slds-m-bottom_medium">
@@ -142,9 +166,9 @@
                                                     <lightning-icon icon-name="utility:success" size="small" variant="success"></lightning-icon>
                                                 </div>
                                                 <div class="slds-col slds-size_11-of-12">
-                                                    <p class="slds-text-body_regular"><strong>HMAC Key Saved Successfully</strong></p>
+                                                    <p class="slds-text-body_regular"><strong>Webhook Data Saved Successfully</strong></p>
                                                     <p class="slds-text-body_small slds-m-top_x-small">
-                                                        The HMAC key has been saved to the custom metadata.
+                                                        The webhook data has been saved to the custom metadata.
                                                     </p>
                                                 </div>
                                             </div>
@@ -269,7 +293,7 @@
                             <li>Enter a description for your webhook</li>
                             <li>Select the event types</li>
                             <li>Click <strong>Setup Webhook</strong> to create the webhook</li>
-                            <li>Copy and save the generated HMAC key to the custom metadata</li>
+                            <li>Save the generated HMAC key and Webhook ID to the custom metadata</li>
                         </ol>
                         
                         <div class="slds-p-around_small slds-m-top_medium slds-border_top">
@@ -283,10 +307,10 @@
                         </div>
                         
                         <div class="slds-p-around_small slds-m-top_medium slds-border_top">
-                            <p class="slds-text-heading_small slds-m-bottom_x-small">HMAC Key:</p>
+                            <p class="slds-text-heading_small slds-m-bottom_x-small">HMAC Key & Webhook ID:</p>
                             <ul class="slds-list_dotted slds-m-left_medium">
-                                <li><strong>Generated automatically:</strong> HMAC key is created for webhook verification</li>
-                                <li><strong>Copy and save:</strong> Must be saved to the custom metadata before proceeding</li>
+                                <li><strong>Generated automatically:</strong> An HMAC key and Webhook ID are created for webhook verification.</li>
+                                <li><strong>Save to metadata:</strong> Both must be saved to the custom metadata before proceeding.</li>
                             </ul>
                         </div>
                         

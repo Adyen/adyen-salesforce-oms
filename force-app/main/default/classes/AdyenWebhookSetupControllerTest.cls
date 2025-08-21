@@ -144,13 +144,14 @@ private class AdyenWebhookSetupControllerTest {
     }
 
     @IsTest(SeeAllData=true)
-    static void saveHmacToMetadataSuccessTest() {
+    static void saveWebhookDataToMetadataSuccessTest() {
         // Given
         String hmacKey = 'test-hmac-key-123456789';
+        String webhookId = 'WBHK12345678912345678912345678';
         
         Test.startTest();
         // When
-        String deploymentId = AdyenWebhookSetupController.saveHmacToMetadata(hmacKey);
+        String deploymentId = AdyenWebhookSetupController.saveWebhookDataToMetadata(hmacKey, webhookId);
         Test.stopTest();
         
         // Then
@@ -158,17 +159,34 @@ private class AdyenWebhookSetupControllerTest {
     }
 
     @IsTest
-    static void saveHmacToMetadataNullKeyTest() {
+    static void saveWebhookDataToMetadataEmptyHmacKeyTest() {
         // Given
         String hmacKey = null;
+        String webhookId = 'WBHK12345678912345678912345678';
         
         Test.startTest();
-        // When
+        // When & Then
         try {
-            AdyenWebhookSetupController.saveHmacToMetadata(hmacKey);
+            AdyenWebhookSetupController.saveWebhookDataToMetadata(hmacKey, webhookId);
             Assert.fail('Expected exception was not thrown');
         } catch (Exception e) {
-            // Then
+            Assert.isInstanceOfType(e, AuraHandledException.class);
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void saveWebhookDataToMetadataEmptyWebhookIdTest() {
+        // Given
+        String hmacKey = 'test-hmac-key-123456789';
+        String webhookId = null;
+        
+        Test.startTest();
+        // When & Then
+        try {
+            AdyenWebhookSetupController.saveWebhookDataToMetadata(hmacKey, webhookId);
+            Assert.fail('Expected exception was not thrown');
+        } catch (Exception e) {
             Assert.isInstanceOfType(e, AuraHandledException.class);
         }
         Test.stopTest();
