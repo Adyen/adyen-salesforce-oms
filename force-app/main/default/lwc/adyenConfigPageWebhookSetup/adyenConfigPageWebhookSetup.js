@@ -1,4 +1,4 @@
-import { LightningElement } from 'lwc';
+import { LightningElement, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { subscribe, unsubscribe } from 'lightning/empApi';
 import getWebhookUrl from '@salesforce/apex/AdyenWebhookSetupController.getWebhookUrl';
@@ -11,6 +11,8 @@ import testWebhook from '@salesforce/apex/AdyenWebhookSetupController.testWebhoo
 const METADATA_UPDATE_TIMEOUT = 10000;
 
 export default class AdyenConfigPageWebhookSetup extends LightningElement {
+    @api accountSetupContext;
+    
     description = 'Adyen Webhook for Salesforce OMS';
     selectedEventCodes = ['CAPTURE', 'CAPTURE_FAILED', 'REFUND', 'REFUND_FAILED'];
     webhookUrl = '';
@@ -47,6 +49,14 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         { label: 'CANCELLATION', value: 'CANCELLATION' },
         { label: 'AUTHORISATION', value: 'AUTHORISATION' }
     ];
+
+    get isCompanySetup() {
+        return this.accountSetupContext?.setupType === 'company';
+    }
+
+    get setupType() {
+        return this.isCompanySetup ? 'company' : 'merchant';
+    }
     
     connectedCallback() {
         this.loadWebhookUrl();
@@ -190,12 +200,14 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
                 result = await updateWebhook({
                     description: this.description,
                     eventCodes: this.selectedEventCodes,
-                    webhookId: this.webhookId
+                    webhookId: this.webhookId,
+                    setupType: this.setupType
                 });
             } else {
                 result = await setupWebhook({
                     description: this.description,
-                    eventCodes: this.selectedEventCodes
+                    eventCodes: this.selectedEventCodes,
+                    setupType: this.setupType
                 });
             }
             
@@ -295,8 +307,10 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         this.isLoading = true;
 
         try {
-            const result = await testWebhook({ webhookId: this.webhookSetupResult.webhookId });
-            
+            const result = await testWebhook({
+                webhookId: this.webhookSetupResult.webhookId,
+                setupType: this.setupType
+            });
             if (result.isSuccess) {
                 this.showToast(
                     'Webhook Test Successful',
@@ -443,8 +457,9 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
 
     async checkForExistingWebhook() {
         try {
-            const result = await checkExistingWebhook();
-            
+            const result = await checkExistingWebhook({
+                setupType: this.setupType
+            });
             if (result.webhookExists && result.webhookId) {
                 this.existingWebhookFound = true;
                 this.webhookId = result.webhookId;
@@ -513,5 +528,26 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
                 this.showToast('Error', 'Failed to copy webhook ID', 'error');
             });
         }
+    }
+    
+    get isMerchantSetup() {
+        return this.accountSetupContext?.setupType === 'merchant';
+    }
+    
+    get companyName() {
+        return this.accountSetupContext?.companyName;
+    }
+    
+    get merchantAccountId() {
+        return this.accountSetupContext?.merchantAccountId;
+    }
+    
+    get setupTypeLabel() {
+        if (this.isCompanySetup) {
+            return 'Company Account';
+        } else if (this.isMerchantSetup) {
+            return 'Merchant Account';
+        }
+        return 'Account';
     }
 }
