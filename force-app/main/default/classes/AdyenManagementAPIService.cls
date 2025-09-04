@@ -36,13 +36,41 @@ public with sharing class AdyenManagementAPIService {
         }
     }
     
+    public class ApiCredential {
+        @AuraEnabled
+        public String id { get; set; }
+        @AuraEnabled
+        public String username { get; set; }
+        @AuraEnabled
+        public String companyName { get; set; }
+        @AuraEnabled
+        public String description { get; set; }
+        @AuraEnabled
+        public Boolean active { get; set; }
+        @AuraEnabled
+        public List<String> roles { get; set; }
+    }
+    
+    public class ApiCredentialResult {
+        @AuraEnabled
+        public Boolean isSuccess { get; set; }
+        @AuraEnabled
+        public String errorMessage { get; set; }
+        @AuraEnabled
+        public ApiCredential apiCredential { get; set; }
+        
+        public ApiCredentialResult() {
+            this.isSuccess = false;
+        }
+    }
+    
     @AuraEnabled
     public static MerchantAccountResult fetchMerchantAccounts() {
         MerchantAccountResult result = new MerchantAccountResult();
         
         try {
             Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
-            String endpoint = buildManagementAPIEndpoint(adyenAdapter);
+            String endpoint = buildManagementAPIEndpoint(adyenAdapter) + '/merchants';
             
             HttpResponse response = makeHttpRequest('GET', endpoint, null);
             
@@ -67,14 +95,56 @@ public with sharing class AdyenManagementAPIService {
         return result;
     }
     
+    @AuraEnabled
+    public static ApiCredentialResult fetchApiCredentialDetails() {
+        ApiCredentialResult result = new ApiCredentialResult();
+        
+        try {
+            Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
+            String endpoint = buildManagementAPIEndpoint(adyenAdapter) + '/me';
+            
+            HttpResponse response = makeHttpRequest('GET', endpoint, null);
+            
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                String responseBody = response.getBody();
+                ApiCredential apiCredential = (ApiCredential) JSON.deserialize(responseBody, ApiCredential.class);
+                
+                result.isSuccess = true;
+                result.apiCredential = apiCredential;
+                
+            } else {
+                result.isSuccess = false;
+                result.errorMessage = parseErrorMessage(response);
+            }
+            
+        } catch (Exception e) {
+            result.isSuccess = false;
+            result.errorMessage = 'Error fetching API credential details: ' + e.getMessage();
+        }
+        
+        return result;
+    }
+
+    @AuraEnabled
+    public static String getCompanyId() {
+        try {
+            ApiCredentialResult result = fetchApiCredentialDetails();
+            if (result.isSuccess && result.apiCredential != null) {
+                return result.apiCredential.companyName;
+            }
+            throw new AdyenManagementAPIException('Failed to fetch company ID: ' + result.errorMessage);
+        } catch (Exception e) {
+            throw new AdyenManagementAPIException('Error getting company ID: ' + e.getMessage());
+        }
+    }
+    
     private static String buildManagementAPIEndpoint(Adyen_Adapter__mdt adyenAdapter) {
         String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
         String baseUrl = 'callout:' + namespace + adyenAdapter.Management_API_Named_Credential__c;
         
-        return String.format('{0}{1}{2}', new List<String>{
+        return String.format('{0}{1}', new List<String>{
             baseUrl,
-            adyenAdapter.Management_API_Version__c,
-            adyenAdapter.Management_API_Endpoint_Path__c
+            adyenAdapter.Management_API_Version__c
         });
     }
     
@@ -112,4 +182,6 @@ public with sharing class AdyenManagementAPIService {
         
         return errorMessage;
     }
+
+    public class AdyenManagementAPIException extends Exception {}
 }

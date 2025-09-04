@@ -8,11 +8,17 @@ export default class AdyenOMSConfigPage extends LightningElement {
         { value: 'paymentGateway', label: 'Payment Gateway' },
         { value: 'namedCredential', label: 'Named Credentials' },
         { value: 'siteURL', label: 'Site URL Setup' },
-        { value: 'merchantAccount', label: 'Merchant Account' },
+        { value: 'accountSetup', label: 'Account Setup' },
         { value: 'webhookSetup', label: 'Webhook Setup' },
         { value: 'pageLayoutSetup', label: 'Page Layout Setup' },
         { value: 'permissionSetup', label: 'Permission Setup' }
     ];
+    
+    accountSetupContext = {
+        setupType: null,
+        companyName: null,
+        merchantAccountId: null
+    };
     
     handleStepClick(event) {
         this.currentStep = event.currentTarget.dataset.step;
@@ -21,6 +27,15 @@ export default class AdyenOMSConfigPage extends LightningElement {
     handleStepComplete(event) {        
         const completedStep = event.detail.step || this.currentStep;
         const success = event.detail.success;
+        
+        if (completedStep === 'accountSetup' && success) {
+            this.accountSetupContext = {
+                setupType: event.detail.setupType,
+                companyName: event.detail.companyName,
+                merchantAccountId: event.detail.merchantAccountId
+            };
+        }
+        
         if (success) {
             this.moveToNextStep(completedStep);
         }
@@ -72,8 +87,8 @@ export default class AdyenOMSConfigPage extends LightningElement {
         return this.currentStep === 'siteURL';
     }
 
-    get isMerchantAccountStep() {
-        return this.currentStep === 'merchantAccount';
+    get isAccountSetupStep() {
+        return this.currentStep === 'accountSetup';
     }
 
     get isPageLayoutSetupStep() {
@@ -125,8 +140,8 @@ export default class AdyenOMSConfigPage extends LightningElement {
         return this.getStepClass('siteURL');
     }
     
-    get merchantAccountStepClass() {
-        return this.getStepClass('merchantAccount');
+    get accountSetupStepClass() {
+        return this.getStepClass('accountSetup');
     }
     
     get pageLayoutSetupStepClass() {

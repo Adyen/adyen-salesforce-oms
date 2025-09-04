@@ -59,12 +59,12 @@
                                     </li>
                                     
                                    
-                                    <li class={merchantAccountStepClass} role="presentation">
-                                        <a class="slds-path__link" data-step="merchantAccount" onclick={handleStepClick} role="option" tabindex="-1">
+                                    <li class={accountSetupStepClass} role="presentation">
+                                        <a class="slds-path__link" data-step="accountSetup" onclick={handleStepClick} role="option" tabindex="-1">
                                             <span class="slds-path__stage">
                                                 <lightning-icon icon-name="utility:check" size="x-small" variant="inverse"></lightning-icon>
                                             </span>
-                                            <span class="slds-path__title">Merchant Account</span>
+                                            <span class="slds-path__title">Account Setup</span>
                                         </a>
                                     </li>
                                     
@@ -118,13 +118,15 @@
                     </c-adyen-config-page-site-endpoint>
                 </template>
                 
-                <template if:true={isMerchantAccountStep}>
-                    <c-adyen-config-page-merchant-account>
+                <template if:true={isAccountSetupStep}>
+                    <c-adyen-config-page-merchant-account 
+                        onstepcomplete={handleStepComplete}>
                     </c-adyen-config-page-merchant-account>
                 </template>
 
                 <template if:true={isWebhookSetupStep}>
-                    <c-adyen-config-page-webhook-setup>
+                    <c-adyen-config-page-webhook-setup
+                        account-setup-context={accountSetupContext}>
                     </c-adyen-config-page-webhook-setup>
                 </template>
 
