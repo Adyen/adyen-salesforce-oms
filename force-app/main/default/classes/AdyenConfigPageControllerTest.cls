@@ -125,4 +125,20 @@ private class AdyenConfigPageControllerTest {
         Assert.isTrue(urls.get('omsB2cPermissionSetUrl').contains(permSet.Id));
         
     }
+
+    @isTest
+    static void testIsProductionOrg() {
+        // Given
+        Organization currentOrg = [SELECT IsSandbox, OrganizationType FROM Organization LIMIT 1];
+
+        // When
+        Test.startTest();
+        Boolean result = AdyenConfigPageController.isProductionOrg();
+        Test.stopTest();
+
+        // Then
+        
+        Boolean expectedResult = !currentOrg.IsSandbox && currentOrg.OrganizationType != 'Developer Edition';
+        System.assertEquals(expectedResult, result, 'The isProductionOrg method should correctly reflect the current org type.');
+    }
 }

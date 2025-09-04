@@ -88,6 +88,12 @@ public with sharing class AdyenConfigPageController {
         return setupUrls;
     }
 
+    @AuraEnabled
+    public static Boolean isProductionOrg() {
+        Organization org = [SELECT IsSandbox, OrganizationType FROM Organization LIMIT 1];
+        return !org.IsSandbox && org.OrganizationType != 'Developer Edition';
+    }
+
     private static PermissionSet getOrderManagementPermissionSet() {
         List<PermissionSet> permissionSets = [
             SELECT Id

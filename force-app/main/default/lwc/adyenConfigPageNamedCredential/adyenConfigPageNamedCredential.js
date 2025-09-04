@@ -1,9 +1,11 @@
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getSetupPageUrls from '@salesforce/apex/AdyenConfigPageController.getSetupPageUrls';
+import isProductionOrg from '@salesforce/apex/AdyenConfigPageController.isProductionOrg';
 
 export default class AdyenConfigPageNamedCredential extends LightningElement {
     @track setupUrls = {};
+    isProduction = false;
     showSpinner = false;
     stepName = 'namedCredential';
     
@@ -22,12 +24,19 @@ export default class AdyenConfigPageNamedCredential extends LightningElement {
         return this.currentInstructionSet === 'permissions';
     }
 
+    get showUpdateUrlInstructions() {
+        return this.currentInstructionSet === 'updateUrl';
+    }
+
     get isManagementAPI() {
         return this.currentCredential === 'AdyenManagementAPI';
     }
     
     async connectedCallback() {
-        await this.fetchSetupUrls();
+        await Promise.all([
+            this.fetchSetupUrls(),
+            this.checkProductionOrg()
+        ]);
     }
     
     async fetchSetupUrls() {
@@ -40,9 +49,32 @@ export default class AdyenConfigPageNamedCredential extends LightningElement {
             this.showSpinner = false;
         }
     }
+
+    async checkProductionOrg() {
+        try {
+            this.isProduction = await isProductionOrg();
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
     
     handleUpdateApiKey(event) {
-        const credentialName = event.currentTarget.dataset.credential;
+        this.openNamedCredentialSetup(event.currentTarget.dataset.credential);
+    }
+
+    handleAssignPermissions() {
+        if (this.setupUrls.permissionSet) {
+            window.open(this.setupUrls.permissionSet, '_blank');
+        } else {
+            this.showToast('Error', 'Unable to open Permission Set setup page.', 'error');
+        }
+    }
+
+    handleUpdateUrl(event) {
+        this.openNamedCredentialSetup(event.currentTarget.dataset.credential);
+    }
+
+    openNamedCredentialSetup(credentialName) {
         const credentialUrls = {
             'AdyenCheckout': this.setupUrls.checkoutNamedCredential,
             'AdyenManagementAPI': this.setupUrls.managementApiNamedCredential
@@ -54,14 +86,6 @@ export default class AdyenConfigPageNamedCredential extends LightningElement {
             window.open(setupUrl, '_blank');
         } else {
             this.showToast('Error', 'Unable to open Named Credential setup page.', 'error');
-        }
-    }
-
-    handleAssignPermissions() {
-        if (this.setupUrls.permissionSet) {
-            window.open(this.setupUrls.permissionSet, '_blank');
-        } else {
-            this.showToast('Error', 'Unable to open Permission Set setup page.', 'error');
         }
     }
     
