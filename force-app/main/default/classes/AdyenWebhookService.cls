@@ -45,6 +45,9 @@ public with sharing class AdyenWebhookService {
     }
 
     public static WebhookSetupResponse updateWebhook(WebhookContext context, String webhookId, WebhookRequest request) {
+        if (String.isBlank(webhookId)) {
+            throw new AdyenWebhookException('Webhook ID is required for webhook update.');
+        }
         validateInputs(context, request, webhookId);
         return processWebhookRequest(context, webhookId, request, false);
     }
@@ -188,10 +191,6 @@ public with sharing class AdyenWebhookService {
         
         if (String.isBlank(context.getAccountId())) {
             throw new AdyenWebhookException((context.isCompanyLevel() ? 'Company ID' : 'Merchant Account') + ' is required');
-        }
-        
-        if (String.isNotBlank(webhookId) && webhookId.trim().length() == 0) {
-            throw new AdyenWebhookException('Webhook ID cannot be empty when provided');
         }
     }
 
