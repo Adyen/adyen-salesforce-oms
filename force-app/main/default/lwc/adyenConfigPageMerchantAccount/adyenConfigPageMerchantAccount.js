@@ -3,6 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { subscribe, unsubscribe } from 'lightning/empApi';
 import getMerchantAccountConfiguration from '@salesforce/apex/AdyenMerchantAccountController.getMerchantAccountConfiguration';
 import fetchMerchantAccounts from '@salesforce/apex/AdyenManagementAPIService.fetchMerchantAccounts';
+import getCompanyId from '@salesforce/apex/AdyenManagementAPIService.getCompanyId';
 import updateMerchantAccount from '@salesforce/apex/AdyenMerchantAccountController.updateMerchantAccount';
 
 const METADATA_UPDATE_TIMEOUT = 10000;
@@ -21,6 +22,11 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
     deploymentTimedOut = false;
     apiError = '';
     merchantAccountFetched = false;
+    
+    showChoiceScreen = true;
+    selectedSetupType = 'merchant';
+    companyName = '';
+    showCompanyConfirmation = false;
     
     channelName = '/event/Adyen_Metadata_Deployment_Result__e';
     subscription = null;
@@ -180,6 +186,15 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
             'Merchant account configuration updated successfully.',
             'success'
         );
+        
+        this.dispatchEvent(new CustomEvent('stepcomplete', {
+            detail: {
+                step: 'accountSetup',
+                success: true,
+                setupType: 'merchant',
+                merchantAccountId: this.selectedMerchantAccountId
+            }
+        }));
     }
     
     handleDeploymentError(errorMessage) {
@@ -202,6 +217,72 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
     
     handleFetch() {
         this.fetchMerchantAccountsFromAPI();
+    }
+    
+    handleSetupTypeChange(event) {
+        this.selectedSetupType = event.target.value;
+    }
+    
+    async handleContinueWithChoice() {
+        if (!this.selectedSetupType) {
+            this.showToast('Error', 'Please select a setup type to continue.', 'error');
+            return;
+        }
+        
+        if (this.selectedSetupType === 'company') {
+            await this.fetchCompanyDetails();
+        } else {
+            this.showChoiceScreen = false;
+        }
+    }
+    
+    async fetchCompanyDetails() {
+        this.isLoading = true;
+        try {
+            this.companyName = await getCompanyId();
+            this.showChoiceScreen = false;
+            this.showCompanyConfirmation = true;
+        } catch (error) {
+            this.handleError(error);
+        } finally {
+            this.isLoading = false;
+        }
+    }
+    
+    handleContinueToWebhook() {
+        if(this.selectedSetupType === 'merchant') {
+            this.selectedMerchantAccountId = this.currentMerchantAccount;
+            this.dispatchEvent(new CustomEvent('stepcomplete', {
+                detail: {
+                    step: 'accountSetup',
+                    success: true,
+                    setupType: 'merchant',
+                    merchantAccountId: this.selectedMerchantAccountId
+                }
+            }));
+
+        } else {
+            this.dispatchEvent(new CustomEvent('stepcomplete', {
+                detail: {
+                    step: 'accountSetup',
+                    success: true,
+                    setupType: 'company',
+                    companyName: this.companyName
+                }
+            }));
+        }
+    }
+    
+    handleBackToChoice() {
+        this.showCompanyConfirmation = false;
+        this.companyName = '';
+        
+        this.merchantAccountFetched = false;
+        this.selectedMerchantAccountId = '';
+        this.apiError = '';
+        
+        this.showChoiceScreen = true;
+        this.selectedSetupType = 'merchant';
     }
     
     handleError(error) {
@@ -229,6 +310,44 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
     }
     
     get showMerchantAccountSection() {
-        return !this.isLoading && !this.merchantAccountFetched && !this.apiError;
+        return !this.isLoading && !this.merchantAccountFetched && !this.apiError && !this.showChoiceScreen && !this.showCompanyConfirmation;
+    }
+    
+    get setupTypeOptions() {
+        return [
+            { label: 'Merchant Account', value: 'merchant' },
+            { label: 'Company Account', value: 'company' }
+        ];
+    }
+    
+    get isContinueDisabled() {
+        return !this.selectedSetupType || this.isLoading;
+    }
+    
+    get showMerchantFlow() {
+        return !this.showChoiceScreen && !this.showCompanyConfirmation && this.selectedSetupType === 'merchant';
+    }
+    
+    get headerDescription() {
+        if (this.showChoiceScreen) {
+            return 'Choose your account configuration type';
+        } else if (this.showCompanyConfirmation) {
+            return 'Configure webhooks at the company level';
+        } else if (this.showMerchantFlow) {
+            return 'Configure the merchant account for Adyen integration';
+        }
+        return 'Choose your account configuration type';
+    }
+    
+    get showChoiceInstructions() {
+        return this.showChoiceScreen;
+    }
+    
+    get showMerchantInstructions() {
+        return this.selectedSetupType === 'merchant' && !this.showChoiceScreen;
+    }
+    
+    get showCompanyInstructions() {
+        return this.showCompanyConfirmation;
     }
 }

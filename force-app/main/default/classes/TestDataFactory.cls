@@ -399,6 +399,12 @@ public class TestDataFactory {
 
     public class WebhookTestMockResponse implements HttpCalloutMock {
         public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.endsWith('/me')) {
+                return mockHttpResponse(mockApiCredentialResponse(), 200);
+            }
+            
             if (req.getBody() != null && req.getBody().contains('notification') && req.getBody().contains('types')) {
                 Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
                 Map<String, Object> notification = (Map<String, Object>)requestBody.get('notification');
@@ -473,8 +479,40 @@ public class TestDataFactory {
             return mockHttpResponse(mockFetchMerchantAccountErrorResponse(), 401);
         }
     }
+
+    public class MockApiCredentialResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockApiCredentialResponse(), 200);
+        }
+    }
+
+    public class MockApiCredentialCalloutFailure implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockApiCredentialErrorResponse(), 403);
+        }
+    }
+
+    public class CompanyWebhookSetupMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.contains('webhooks') && !endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockWebhookSetupResponse(), 200);
+            } else if (endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockHmacGenerationResponse(), 200);
+            } else if (endpoint.endsWith('/me')) {
+                return mockHttpResponse(mockApiCredentialResponse(), 200);
+            }
+            
+            return mockHttpResponse(mockWebhookSetupResponse(), 200);
+        }
+    }
     public class WebhookGetMockResponse implements HttpCalloutMock {
         public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            if (endpoint.endsWith('/me')) {
+                return mockHttpResponse(mockApiCredentialResponse(), 200);
+            }
             return mockHttpResponse(mockWebhookGetResponse(), 200);
         }
     }
@@ -498,6 +536,8 @@ public class TestDataFactory {
                 return mockHttpResponse(mockWebhookUpdateResponse(), 200);
             } else if (endpoint.contains('generateHmac')) {
                 return mockHttpResponse(mockHmacGenerationResponse(), 200);
+            } else if (endpoint.endsWith('/me')) {
+                return mockHttpResponse(mockApiCredentialResponse(), 200);
             }
             
             return mockHttpResponse(mockWebhookUpdateResponse(), 200);
@@ -568,6 +608,14 @@ public class TestDataFactory {
 
     private static String mockFetchMerchantAccountErrorResponse() {
         return '{"title":"Unauthorized"}';
+    }
+
+    private static String mockApiCredentialResponse() {
+        return '{"id":"test-credential-id","username":"test-user","companyName":"TestCompany","description":"Test API Credential","active":true,"roles":["Test Role"]}';
+    }
+
+    private static String mockApiCredentialErrorResponse() {
+        return '{"title":"Forbidden","detail":"Insufficient permissions to access API credentials"}';
     }
 
     public static Adyen_Adapter__mdt createMockAdapter() {
