@@ -2,7 +2,7 @@
     <div class="slds-grid slds-gutters">
         <div class="slds-col slds-size_1-of-2">
             <div class="slds-box slds-box_x-small slds-m-bottom_medium slds-is-relative">
-                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Webhook Configuration</h2>
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Webhook Setup</h2>
                 
                 <template if:true={isLoading}>
                     <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
@@ -10,6 +10,31 @@
                 
                 <div class="slds-box slds-is-relative" style="min-height: 300px; max-height: 300px;">
                     <div class="slds-m-bottom_large">
+                        <template if:true={accountSetupContext}>
+                            <div class="slds-media slds-media_center slds-p-bottom_medium slds-border_bottom">
+                                <div class="slds-media__figure">
+                                    <template if:true={isCompanySetup}>
+                                        <span class="slds-icon_container slds-icon-standard-account">
+                                            <lightning-icon icon-name="utility:company" size="small"></lightning-icon>
+                                        </span>
+                                    </template>
+                                    <template if:true={isMerchantSetup}>
+                                        <span class="slds-icon_container slds-icon-standard-account">
+                                            <lightning-icon icon-name="standard:account" size="small"></lightning-icon>
+                                        </span>
+                                    </template>
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_small slds-text-title_bold">Webhook Setup for {setupTypeLabel}</div>
+                                    <template if:true={isCompanySetup}>
+                                        <div class="slds-text-body_small">Company: {companyName}</div>
+                                    </template>
+                                    <template if:true={isMerchantSetup}>
+                                        <div class="slds-text-body_small">Merchant Account: {merchantAccountId}</div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
                     <template if:true={hasSetupError}>
                         <div class="slds-p-around_medium">
                             <div class="slds-box slds-theme_error">
@@ -36,7 +61,7 @@
                         <div class="slds-p-around_medium">
                             <div class="slds-box slds-theme_success">
                                 <div class="slds-grid slds-grid_vertical-align-center">
-                                    <div class="slds-col slds-size_11-of-12">
+                                    <div class="slds-col slds-size_12-of-12">
                                         <p class="slds-text-body_regular"><strong>Webhook Successfully Configured!</strong></p>
                                     </div>
                                 </div>
@@ -162,10 +187,7 @@
                                     <template if:true={hmacSavedToMetadata}>
                                         <div class="slds-box slds-theme_success slds-m-bottom_medium">
                                             <div class="slds-grid slds-grid_vertical-align-center">
-                                                <div class="slds-col slds-size_1-of-12">
-                                                    <lightning-icon icon-name="utility:success" size="small" variant="success"></lightning-icon>
-                                                </div>
-                                                <div class="slds-col slds-size_11-of-12">
+                                                <div class="slds-col slds-size_12-of-12">
                                                     <p class="slds-text-body_regular"><strong>Webhook Data Saved Successfully</strong></p>
                                                     <p class="slds-text-body_small slds-m-top_x-small">
                                                         The webhook data has been saved to the custom metadata.
