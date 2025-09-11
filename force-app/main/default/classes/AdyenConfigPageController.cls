@@ -147,9 +147,63 @@ public with sharing class AdyenConfigPageController {
     
         return namedCredentials.isEmpty() ? null : namedCredentials[0];
     }
+
+    @AuraEnabled
+    public static SiteEndpointStatus getSiteEndpointStatus() {
+        SiteEndpointStatus status = new SiteEndpointStatus();
+        try {
+            ConnectApi.NamedCredential webhookNamedCredential = ConnectApi.NamedCredentials.getNamedCredential(AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME);
+            if (webhookNamedCredential != null &&  String.isNotBlank(webhookNamedCredential.calloutUrl)) {
+                status.isNamedCredentialConfigured = true;
+
+                Site site = findSiteByUrl(webhookNamedCredential.calloutUrl);
+                if(site == null) {
+                    status.siteExists = false;
+                    return status;
+                }
+                status.siteExists = true;
+            }
+        } catch (Exception e) {
+            status.hasError = true;
+            status.errorMessage = 'Unable to verify configuration: ' + e.getMessage();
+            status.isNamedCredentialConfigured = false;
+            status.siteExists = false;
+        }
+        return status;
+    }
+
+
+    public static Site findSiteByUrl(String url) {
+        if (String.isBlank(url)) {
+            return null;
+        }
+        
+        Map<Id, Site> sites = new Map<Id, Site>([SELECT Id, Name FROM Site WHERE Status = 'Active']);  
+        List<SiteDetail> siteDetails = [SELECT SecureURL, DurableId FROM SiteDetail where DurableId IN :sites.keyset()];
+        for (SiteDetail siteDetail : siteDetails) {
+            if (siteDetail.SecureURL == url) {
+                return sites.get(siteDetail.DurableId);
+            }
+        }
+        return null;
+
+    }
     
     public class PaymentGatewayInput {
         @AuraEnabled public String externalReference { get; set; }
         @AuraEnabled public String gatewayName { get; set; }
+    }
+
+    public class SiteEndpointStatus {
+        @AuraEnabled public Boolean isNamedCredentialConfigured { get; set; }
+        @AuraEnabled public Boolean siteExists { get; set; }
+        @AuraEnabled public Boolean hasError { get; set; }
+        @AuraEnabled public String errorMessage { get; set; }
+        public SiteEndpointStatus() {
+            this.isNamedCredentialConfigured = false;
+            this.siteExists = false;
+            this.hasError = false;
+            this.errorMessage = null;
+        }
     }
 }

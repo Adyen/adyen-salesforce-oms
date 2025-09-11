@@ -126,6 +126,32 @@ private class AdyenConfigPageControllerTest {
         
     }
 
+    @isTest(SeeAllData=true)
+    static void getSiteEndpointStatusTest() {
+        // Given & When
+        Test.startTest();
+        AdyenConfigPageController.SiteEndpointStatus status = AdyenConfigPageController.getSiteEndpointStatus();
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(status);
+        Assert.areEqual(false, status.hasError);
+        Assert.isNull(status.errorMessage);
+    }
+
+    @isTest
+    static void findSiteByUrlTest() {
+        // Given & When
+        Test.startTest();
+        Site foundSite1 = AdyenConfigPageController.findSiteByUrl(null);
+        Site foundSite2 = AdyenConfigPageController.findSiteByUrl('');
+        Test.stopTest();
+        
+        // Then
+        Assert.isNull(foundSite1);
+        Assert.isNull(foundSite2);
+    }
+
     @isTest
     static void testIsProductionOrg() {
         // Given
