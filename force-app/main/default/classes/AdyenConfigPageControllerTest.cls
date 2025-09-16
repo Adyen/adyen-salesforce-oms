@@ -125,4 +125,46 @@ private class AdyenConfigPageControllerTest {
         Assert.isTrue(urls.get('omsB2cPermissionSetUrl').contains(permSet.Id));
         
     }
+
+    @isTest(SeeAllData=true)
+    static void getSiteEndpointStatusTest() {
+        // Given & When
+        Test.startTest();
+        AdyenConfigPageController.SiteEndpointStatus status = AdyenConfigPageController.getSiteEndpointStatus();
+        Test.stopTest();
+        
+        // Then
+        Assert.isNotNull(status);
+        Assert.areEqual(false, status.hasError);
+        Assert.isNull(status.errorMessage);
+    }
+
+    @isTest
+    static void findSiteByUrlTest() {
+        // Given & When
+        Test.startTest();
+        Site foundSite1 = AdyenConfigPageController.findSiteByUrl(null);
+        Site foundSite2 = AdyenConfigPageController.findSiteByUrl('');
+        Test.stopTest();
+        
+        // Then
+        Assert.isNull(foundSite1);
+        Assert.isNull(foundSite2);
+    }
+
+    @isTest
+    static void testIsProductionOrg() {
+        // Given
+        Organization currentOrg = [SELECT IsSandbox, OrganizationType FROM Organization LIMIT 1];
+
+        // When
+        Test.startTest();
+        Boolean result = AdyenConfigPageController.isProductionOrg();
+        Test.stopTest();
+
+        // Then
+        
+        Boolean expectedResult = !currentOrg.IsSandbox && currentOrg.OrganizationType != 'Developer Edition';
+        System.assertEquals(expectedResult, result, 'The isProductionOrg method should correctly reflect the current org type.');
+    }
 }
