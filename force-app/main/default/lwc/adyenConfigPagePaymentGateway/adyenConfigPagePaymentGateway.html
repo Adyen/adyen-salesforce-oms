@@ -60,10 +60,7 @@
             <template if:true={hasStandardGateway}>
                 <div class="slds-box slds-theme_success slds-m-bottom_medium">
                     <div class="slds-grid slds-grid_vertical-align-center">
-                        <div class="slds-col slds-size_1-of-12">
-                            <lightning-icon icon-name="utility:success" size="small" alternative-text="Configured" class="slds-m-right_small"></lightning-icon>
-                        </div>
-                        <div class="slds-col slds-size_11-of-12">
+                        <div class="slds-col slds-size_12-of-12">
                             <p>You already have an online payments gateway configured.</p>
                         </div>
                     </div>
@@ -110,10 +107,7 @@
             <template if:true={hasPosGateway}>
                 <div class="slds-box slds-theme_success slds-m-bottom_medium">
                     <div class="slds-grid slds-grid_vertical-align-center">
-                        <div class="slds-col slds-size_1-of-12">
-                            <lightning-icon icon-name="utility:success" size="small" alternative-text="Configured" class="slds-m-right_small"></lightning-icon>
-                        </div>
-                        <div class="slds-col slds-size_11-of-12">
+                        <div class="slds-col slds-size_12-of-12">
                             <p>You already have a Point of Sale payments gateway configured.</p>
                         </div>
                     </div>
@@ -121,14 +115,6 @@
             </template>
             
             <div class="slds-grid slds-grid_align-spread slds-m-top_large">
-                <div>
-                    <lightning-button 
-                        label="Skip" 
-                        onclick={handleSkip} 
-                        class="slds-m-right_small">
-                    </lightning-button>
-                </div>
-                
                 <div>
                     <lightning-button 
                         label="Save" 
