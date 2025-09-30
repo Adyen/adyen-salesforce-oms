@@ -11,11 +11,11 @@
                 <field>MasterLabel</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Required</behavior>
+                <behavior>Edit</behavior>
                 <field>Merchant_Account__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Required</behavior>
+                <behavior>Edit</behavior>
                 <field>HMAC_Key__c</field>
             </layoutItems>
             <layoutItems>
@@ -25,6 +25,10 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Auto_Capture_Enabled__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Webhook_Id__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>

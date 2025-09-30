@@ -69,8 +69,9 @@ global without sharing class AdyenWebhookNotificationHandler {
     }
 
     private static String getNotificationEndpointUrl(NotificationRequestItem notificationRequestItem, Adyen_Adapter__mdt adyenAdapter) {
-        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '__' : '';
-        String baseUrl = 'callout:' + namespace + AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME;
+        String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c : '';
+        String namespaceForUrl = String.isNotBlank(namespace) ? namespace + '/' : '';
+        String baseUrl = 'callout:' + namespace + '__' + AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME;
         if (WebhookUtils.isStandardOMSNotification(notificationRequestItem)) {
             String gatewayProviderId = WebhookUtils.getPaymentGatewayProviderId();
             if (String.isBlank(gatewayProviderId)) {
@@ -78,7 +79,7 @@ global without sharing class AdyenWebhookNotificationHandler {
             }
             return baseUrl + '/services/data/' + AdyenOMSConstants.SALESFORCE_API_VERSION + '/commerce/payments/notify?provider=' + gatewayProviderId;
         }
-        return baseUrl + '/services/apexrest/nonPaymentWebhook/v1';
+        return baseUrl + '/services/apexrest/' + namespaceForUrl + 'nonPaymentWebhook/v1';
     }
 
     private static Boolean isValidRequest(NotificationRequestItem notificationRequestItem, Adyen_Adapter__mdt adyenAdapter) {

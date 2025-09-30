@@ -90,6 +90,11 @@ public with sharing class AdyenWebhookService {
             
             if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
                 String errorMessage = AdyenManagementAPIService.parseErrorMessage(response);
+                
+                if (errorMessage != null && errorMessage.toLowerCase().contains('invalid webhook information provided')) {
+                    errorMessage = 'Invalid webhook information provided or webhook not found';
+                }
+                
                 throw new AdyenWebhookException('Failed to retrieve ' + context.getContextDescription() + ' webhook: ' + errorMessage);
             }
             
