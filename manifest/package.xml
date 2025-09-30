@@ -48,6 +48,14 @@
         <members>AdyenMetadataDeployCallback</members>
         <members>AdyenWebhookService</members>
         <members>AdyenWebhookServiceTest</members>
+        <members>AdyenManagementAPIService</members>
+        <members>AdyenManagementAPIServiceTest</members>
+        <members>AdyenMerchantAccountController</members>
+        <members>AdyenMerchantAccountControllerTest</members>
+        <members>AdyenWebhookNotificationHandler</members>
+        <members>AdyenWebhookNotificationHandlerTest</members>
+        <members>AdyenWebhookSetupController</members>
+        <members>AdyenWebhookSetupControllerTest</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -87,6 +95,7 @@
         <members>Adyen_Adapter__mdt.Management_API_Named_Credential__c</members>
         <members>Adyen_Adapter__mdt.Management_API_Version__c</members>
         <members>Adyen_Adapter__mdt.Management_API_Webhook_Endpoint__c</members>
+        <members>Adyen_Adapter__mdt.Webhook_Id__c</members>
         <name>CustomField</name>
     </types>
     <types>
@@ -96,6 +105,8 @@
     </types>
     <types>
         <members>AdyenCheckout</members>
+        <members>AdyenManagementAPI</members>
+        <members>AdyenWebhookEndpoint</members>
         <name>NamedCredential</name>
     </types>
     <types>
@@ -125,6 +136,14 @@
         <members>ldsUtils</members>
         <members>errorPanel</members>
         <members>adyenPBLStatusUpdater</members>
+        <members>adyenOMSConfigPage</members>
+        <members>adyenConfigPageNamedCredential</members>
+        <members>adyenConfigPagePaymentGateway</members>
+        <members>adyenConfigPageSiteEndpoint</members>
+        <members>adyenConfigPageLayoutSetup</members>
+        <members>adyenConfigPageMerchantAccount</members>
+        <members>adyenConfigPagePermissionSetup</members>
+        <members>adyenConfigPageWebhookSetup</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
@@ -135,11 +154,20 @@
     </types>
     <types>
         <members>Payment_Link__c</members>
+        <members>Adyen_Configuration_Page</members>
         <name>CustomTab</name>
     </types>
     <types>
         <members>Payment_Link__c.Refresh_Status</members>
         <name>QuickAction</name>
+    </types>
+    <types>
+        <members>Adyen_OMS_Config_Page</members>
+        <name>FlexiPage</name>
+    </types>
+    <types>
+        <members>Adyen_Config_Page</members>
+        <name>CustomApplication</name>
     </types>
     <version>62.0</version>
 </Package>
