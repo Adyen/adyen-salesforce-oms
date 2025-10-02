@@ -152,7 +152,13 @@ public with sharing class AdyenConfigPageController {
     public static SiteEndpointStatus getSiteEndpointStatus() {
         SiteEndpointStatus status = new SiteEndpointStatus();
         try {
-            ConnectApi.NamedCredential webhookNamedCredential = ConnectApi.NamedCredentials.getNamedCredential(AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME);
+            String namespace = AdyenCustomMetadataService.getPackageNamespace();
+            String credentialName = AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME;
+            if (String.isNotBlank(namespace)) {
+                credentialName = namespace + '__' + credentialName;
+            }
+
+            ConnectApi.NamedCredential webhookNamedCredential = ConnectApi.NamedCredentials.getNamedCredential(credentialName);
             if (webhookNamedCredential != null &&  String.isNotBlank(webhookNamedCredential.calloutUrl)) {
                 status.isNamedCredentialConfigured = true;
 
