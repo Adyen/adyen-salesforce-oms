@@ -114,19 +114,44 @@
                     <template if:true={showSiteEndpointInstructions}>
                         <div class="slds-p-around_medium">
                             <h3 class="slds-text-heading_small slds-m-bottom_small">Set up Salesforce Site endpoint</h3>
-                            <ol class="slds-list_ordered slds-m-left_medium">
-                                <li>On the Sites setup page, click on New.</li>
-                                <li>Enter a label, for example Adyen.</li>
-                                <li>Enter a unique value for the default web address, for example http://dev-myorganization--sandbox.cs17.force.com/adyen.</li>
-                                <li>Select Active.</li>
-                                <li>Select an Active Site Home Page, for example, UnderConstruction.</li>
-                                <li>Select Guest Access to the Payments API.</li>
-                                <li>Select Save to save your changes and make sure the site is active.</li>
-                                <li>Go to Public Access Settings > Custom Metadata Type Access.</li>
-                                <li>Select Edit and enable the Adyen Adapter metadata type by moving it to the Enabled column.</li>
-                                <li>Select Save.</li>
-                                <li>Copy the Site URL of the created Site to use on the next step.</li>
+                            
+                            <p class="slds-text-title_bold slds-m-bottom_x-small">A. Create a New Salesforce Site</p>
+                            <p class="slds-text-body_small slds-m-bottom_small"><em>(Or reuse one if created previously)</em></p>
+                            <ol class="slds-list_ordered slds-m-left_medium slds-m-bottom_medium">
+                                <li>On the Sites setup page, click <strong>New</strong>.</li>
+                                <li>Enter a <strong>Label</strong> (e.g., Adyen).</li>
+                                <li>Enter a unique value for the <strong>Default Web Address</strong> (e.g., http://my-org-sandbox.cs17.force.com/adyen).</li>
+                                <li>Select <strong>Active</strong>.</li>
+                                <li>Select an <strong>Active Site Home Page</strong> (e.g., UnderConstruction).</li>
+                                <li>Select <strong>Guest Access to the Payments API</strong>.</li>
+                                <li>Click <strong>Save</strong> and ensure the site is active.</li>
                             </ol>
+
+                            <p class="slds-text-title_bold slds-m-bottom_x-small">B. Configure permissions</p>
+                            <ol class="slds-list_ordered slds-m-left_medium slds-m-bottom_medium">
+                                <li>From the Site details page, click <strong>Public Access Settings</strong>.</li>
+                                <li>
+                                    <strong>Custom Metadata Type Access:</strong>
+                                    <ul class="slds-list_dotted slds-m-left_large">
+                                        <li>Under Apps, select <strong>Custom Metadata Type Access</strong>, click <strong>Edit</strong> and enable the <strong>Adyen Adapter</strong> metadata type by moving it to the Enabled column, then <strong>Save</strong>.</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>Apex Class Access:</strong>
+                                    <ul class="slds-list_dotted slds-m-left_large">
+                                        <li>Under Apps, select <strong>Apex Class Access</strong>, click <strong>Edit</strong>, and add <strong>AdyenWebhookNotificationHandler</strong> &amp; <strong>NonPaymentWebhookHandler</strong> to Enabled Apex Classes, then <strong>Save</strong>.</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>External Credential Principal Access:</strong>
+                                    <ul class="slds-list_dotted slds-m-left_large">
+                                        <li>Under Apps, select <strong>External Credential Principal Access</strong>, click <strong>Edit</strong>, add <strong>NoAuthCredential</strong> to Enabled External Credential Principals, then <strong>Save</strong>.</li>
+                                    </ul>
+                                </li>
+                            </ol>
+
+                            <p class="slds-text-title_bold slds-m-bottom_x-small">C. Copy the Site URL</p>
+                            <p class="slds-m-left_medium">Copy the Site URL. You will need it for the next step to update the Named Credential.</p>
                         </div>
                     </template>
                     
@@ -134,10 +159,10 @@
                         <div class="slds-p-around_medium">
                             <h3 class="slds-text-heading_small slds-m-bottom_small">Update Site URL on Named Credential</h3>
                             <ol class="slds-list_ordered slds-m-left_medium">
-                                <li>On the Named Credential page, click on Edit. This opens a modal window.</li>
-                                <li>In the “URL” field, Enter the Site URL that was created on the previous step.</li>
-                                <li>Make sure that the “Enable for Callouts” checkbox is checked.</li>
-                                <li>Click on Save</li>
+                                <li>On the Named Credential page, click on <strong>Edit</strong>. This opens a modal window.</li>
+                                <li>In the <strong>URL</strong> field, Enter the Site URL that was created on the previous step.</li>
+                                <li>Make sure that the <strong>Enable for Callouts</strong> checkbox is checked.</li>
+                                <li>Click on <strong>Save</strong>.</li>
                             </ol>
                         </div>
                     </template>
