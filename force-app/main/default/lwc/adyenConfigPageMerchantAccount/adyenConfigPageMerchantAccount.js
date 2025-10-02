@@ -5,8 +5,10 @@ import getMerchantAccountConfiguration from '@salesforce/apex/AdyenMerchantAccou
 import fetchMerchantAccounts from '@salesforce/apex/AdyenManagementAPIService.fetchMerchantAccounts';
 import getCompanyId from '@salesforce/apex/AdyenManagementAPIService.getCompanyId';
 import updateMerchantAccount from '@salesforce/apex/AdyenMerchantAccountController.updateMerchantAccount';
+import getPackageNamespace from '@salesforce/apex/AdyenCustomMetadataService.getPackageNamespace';
 
-const METADATA_UPDATE_TIMEOUT = 10000;
+
+const METADATA_UPDATE_TIMEOUT = 30000;
 const ERROR_MESSAGES = {
     noMerchantAccounts: 'No merchant accounts found. Please verify your API key has access to merchant accounts.',
     multipleMerchantAccounts: 'Multiple merchant accounts found. Please ensure your API key has 1:1 mapping to your merchant account.',
@@ -28,13 +30,14 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
     companyName = '';
     showCompanyConfirmation = false;
     
-    channelName = '/event/Adyen_Metadata_Deployment_Result__e';
+    channelName;
     subscription = null;
     timeoutId = null;
+    namespace = '';
     
-    connectedCallback() {
+    async connectedCallback() {
         this.loadMerchantAccount();
-        this.subscribeToDeploymentEvents();
+        await this.initializeEventChannel();
     }
     
     disconnectedCallback() {
@@ -42,6 +45,17 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
         this.clearTimeout();
     }
     
+    async initializeEventChannel() {
+        try {
+            this.namespace = await getPackageNamespace();
+            const eventName = 'Adyen_Metadata_Deployment_Result__e';
+            this.channelName = this.namespace ? `/event/${this.namespace}__${eventName}` : `/event/${eventName}`;
+            this.subscribeToDeploymentEvents();
+        } catch (error) {
+            this.handleError(error, 'Error initializing event channel');
+        }
+    }
+
     async loadMerchantAccount() {
         this.isLoading = true;
         try {
@@ -56,6 +70,10 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
     async fetchMerchantAccountsFromAPI() {
         this.isLoading = true;
         this.apiError = '';
+        
+        this.deploymentTimedOut = false;
+        this.pendingDeploymentId = '';
+        this.clearTimeout();
         
         try {
             const result = await fetchMerchantAccounts();
@@ -108,15 +126,21 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
     
     handleDeploymentEvent(event) {
         const eventData = event.data.payload;
-        if (eventData.Deployment_Id__c === this.pendingDeploymentId) {
+        const nsPrefix = this.namespace ? `${this.namespace}__` : '';
+
+        const deploymentIdField = `${nsPrefix}Deployment_Id__c`;
+        const isSuccessField = `${nsPrefix}Is_Success__c`;
+        const errorMessageField = `${nsPrefix}Error_Message__c`;
+
+        if (eventData[deploymentIdField] === this.pendingDeploymentId) {
             this.clearTimeout();
             this.isLoading = false;
             this.pendingDeploymentId = '';
             
-            if (eventData.Is_Success__c) {
+            if (eventData[isSuccessField]) {
                 this.handleDeploymentSuccess();
             } else {
-                this.handleDeploymentError(eventData.Error_Message__c);
+                this.handleDeploymentError(eventData[errorMessageField]);
             }
         }
     }
@@ -131,9 +155,10 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
                 
                 this.showToast(
                     'Deployment Taking Longer Than Expected',
-                    'The metadata update is still processing. You can continue with other setup steps.',
+                    'The metadata update is still processing. You can manually update the metadata by following the instructions.',
                     'warning'
                 );
+                this.scrollToManualUpdateInstructions();
             }
         }, METADATA_UPDATE_TIMEOUT);
     }
@@ -143,6 +168,17 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
         }
+    }
+
+    scrollToManualUpdateInstructions() {
+        // Wait for the DOM to re-render
+        Promise.resolve().then(() => {
+            const container = this.template.querySelector('[data-id="instructions-container"]');
+            const target = this.template.querySelector('[data-id="manual-update-section"]');
+            if (container && target) {
+                container.scrollTop = target.offsetTop;
+            }
+        });
     }
     
     async handleConfirmMerchantAccount() {
@@ -205,6 +241,22 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
         );
     }
     
+    handleSkipAndContinue() {
+        this.deploymentTimedOut = false;
+        this.pendingDeploymentId = '';
+        this.clearTimeout();
+        this.isLoading = false;
+        
+        this.dispatchEvent(new CustomEvent('stepcomplete', {
+            detail: {
+                step: 'accountSetup',
+                success: true,
+                setupType: 'merchant',
+                merchantAccountId: this.selectedMerchantAccountId
+            }
+        }));
+    }
+    
     handleRetry() {
         this.fetchMerchantAccountsFromAPI();
     }
@@ -213,6 +265,10 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
         this.merchantAccountFetched = false;
         this.selectedMerchantAccountId = '';
         this.apiError = '';
+        
+        this.deploymentTimedOut = false;
+        this.pendingDeploymentId = '';
+        this.clearTimeout();
     }
     
     handleFetch() {
@@ -281,13 +337,17 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
         this.selectedMerchantAccountId = '';
         this.apiError = '';
         
+        this.deploymentTimedOut = false;
+        this.pendingDeploymentId = '';
+        this.clearTimeout();
+        
         this.showChoiceScreen = true;
         this.selectedSetupType = 'merchant';
     }
     
-    handleError(error) {
+    handleError(error, title = 'Error') {
         const errorMessage = error.body ? error.body.message : error.message;
-        this.showToast('Error', errorMessage, 'error');
+        this.showToast(title, errorMessage, 'error');
     }
     
     showToast(title, message, variant) {

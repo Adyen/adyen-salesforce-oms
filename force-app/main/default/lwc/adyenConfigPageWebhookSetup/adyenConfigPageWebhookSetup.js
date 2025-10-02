@@ -7,8 +7,9 @@ import updateWebhook from '@salesforce/apex/AdyenWebhookSetupController.updateWe
 import saveWebhookDataToMetadata from '@salesforce/apex/AdyenWebhookSetupController.saveWebhookDataToMetadata';
 import checkExistingWebhook from '@salesforce/apex/AdyenWebhookSetupController.checkExistingWebhook';
 import testWebhook from '@salesforce/apex/AdyenWebhookSetupController.testWebhook';
+import getPackageNamespace from '@salesforce/apex/AdyenCustomMetadataService.getPackageNamespace';
 
-const METADATA_UPDATE_TIMEOUT = 10000;
+const METADATA_UPDATE_TIMEOUT = 30000;
 
 export default class AdyenConfigPageWebhookSetup extends LightningElement {
     @api accountSetupContext;
@@ -34,12 +35,16 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     existingWebhookDetails = null;
     showWebhookDetails = false;
     
-    channelName = '/event/Adyen_Metadata_Deployment_Result__e';
+    showLevelMismatchDialog = false;
+    levelMismatchDetails = null;
+    
+    channelName;
     subscription = null;
     timeoutId = null;
     pendingDeploymentId = '';
     deploymentTimedOut = false;
     isMetadataSaveLoading = false;
+    namespace = '';
 
     eventCodeOptions = [
         { label: 'CAPTURE', value: 'CAPTURE' },
@@ -58,15 +63,26 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
         return this.isCompanySetup ? 'company' : 'merchant';
     }
     
-    connectedCallback() {
+    async connectedCallback() {
         this.loadWebhookUrl();
-        this.subscribeToHmacDeploymentEvents();
+        await this.initializeEventChannel();
         this.checkForExistingWebhook();
     }
     
     disconnectedCallback() {
         this.unsubscribeFromHmacDeploymentEvents();
         this.clearTimeout();
+    }
+
+    async initializeEventChannel() {
+        try {
+            this.namespace = await getPackageNamespace();
+            const eventName = 'Adyen_Metadata_Deployment_Result__e';
+            this.channelName = this.namespace ? `/event/${this.namespace}__${eventName}` : `/event/${eventName}`;
+            this.subscribeToHmacDeploymentEvents();
+        } catch (error) {
+            this.handleError(error, 'Error initializing event channel');
+        }
     }
     
     subscribeToHmacDeploymentEvents() {
@@ -88,15 +104,21 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     
     handleHmacDeploymentEvent(event) {
         const eventData = event.data.payload;
-        if (eventData.Deployment_Id__c === this.pendingDeploymentId) {
+        const nsPrefix = this.namespace ? `${this.namespace}__` : '';
+
+        const deploymentIdField = `${nsPrefix}Deployment_Id__c`;
+        const isSuccessField = `${nsPrefix}Is_Success__c`;
+        const errorMessageField = `${nsPrefix}Error_Message__c`;
+
+        if (eventData[deploymentIdField] === this.pendingDeploymentId) {
             this.clearTimeout();
             this.isMetadataSaveLoading = false;
             this.pendingDeploymentId = '';
             
-            if (eventData.Is_Success__c) {
+            if (eventData[isSuccessField]) {
                 this.handleMetadataSaveSuccess();
             } else {
-                this.handleMetadataSaveError(eventData.Error_Message__c);
+                this.handleMetadataSaveError(eventData[errorMessageField]);
             }
         }
     }
@@ -114,6 +136,7 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
                     'The custom metadata update is still processing. You can continue with other setup steps.',
                     'warning'
                 );
+                this.scrollToManualUpdateInstructions();
             }
         }, METADATA_UPDATE_TIMEOUT);
     }
@@ -123,6 +146,16 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
         }
+    }
+
+    scrollToManualUpdateInstructions() {
+        Promise.resolve().then(() => {
+            const container = this.template.querySelector('[data-id="instructions-container"]');
+            const target = this.template.querySelector('[data-id="manual-update-section"]');
+            if (container && target) {
+                container.scrollTop = target.offsetTop;
+            }
+        });
     }
     
     handleDropdownFocusOut(event) {
@@ -314,7 +347,7 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             if (result.isSuccess) {
                 this.showToast(
                     'Webhook Test Successful',
-                    'Webhook test completed successfully. Your webhook is working properly.',
+                    'Webhook test completed successfully. Your webhook is working properly. You can continue with next steps.',
                     'success'
                 );
             } else {
@@ -432,7 +465,7 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     }
     
     get showSaveButton() {
-        return this.hmacKey && !this.hmacSavedToMetadata && !this.isMetadataSaveLoading;
+        return this.hmacKey && !this.hmacSavedToMetadata && !this.isMetadataSaveLoading && !this.deploymentTimedOut;
     }
     
     get showHmacError() {
@@ -440,7 +473,10 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     }
 
     get showTestWebhookButton() {
-        return this.webhookConfigured && this.webhookSetupResult?.webhookId && this.hmacSavedToMetadata;
+        return this.webhookConfigured && 
+               this.webhookSetupResult?.webhookId && 
+               (this.hmacSavedToMetadata || this.deploymentTimedOut) &&
+               !this.isCompanySetup;
     }
 
     get hmacInputType() {
@@ -460,18 +496,26 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             const result = await checkExistingWebhook({
                 setupType: this.setupType
             });
+            
             if (result.webhookExists && result.webhookId) {
                 this.existingWebhookFound = true;
                 this.webhookId = result.webhookId;
                 this.existingWebhookDetails = result;
-                this.isUpdateMode = true;
-                this.showWebhookExistsDialog = true;
-
-                if (result.webhookDescription) {
-                    this.description = result.webhookDescription;
-                }
-                if (result.webhookEventCodes && result.webhookEventCodes.length > 0) {
-                    this.selectedEventCodes = result.webhookEventCodes;
+                
+                if (result.isLevelMismatch) {
+                    this.levelMismatchDetails = result;
+                    this.showLevelMismatchDialog = true;
+                    this.isUpdateMode = false;
+                } else {
+                    this.isUpdateMode = true;
+                    this.showWebhookExistsDialog = true;
+                    
+                    if (result.webhookDescription) {
+                        this.description = result.webhookDescription;
+                    }
+                    if (result.webhookEventCodes && result.webhookEventCodes.length > 0) {
+                        this.selectedEventCodes = result.webhookEventCodes;
+                    }
                 }
             }
         } catch (error) {
@@ -529,6 +573,24 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             });
         }
     }
+
+    handleCreateNewWebhook() {
+        this.showLevelMismatchDialog = false;
+        this.existingWebhookFound = false;
+        this.isUpdateMode = false;
+        this.webhookId = '';
+        
+        this.showToast(
+            'Creating New Webhook',
+            `A new webhook will be created at the ${this.setupTypeLabel} level.`,
+            'info'
+        );
+    }
+
+    closeLevelMismatchDialog() {
+        this.showLevelMismatchDialog = false;
+        this.levelMismatchDetails = null;
+    }
     
     get isMerchantSetup() {
         return this.accountSetupContext?.setupType === 'merchant';
@@ -549,5 +611,27 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
             return 'Merchant Account';
         }
         return 'Account';
+    }
+
+    get levelMismatchMessage() {
+        if (!this.levelMismatchDetails) return '';
+        
+        const requestedType = this.levelMismatchDetails.requestedSetupType;
+        const detectedType = this.levelMismatchDetails.detectedWebhookLevel;
+        
+        if (requestedType === 'company' && detectedType === 'merchant') {
+            return 'An existing webhook was found at the merchant account level. You have selected to set up a webhook at the company level.';
+        } else if (requestedType === 'merchant' && detectedType === 'company') {
+            return 'An existing webhook was found at the company level. You have selected to set up a webhook at the merchant account level.';
+        }
+        return 'Webhook level mismatch detected.';
+    }
+
+    get existingWebhookLevel() {
+        return this.levelMismatchDetails?.detectedWebhookLevel === 'company' ? 'Company' : 'Merchant';
+    }
+
+    get currentSelectionLevel() {
+        return this.setupTypeLabel;
     }
 }

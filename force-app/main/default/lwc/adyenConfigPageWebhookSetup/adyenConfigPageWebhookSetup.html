@@ -157,20 +157,6 @@
                                                     </div>
                                                 </div>
                                             </template>
-                                            
-                                            <template if:true={showSaveButton}>
-                                                <div class="slds-grid slds-grid_align-end">
-                                                    <lightning-button 
-                                                        variant="brand" 
-                                                        label="Save to Metadata" 
-                                                        icon-name="utility:save"
-                                                        icon-position="left"
-                                                        onclick={handleSaveToMetadata} 
-                                                        disabled={isMetadataSaveLoading}>
-                                                    </lightning-button>
-                                                </div>
-                                            </template>
-                                            
                                             <template if:true={isMetadataSaveLoading}>
                                                 <div class="slds-grid slds-grid_align-center slds-m-top_medium">
                                                     <div class="slds-grid slds-grid_vertical-align-center">
@@ -181,8 +167,6 @@
                                             </template>
                                         </div>
                                     </template>
-                                    
-                                    
                                     
                                     <template if:true={hmacSavedToMetadata}>
                                         <div class="slds-box slds-theme_success slds-m-bottom_medium">
@@ -196,18 +180,29 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template if:true={showTestWebhookButton}>
-                                        <div class="slds-m-top_medium">
-                                            <div class="slds-grid slds-grid_align-center">
-                                                <lightning-button 
-                                                    variant="neutral" 
-                                                    label="Test Webhook"
-                                                    onclick={handleTestWebhook} 
-                                                    disabled={isLoading}>
-                                                </lightning-button>
-                                            </div>
-                                        </div>
-                                    </template>
+
+                                    <div class="slds-grid slds-grid_align-end slds-m-top_medium">
+                                        <template if:true={showSaveButton}>
+                                            <lightning-button 
+                                                variant="brand" 
+                                                label="Save to Metadata" 
+                                                icon-name="utility:save"
+                                                icon-position="left"
+                                                onclick={handleSaveToMetadata} 
+                                                disabled={isMetadataSaveLoading}>
+                                            </lightning-button>
+                                        </template>
+
+                                        <template if:true={showTestWebhookButton}>
+                                            <lightning-button 
+                                                variant="brand" 
+                                                label="Test Webhook"
+                                                onclick={handleTestWebhook} 
+                                                disabled={isLoading}
+                                                title="Test the webhook after saving data to metadata">
+                                            </lightning-button>
+                                        </template>
+                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -302,8 +297,8 @@
              <div class="slds-col slds-size_1-of-2">
             <div class="slds-box slds-box_x-small slds-is-relative">
                 <h2 class="slds-text-heading_medium slds-m-bottom_medium">Instructions</h2>
-                
-                <div class="slds-box slds-is-relative slds-scrollable" style="min-height: 350px; max-height: 350px;">
+
+                <div class="slds-box slds-is-relative slds-scrollable" style="min-height: 350px; max-height: 350px;" data-id="instructions-container">
                     <div class="slds-p-around_medium">
                         <h3 class="slds-text-heading_small slds-m-bottom_small">
                             Webhook Setup
@@ -326,6 +321,11 @@
                                 <li><strong>CANCELLATION:</strong> Payment cancellation events</li>
                                 <li><strong>AUTHORISATION:</strong> Payment authorization events</li>
                             </ul>
+                            <div class="slds-m-top_medium slds-p-around_small slds-theme_shade">
+                                <p class="slds-text-body_small">
+                                    <strong>Note:</strong> CAPTURE, CAPTURE_FAILED, REFUND, and REFUND_FAILED events are required for core functionality.
+                                </p>
+                            </div>
                         </div>
                         
                         <div class="slds-p-around_small slds-m-top_medium slds-border_top">
@@ -339,6 +339,23 @@
                         <p class="slds-m-top_medium slds-text-color_weak">
                             Note: Your API key must have create webhook and generate HMAC permissions in Adyen.
                         </p>
+
+                        <template if:true={deploymentTimedOut}>
+                            <div class="slds-box slds-m-top_medium" data-id="manual-update-section">
+                                <h3 class="slds-text-heading_small slds-m-bottom_small">Manual Update Required</h3>
+                                <p class="slds-m-bottom_medium">
+                                    The webhook data update is taking longer than expected. Please manually update the Custom Metadata by following these steps:
+                                </p>
+                                <ol class="slds-list_ordered slds-m-left_large">
+                                    <li>Go to Setup > Custom Metadata Types.</li>
+                                    <li>Click "Manage Records" next to "Adyen Adapter".</li>
+                                    <li>Edit the "AdyenDefault" record.</li>
+                                    <li>Update the "HMAC Key" field with the generated HMAC key.</li>
+                                    <li>Update the "Webhook ID" field with the Webhook Id.</li>
+                                    <li>Click "Save".</li>
+                                </ol>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -438,6 +455,71 @@
                 </div>
                 <footer class="slds-modal__footer">
                     <lightning-button variant="brand" label="Continue" onclick={handleContinueWithUpdate}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+    
+    <template if:true={showLevelMismatchDialog}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-02" aria-modal="true" aria-describedby="modal-content-id-2" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button-icon class="slds-modal__close" title="Close" icon-name="utility:close" icon-class="slds-button_icon-inverse" onclick={closeLevelMismatchDialog}></lightning-button-icon>
+                    <h2 id="modal-heading-02" class="slds-text-heading_medium slds-hyphenate">Existing Webhook Found</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+                    <div class="slds-box slds-theme_info slds-m-bottom_medium">
+                        <div class="slds-grid slds-grid_vertical-align-center">
+                            <div class="slds-col slds-size_1-of-12">
+                                <lightning-icon icon-name="utility:info" size="small" variant="inverse"></lightning-icon>
+                            </div>
+                            <div class="slds-col slds-size_11-of-12">
+                                <p class="slds-text-body_regular">
+                                    {levelMismatchMessage} (Webhook ID: <strong>{webhookId}</strong>)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slds-m-bottom_medium">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small">Choose how to proceed:</h3>
+                        
+                        <div class="slds-grid slds-gutters_small slds-wrap">
+                            <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-p-around_small slds-border_top slds-border_bottom">
+                                    <div class="slds-text-body_regular slds-text-color_default">
+                                        <strong>Create new webhook at {currentSelectionLevel} level</strong>
+                                    </div>
+                                    <div class="slds-text-body_small slds-text-color_weak">
+                                        Continue with your current selection
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-p-around_small slds-border_bottom">
+                                    <div class="slds-text-body_regular slds-text-color_default">
+                                        <strong>Update existing {existingWebhookLevel} level webhook</strong>
+                                    </div>
+                                    <div class="slds-text-body_small slds-text-color_weak">
+                                        Go back to the previous step and choose "{existingWebhookLevel}" Account option
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <div class="slds-col slds-size_12-of-12">
+                            <p class="slds-text-body_small">
+                                Click <strong>Create New Webhook</strong> to proceed with setting up a new webhook at the {currentSelectionLevel} level.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="brand" label="Create New Webhook" onclick={handleCreateNewWebhook}></lightning-button>
                 </footer>
             </div>
         </section>

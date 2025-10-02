@@ -22,6 +22,15 @@ public with sharing class AdyenCustomMetadataService {
         }
     }
 
+    @AuraEnabled
+    public static String getPackageNamespace() {
+        try {
+            return getDefaultAdapter().Package_Namespace__c;
+        } catch (Exception e) {
+            throw new AuraHandledException('Error retrieving package namespace: ' + e.getMessage());
+        }
+    }
+
     public static String updateDefaultAdapter(Adyen_Adapter__mdt adapterData) {
         try {
             if (adapterData == null) {

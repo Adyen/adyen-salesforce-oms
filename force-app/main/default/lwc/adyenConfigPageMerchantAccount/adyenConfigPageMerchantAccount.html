@@ -62,7 +62,7 @@
                                 
                                 <p class="slds-m-bottom_medium slds-text-body_regular">
                                     You have chosen to set up webhooks at the company account level. 
-                                    Click "Continue to Webhook Setup" to proceed to the next step where webhooks will be configured for your entire company.
+                                    Click "Continue to Webhook Setup" to proceed to the next step.
                                 </p>
                                 
                                 <div class="slds-grid slds-grid_align-spread">
@@ -143,12 +143,23 @@
                                                     class="slds-m-right_x-small"
                                                     disabled={isLoading}>
                                                 </lightning-button>
-                                                <lightning-button 
-                                                    variant="brand" 
-                                                    label="Confirm & Save" 
-                                                    onclick={handleConfirmMerchantAccount} 
-                                                    disabled={isLoading}>
-                                                </lightning-button>
+                                                <template if:false={deploymentTimedOut}>
+                                                    <lightning-button 
+                                                        variant="brand" 
+                                                        label="Confirm & Save" 
+                                                        onclick={handleConfirmMerchantAccount} 
+                                                        disabled={isLoading}>
+                                                    </lightning-button>
+                                                </template>
+                                                <template if:true={deploymentTimedOut}>
+                                                    <lightning-button 
+                                                        variant="brand" 
+                                                        label="Skip & Continue" 
+                                                        onclick={handleSkipAndContinue} 
+                                                        disabled={isLoading}
+                                                        title="Continue to webhook setup after manual metadata update">
+                                                    </lightning-button>
+                                                </template>
                                             </div>
                                         </div>
                                     </template>
@@ -156,7 +167,6 @@
                             </template>
                             
                             <template if:true={showMerchantAccountSection}>
-                                <template if:false={deploymentTimedOut}>
                                     <div class="slds-p-around_medium slds-m-top_medium">
                                         
                                         <lightning-layout class="slds-m-bottom_medium">
@@ -210,7 +220,6 @@
                                             </template>
                                         </lightning-layout>
                                     </div>
-                                </template>
                             </template>
                         </template>
                     </div>
@@ -222,7 +231,7 @@
             <div class="slds-box slds-box_x-small slds-is-relative">
                 <h2 class="slds-text-heading_medium slds-m-bottom_medium">Instructions</h2>
                 
-                <div class="slds-box slds-is-relative slds-scrollable" style="min-height: 350px; max-height: 350px;">
+                <div class="slds-box slds-is-relative slds-scrollable" style="min-height: 350px; max-height: 350px;" data-id="instructions-container">
                     <div class="slds-p-around_medium">
                         <template if:true={showChoiceInstructions}>
                             <h3 class="slds-text-heading_small slds-m-bottom_small">
@@ -247,9 +256,11 @@
                                 </ul>
                             </div>
                             
-                            <p class="slds-text-color_weak slds-text-body_small">
-                                Note: Your choice will determine the scope of webhook events you receive.
-                            </p>
+                            <div class="slds-m-top_medium slds-p-around_small slds-theme_shade">
+                                <p class="slds-text-body_small">
+                                    <strong>Note:</strong> Your choice will determine the scope of webhook events you receive.
+                                </p>
+                            </div>
                         </template>
                         
                         <template if:true={showMerchantInstructions}>
@@ -266,7 +277,7 @@
                                 <li class="slds-m-bottom_small">Click <strong>Confirm & Save</strong> to update the configuration.</li>
                             </ol>
                             
-                            <div class="slds-box slds-box_xx-small slds-theme_warning">
+                            <div class="slds-m-top_medium slds-p-around_small slds-theme_shade">
                                 <p class="slds-text-body_small">
                                     <strong>Note:</strong> Your API key must have access to exactly one merchant account.
                                 </p>
@@ -287,6 +298,28 @@
                                 <li class="slds-m-bottom_small">Fill the <strong>HMAC Key</strong> field with the HMAC generated after the company level webhook setup. You can copy it from the AdyenDefault custom metadata record.</li>
                             </ol>
                             
+                        </template>
+
+                        <template if:true={deploymentTimedOut}>
+                            <div class="slds-m-top_medium" data-id="manual-update-section">
+                                <h3 class="slds-text-heading_small slds-m-bottom_small">Manual Update Required</h3>
+                                <p class="slds-m-bottom_medium">
+                                    The automatic merchant account update is taking longer than expected. Please manually update the Custom Metadata by following these steps:
+                                </p>
+                                <ol class="slds-list_ordered slds-m-left_large slds-m-bottom_medium">
+                                    <li>Go to Setup > Custom Metadata Types.</li>
+                                    <li>Click on "Adyen Adapter".</li>
+                                    <li>Click on "Manage Adyen Adapters".</li>
+                                    <li>Edit the "AdyenDefault" record.</li>
+                                    <li>Update the "Merchant Account" field with the value: <strong>{selectedMerchantAccountId}</strong></li>
+                                    <li>Click "Save".</li>
+                                </ol>
+                                <div class="slds-box slds-theme_info slds-m-top_medium">
+                                    <p class="slds-text-body_small">
+                                        <strong>Next Steps:</strong> After completing the manual update above, click "Skip & Continue" to proceed to webhook configuration.
+                                    </p>
+                                </div>
+                            </div>
                         </template>
                     </div>
                 </div>

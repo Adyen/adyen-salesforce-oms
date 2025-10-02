@@ -42,21 +42,33 @@ public with sharing class AdyenWebhookSetupController {
         @AuraEnabled public String webhookDescription { get; set; }
         @AuraEnabled public List<String> webhookEventCodes { get; set; }
         
+        @AuraEnabled public String detectedWebhookLevel { get; set; }
+        @AuraEnabled public String requestedSetupType { get; set; }
+        @AuraEnabled public Boolean isLevelMismatch { get; set; }
+        
         public WebhookCheckResult() {
             this.webhookExists = false;
             this.webhookActive = false;
             this.webhookEventCodes = new List<String>();
+            this.isLevelMismatch = false;
         }
     }
 
     @AuraEnabled
     public static String getWebhookUrl() {
         try {
-            ConnectApi.NamedCredential webhookNamedCredential = ConnectApi.NamedCredentials.getNamedCredential(AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME);
-            String baseUrl = webhookNamedCredential.calloutUrl;
             Adyen_Adapter__mdt adyenAdapter = AdyenPaymentUtility.retrieveAdapterByDeveloperName(AdyenConstants.DEFAULT_ADAPTER_NAME);
-            String namespace = String.isNotBlank(adyenAdapter.Package_Namespace__c) ? adyenAdapter.Package_Namespace__c + '/' : '';
-            return baseUrl + '/services/apexrest/' + namespace + 'adyenNotification/v1';
+            String namespace = adyenAdapter.Package_Namespace__c;
+
+            String credentialName = AdyenOMSConstants.WEBHOOK_NAMED_CREDENTIAL_NAME;
+            if (String.isNotBlank(namespace)) {
+                credentialName = namespace + '__' + credentialName;
+            }
+
+            ConnectApi.NamedCredential webhookNamedCredential = ConnectApi.NamedCredentials.getNamedCredential(credentialName);
+            String baseUrl = webhookNamedCredential.calloutUrl;
+            String namespaceForUrl = String.isNotBlank(namespace) ? namespace + '/' : '';
+            return baseUrl + '/services/apexrest/' + namespaceForUrl + 'adyenNotification/v1';
         } catch (Exception e) {
             throw new AuraHandledException('Error retrieving webhook URL: ' + e.getMessage());
         }
@@ -123,9 +135,16 @@ public with sharing class AdyenWebhookSetupController {
             result.webhookActive = existingWebhook.active;
             result.webhookUrl = existingWebhook.url;
             result.webhookDescription = existingWebhook.description;
+            result.requestedSetupType = setupType;
+            
             if (existingWebhook.additionalSettings?.includeEventCodes != null) {
                 result.webhookEventCodes = existingWebhook.additionalSettings.includeEventCodes;
             }
+            
+            result.detectedWebhookLevel = detectWebhookLevel(existingWebhook);
+            
+            result.isLevelMismatch = !setupType.equals(result.detectedWebhookLevel);
+            
             return result;
         } catch (Exception e) {
             throw new AuraHandledException('Error checking for existing webhook: ' + e.getMessage());
@@ -192,4 +211,11 @@ public with sharing class AdyenWebhookSetupController {
 
         return result;
     }
+
+    private static String detectWebhookLevel(WebhookSetupResponse webhookResponse) {
+        return String.isNotBlank(webhookResponse.filterMerchantAccountType) ? 
+               AdyenWebhookService.SETUP_TYPE_COMPANY : 
+               AdyenWebhookService.SETUP_TYPE_MERCHANT;
+    }
+
 }
