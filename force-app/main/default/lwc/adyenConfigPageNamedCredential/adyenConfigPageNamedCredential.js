@@ -31,6 +31,10 @@ export default class AdyenConfigPageNamedCredential extends LightningElement {
     get isManagementAPI() {
         return this.currentCredential === 'AdyenManagementAPI';
     }
+
+    get externalCredentialName() {
+        return this.currentCredential === 'AdyenManagementAPI' ? 'Adyen Management API' : 'Adyen API';
+    }
     
     async connectedCallback() {
         await Promise.all([
