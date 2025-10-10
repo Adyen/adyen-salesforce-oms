@@ -413,11 +413,11 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     }
     
     enhanceErrorMessage(message) {
-        if (message?.toLowerCase().includes('unauthorized') || message?.toLowerCase().includes('forbidden')) {
+        if (message?.toLowerCase()?.includes('unauthorized') || message?.toLowerCase()?.includes('forbidden')) {
             return `${message}. Please check your Management API key and ensure it has the correct permissions.`;
         }
-        if (message?.toLowerCase().includes('invalid webhook information provided') && 
-            !message?.toLowerCase().includes('failed to retrieve')) {
+        if (message?.toLowerCase()?.includes('invalid webhook information provided') && 
+            !message?.toLowerCase()?.includes('failed to retrieve')) {
             return `${message.replace(/\.$/, '')} or insufficient permissions.`;
         }
         return message;

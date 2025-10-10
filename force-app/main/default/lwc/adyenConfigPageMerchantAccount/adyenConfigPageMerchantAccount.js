@@ -352,7 +352,7 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
     }
     
     enhanceErrorMessage(message) {
-        if (message?.toLowerCase().includes('unauthorized') || message?.toLowerCase().includes('forbidden')) {
+        if (message?.toLowerCase()?.includes('unauthorized') || message?.toLowerCase()?.includes('forbidden')) {
             return `${message}. Please check your Management API key and ensure it has the correct permissions.`;
         }
         return message;
