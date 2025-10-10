@@ -11,7 +11,8 @@ export default class AdyenOMSConfigPage extends LightningElement {
         { value: 'accountSetup', label: 'Account Setup' },
         { value: 'webhookSetup', label: 'Webhook Setup' },
         { value: 'pageLayoutSetup', label: 'Page Layout Setup' },
-        { value: 'permissionSetup', label: 'Permission Setup' }
+        { value: 'permissionSetup', label: 'Permission Setup' },
+        { value: 'finish', label: 'Finish' }
     ];
     
     accountSetupContext = {
@@ -103,6 +104,10 @@ export default class AdyenOMSConfigPage extends LightningElement {
         return this.currentStep === 'permissionSetup';
     }
     
+    get isFinishStep() {
+        return this.currentStep === 'finish';
+    }
+    
     get isFirstStep() {
         const currentIndex = this.steps.findIndex(step => step.value === this.currentStep);
         return currentIndex === 0;
@@ -110,7 +115,7 @@ export default class AdyenOMSConfigPage extends LightningElement {
 
     get isLastStep() {
         const currentIndex = this.steps.findIndex(step => step.value === this.currentStep);
-        return currentIndex === this.steps.length - 1;
+        return currentIndex >= this.steps.length - 1;
     }
     
     getStepClass(stepValue) {
@@ -154,6 +159,10 @@ export default class AdyenOMSConfigPage extends LightningElement {
 
     get permissionSetupStepClass() {
         return this.getStepClass('permissionSetup');
+    }
+
+    get finishStepClass() {
+        return this.getStepClass('finish');
     }
 
 }
