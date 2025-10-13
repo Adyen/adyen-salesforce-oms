@@ -91,11 +91,11 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
                     this.showToast('Error', this.apiError, 'error');
                 }
             } else {
-                this.apiError = result.errorMessage;
+                this.apiError = this.enhanceErrorMessage(result.errorMessage);
                 this.handleAPIError(result.errorMessage);
             }
         } catch (error) {
-            this.apiError = 'Error fetching merchant accounts: ' + error.message;
+            this.apiError = this.enhanceErrorMessage('Error fetching merchant accounts: ' + error.message);
             this.handleError(error);
         } finally {
             this.isLoading = false;
@@ -347,7 +347,15 @@ export default class AdyenConfigPageMerchantAccount extends LightningElement {
     
     handleError(error, title = 'Error') {
         const errorMessage = error.body ? error.body.message : error.message;
-        this.showToast(title, errorMessage, 'error');
+        const enhancedMessage = this.enhanceErrorMessage(errorMessage);
+        this.showToast(title, enhancedMessage, 'error');
+    }
+    
+    enhanceErrorMessage(message) {
+        if (message?.toLowerCase()?.includes('unauthorized') || message?.toLowerCase()?.includes('forbidden')) {
+            return `${message}. Please check your Management API key and ensure it has the correct permissions.`;
+        }
+        return message;
     }
     
     showToast(title, message, variant) {

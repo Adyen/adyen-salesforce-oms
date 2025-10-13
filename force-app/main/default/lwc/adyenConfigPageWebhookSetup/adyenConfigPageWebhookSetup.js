@@ -266,11 +266,11 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
                     this.hmacGenerationFailed ? 'warning' : 'success'
                 );
             } else {
-                this.setupError = result.errorMessage;
+                this.setupError = this.enhanceErrorMessage(result.errorMessage);
                 this.handleError(result.errorMessage, this.isUpdateMode ? 'Update Failed' : 'Setup Failed');
             }
         } catch (error) {
-            this.setupError = error.message;
+            this.setupError = this.enhanceErrorMessage(error.message);
             this.handleError(error, this.isUpdateMode ? 'Update Failed' : 'Setup Failed');
         } finally {
             this.isLoading = false;
@@ -370,11 +370,11 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
 
     handleCopyHmacKey() {
         if (this.hmacKey) {
-            navigator.clipboard.writeText(this.hmacKey).then(() => {
-                this.showToast('Success', 'HMAC key copied to clipboard', 'success');
-            }).catch(() => {
-                this.showToast('Error', 'Failed to copy HMAC key to clipboard', 'error');
-            });
+            this.copyToClipboard(
+                this.hmacKey,
+                'HMAC key copied to clipboard',
+                'Failed to copy HMAC key'
+            );
         }
     }
     
@@ -408,7 +408,19 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
     
     handleError(error, title = 'Error') {
         const message = typeof error === 'string' ? error : (error.body?.message || error.message);
-        this.showToast(title, message, 'error');
+        const enhancedMessage = this.enhanceErrorMessage(message);
+        this.showToast(title, enhancedMessage, 'error');
+    }
+    
+    enhanceErrorMessage(message) {
+        if (message?.toLowerCase()?.includes('unauthorized') || message?.toLowerCase()?.includes('forbidden')) {
+            return `${message}. Please check your Management API key and ensure it has the correct permissions.`;
+        }
+        if (message?.toLowerCase()?.includes('invalid webhook information provided') && 
+            !message?.toLowerCase()?.includes('failed to retrieve')) {
+            return `${message.replace(/\.$/, '')} or insufficient permissions.`;
+        }
+        return message;
     }
     
     showToast(title, message, variant) {
@@ -566,11 +578,45 @@ export default class AdyenConfigPageWebhookSetup extends LightningElement {
 
     handleCopyWebhookId() {
         if (this.webhookIdDisplay) {
-            navigator.clipboard.writeText(this.webhookIdDisplay).then(() => {
-                this.showToast('Copied', 'Webhook ID copied to clipboard', 'success');
-            }).catch(() => {
-                this.showToast('Error', 'Failed to copy webhook ID', 'error');
-            });
+            this.copyToClipboard(
+                this.webhookIdDisplay,
+                'Webhook ID copied to clipboard',
+                'Failed to copy webhook ID'
+            );
+        }
+    }
+
+    copyToClipboard(content, successMessage, errorMessage) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(content)
+                .then(() => {
+                    this.showToast('Success', successMessage, 'success');
+                })
+                .catch(() => {
+                    this.showToast('Error', errorMessage, 'error');
+                });
+        } else {
+            const el = document.createElement('textarea');
+            el.value = content;
+            el.setAttribute('readonly', '');
+            el.style.position = "fixed";
+            el.style.left = "-999999px";
+            el.style.top = "-999999px";
+            document.body.appendChild(el);
+            el.focus();
+            el.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    this.showToast('Success', successMessage, 'success');
+                } else {
+                    this.showToast('Error', errorMessage, 'error');
+                }
+            } catch (err) {
+                this.showToast('Error', errorMessage, 'error');
+            } finally {
+                document.body.removeChild(el);
+            }
         }
     }
 

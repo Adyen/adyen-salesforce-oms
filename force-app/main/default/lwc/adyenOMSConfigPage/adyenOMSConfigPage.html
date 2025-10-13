@@ -94,6 +94,15 @@
                                             <span class="slds-path__title">Permission Setup</span>
                                         </a>
                                     </li>
+
+                                    <li class={finishStepClass} role="presentation">
+                                        <a class="slds-path__link" data-step="finish" onclick={handleStepClick} role="option" tabindex="-1">
+                                            <span class="slds-path__stage">
+                                                <lightning-icon icon-name="utility:check" size="x-small" variant="inverse"></lightning-icon>
+                                            </span>
+                                            <span class="slds-path__title">Finish</span>
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -138,6 +147,11 @@
                 <template if:true={isPermissionSetupStep}>
                     <c-adyen-config-page-permission-setup>
                     </c-adyen-config-page-permission-setup>
+                </template>
+
+                <template if:true={isFinishStep}>
+                    <c-adyen-config-page-finish>
+                    </c-adyen-config-page-finish>
                 </template>
             </div>
         </div>
