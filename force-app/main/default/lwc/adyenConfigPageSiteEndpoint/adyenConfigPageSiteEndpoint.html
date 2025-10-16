@@ -1,0 +1,173 @@
+<template>
+    <div class="slds-grid slds-gutters">
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-m-bottom_medium slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Set up Site URL</h2>
+                
+                <template if:true={showSpinner}>
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </template>
+                
+                <div class="slds-box slds-is-relative" style="min-height: 350px; max-height: 350px;">
+                    <template if:true={showExistingConfigInfo}>
+                        <div class="slds-box slds-theme_info slds-p-around_medium">
+                            <div class="slds-media">
+                                <div class="slds-media__figure">
+                                    <lightning-icon icon-name="utility:info" alternative-text="Info" variant="inverse" size="small"></lightning-icon>
+                                </div>
+                                <div class="slds-media__body">
+                                    <p>The Named Credential is already configured, and a site exists. Verify the configuration and permissions per the provided instructions.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-grid_align-end slds-m-top_medium">
+                            <lightning-button 
+                                variant="brand" 
+                                label="Continue"
+                                onclick={handleProceed}>
+                            </lightning-button>
+                        </div>
+                    </template>
+
+                    <template if:false={showExistingConfigInfo}>
+                        <div class="slds-m-bottom_large">
+                            <div class="slds-media slds-media_center slds-p-bottom_medium slds-border_bottom">
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon_container slds-icon-standard-account">
+                                        <lightning-icon icon-name="standard:apex_plugin" size="small"></lightning-icon>
+                                    </span>
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_small slds-text-title_bold">Salesforce Site Endpoint</div>
+                                    <div class="slds-text-body_small">Create a new Salesforce Site for the webhook notifications</div>
+                                </div>
+                            </div>
+                            
+                            <div class="slds-grid slds-grid_align-spread slds-p-vertical_medium">
+                                <div class="slds-col slds-size_3-of-5">
+                                    <lightning-button 
+                                        variant="neutral" 
+                                        label="Setup Salesforce Site Endpoint"
+                                        icon-name="utility:link"
+                                        icon-position="left"
+                                        data-action="siteEndpoint"
+                                        data-instructiontype="siteEndpoint"
+                                        onmouseover={handleButtonMouseOver}
+                                        onclick={handleSetupSiteEndpoint} 
+                                        stretch>
+                                    </lightning-button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slds-m-top_x-large">
+                            <div class="slds-media slds-media_center slds-p-bottom_medium slds-border_bottom">
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon_container slds-icon-standard-account">
+                                        <lightning-icon icon-name="standard:apex_plugin" size="small"></lightning-icon>
+                                    </span>
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_small slds-text-title_bold">Update Named Credential</div>
+                                    <div class="slds-text-body_small">Add the new site URL to your Named Credential</div>
+                                </div>
+                            </div>
+                            
+                            <div class="slds-grid slds-grid_align-spread slds-p-vertical_medium">
+                                <div class="slds-col slds-size_3-of-5">
+                                    <lightning-button 
+                                        variant="neutral" 
+                                        label="Update Site URL on Named Credential"
+                                        icon-name="utility:link"
+                                        icon-position="left"
+                                        data-action="updateUrl"
+                                        data-instructiontype="updateUrl"
+                                        onmouseover={handleButtonMouseOver}
+                                        onclick={handleUpdateSiteUrl} 
+                                        stretch>
+                                    </lightning-button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Instructions</h2>
+                
+                <div class="slds-box slds-is-relative slds-scrollable" style="min-height: 350px; max-height: 350px;">
+                    <template if:true={showDefaultInstructions}>
+                        <div class="slds-p-around_medium">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small">
+                                Set up Salesforce Site URL and update the Named Credential with the site URL.
+                            </h3>
+                            <ol class="slds-list_dotted slds-m-left_medium">
+                                <li>Hover over each button to view step-by-step instructions.</li>
+                                <li>Click a button to open the relevant Salesforce Setup page.</li>
+                            </ol>
+                        </div>
+                    </template>
+                    
+                    <template if:true={showSiteEndpointInstructions}>
+                        <div class="slds-p-around_medium">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small">Set up Salesforce Site endpoint</h3>
+                            
+                            <p class="slds-text-title_bold slds-m-bottom_x-small">A. Create a New Salesforce Site</p>
+                            <p class="slds-text-body_small slds-m-bottom_small"><em>(Or reuse one if created previously)</em></p>
+                            <ol class="slds-list_ordered slds-m-left_medium slds-m-bottom_medium">
+                                <li>On the Sites setup page, click <strong>New</strong>.</li>
+                                <li>Enter a <strong>Label</strong> (e.g., Adyen).</li>
+                                <li>Enter a unique value for the <strong>Default Web Address</strong> (e.g., http://my-org-sandbox.cs17.force.com/adyen).</li>
+                                <li>Select <strong>Active</strong>.</li>
+                                <li>Select an <strong>Active Site Home Page</strong> (e.g., UnderConstruction).</li>
+                                <li>Select <strong>Guest Access to the Payments API</strong>.</li>
+                                <li>Click <strong>Save</strong> and ensure the site is active.</li>
+                            </ol>
+
+                            <p class="slds-text-title_bold slds-m-bottom_x-small">B. Configure permissions</p>
+                            <ol class="slds-list_ordered slds-m-left_medium slds-m-bottom_medium">
+                                <li>From the Site details page, click <strong>Public Access Settings</strong>.</li>
+                                <li>
+                                    <strong>Custom Metadata Type Access:</strong>
+                                    <ul class="slds-list_dotted slds-m-left_large">
+                                        <li>Under Apps, select <strong>Custom Metadata Type Access</strong>, click <strong>Edit</strong> and enable the <strong>Adyen Adapter</strong> metadata type by moving it to the Enabled column, then <strong>Save</strong>.</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>Apex Class Access:</strong>
+                                    <ul class="slds-list_dotted slds-m-left_large">
+                                        <li>Under Apps, select <strong>Apex Class Access</strong>, click <strong>Edit</strong>, and add <strong>AdyenWebhookNotificationHandler</strong> &amp; <strong>NonPaymentWebhookHandler</strong> to Enabled Apex Classes, then <strong>Save</strong>.</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>External Credential Principal Access:</strong>
+                                    <ul class="slds-list_dotted slds-m-left_large">
+                                        <li>Under Apps, select <strong>External Credential Principal Access</strong>, click <strong>Edit</strong>, add <strong>NoAuthCredential</strong> to Enabled External Credential Principals, then <strong>Save</strong>.</li>
+                                    </ul>
+                                </li>
+                            </ol>
+
+                            <p class="slds-text-title_bold slds-m-bottom_x-small">C. Copy the Site URL</p>
+                            <p class="slds-m-left_medium">Copy the Site URL. You will need it for the next step to update the Named Credential.</p>
+                        </div>
+                    </template>
+                    
+                    <template if:true={showUpdateUrlInstructions}>
+                        <div class="slds-p-around_medium">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small">Update Site URL on Named Credential</h3>
+                            <ol class="slds-list_ordered slds-m-left_medium">
+                                <li>On the Named Credential page, click on <strong>Edit</strong>. This opens a modal window.</li>
+                                <li>In the <strong>URL</strong> field, Enter the Site URL that was created on the previous step.</li>
+                                <li>Make sure that the <strong>Enable for Callouts</strong> checkbox is checked.</li>
+                                <li>Click on <strong>Save</strong>.</li>
+                            </ol>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

@@ -1,4 +1,4 @@
-public with sharing class AdyenRefundReferenceBatch implements Database.Batchable<sObject> {
+public without sharing class AdyenRefundReferenceBatch implements Database.Batchable<sObject> {
          
     public Database.QueryLocator start(Database.BatchableContext batchContext) {
         return Database.getQueryLocator([

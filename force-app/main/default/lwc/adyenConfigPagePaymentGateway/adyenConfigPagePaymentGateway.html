@@ -1,0 +1,129 @@
+<template>
+    <div class="slds-p-around_medium">
+        <h2 class="slds-text-heading_medium slds-m-bottom_medium">Payment Gateway Setup</h2>
+        
+        <template if:true={showSpinner}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+        
+        <template if:true={existingGateways.length}>
+            <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                <h3 class="slds-text-heading_small slds-m-bottom_small">Existing Payment Gateways</h3>
+                <lightning-datatable
+                    data={existingGateways}
+                    columns={gatewayColumns}
+                    key-field="externalReference"
+                    hide-checkbox-column
+                    resize-column-disabled>
+                </lightning-datatable>
+                <p class="slds-text-body_small slds-m-top_small">
+                    You already have {existingGateways.length} payment gateway(s) configured.
+                </p>
+                
+                <template if:true={showNoGatewaysNeeded}>
+                    <div class="slds-box slds-theme_info slds-m-top_medium slds-m-bottom_medium">
+                        <p>All required payment gateways are already configured. Make sure that they are active.</p>
+                    </div>
+                    <div class="slds-grid slds-grid_align-end slds-m-top_medium">
+                        <lightning-button 
+                            label="Skip to Next Step" 
+                            onclick={handleSkip} 
+                            variant="brand">
+                        </lightning-button>
+                    </div>
+                </template>
+            </div>
+        </template>
+        
+        <template if:false={showNoGatewaysNeeded}>   
+            <template if:false={hasStandardGateway}>
+                <div class="slds-box slds-theme_default slds-m-bottom_medium">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label slds-text-title_caps">Online Payments</label>
+                        <div class="slds-form-element__control">
+                            <lightning-input 
+                                label="Gateway Name"
+                                data-gateway="standard"
+                                variant="label-hidden"
+                                required="true"
+                                value={standardGateway.gatewayName} 
+                                onchange={handleStandardGatewayNameChange}
+                                message-when-value-missing="Online Payments Gateway Name is required">
+                            </lightning-input>
+                        </div>
+                        <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                            Required for online payment methods
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template if:true={hasStandardGateway}>
+                <div class="slds-box slds-theme_success slds-m-bottom_medium">
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <div class="slds-col slds-size_12-of-12">
+                            <p>You already have an online payments gateway configured.</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            
+            <template if:false={hasPosGateway}>
+                <div class="slds-box slds-theme_default slds-m-bottom_medium">
+                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_medium slds-border_bottom slds-p-bottom_small">
+                        <div class="slds-col slds-size_8-of-12">
+                            <label class="slds-form-element__label slds-text-title_caps">Enable POS Terminal Payments Gateway (Optional)</label>
+                        </div>
+                        <div class="slds-col slds-size_4-of-12 slds-text-align_right">
+                            <lightning-input 
+                                type="toggle"
+                                label="Enable POS"
+                                checked={posGatewayEnabled}
+                                onchange={handlePosGatewayToggle}
+                                variant="label-hidden">
+                            </lightning-input>
+                        </div>
+                    </div>
+                    <template if:true={posGatewayEnabled}>
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label slds-text-title_caps">Point of Sale Terminal Payments</label>
+                            <div class="slds-form-element__control">
+                                <lightning-input 
+                                    label="Gateway Name"
+                                    data-gateway="pos"
+                                    variant="label-hidden"
+                                    required={posGatewayEnabled}
+                                    value={posGateway.gatewayName} 
+                                    onchange={handlePosGatewayNameChange}
+                                    message-when-value-missing="Point of Sale Terminal Payments Gateway Name is required">
+                                </lightning-input>
+                            </div>
+                            <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                                Only needed for Point of Sale terminals
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+            <template if:true={hasPosGateway}>
+                <div class="slds-box slds-theme_success slds-m-bottom_medium">
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <div class="slds-col slds-size_12-of-12">
+                            <p>You already have a Point of Sale payments gateway configured.</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            
+            <div class="slds-grid slds-grid_align-spread slds-m-top_large">
+                <div>
+                    <lightning-button 
+                        label="Save" 
+                        onclick={handleSubmit} 
+                        variant="brand" 
+                        disabled={showSpinner}>
+                    </lightning-button>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

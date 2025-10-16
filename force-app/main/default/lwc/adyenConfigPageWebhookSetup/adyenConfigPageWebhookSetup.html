@@ -1,0 +1,528 @@
+<template>
+    <div class="slds-grid slds-gutters">
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-m-bottom_medium slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Webhook Setup</h2>
+                
+                <template if:true={isLoading}>
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </template>
+                
+                <div class="slds-box slds-is-relative" style="min-height: 350px; max-height: 350px;">
+                    <div class="slds-m-bottom_large">
+                        <template if:true={accountSetupContext}>
+                            <div class="slds-media slds-media_center slds-p-bottom_medium slds-border_bottom">
+                                <div class="slds-media__figure">
+                                    <template if:true={isCompanySetup}>
+                                        <span class="slds-icon_container slds-icon-standard-account">
+                                            <lightning-icon icon-name="utility:company" size="small"></lightning-icon>
+                                        </span>
+                                    </template>
+                                    <template if:true={isMerchantSetup}>
+                                        <span class="slds-icon_container slds-icon-standard-account">
+                                            <lightning-icon icon-name="standard:account" size="small"></lightning-icon>
+                                        </span>
+                                    </template>
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_small slds-text-title_bold">Webhook Setup for {setupTypeLabel}</div>
+                                    <template if:true={isCompanySetup}>
+                                        <div class="slds-text-body_small">Company: {companyName}</div>
+                                    </template>
+                                    <template if:true={isMerchantSetup}>
+                                        <div class="slds-text-body_small">Merchant Account: {merchantAccountId}</div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    <template if:true={hasSetupError}>
+                        <div class="slds-p-around_medium">
+                            <div class="slds-box slds-theme_error">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col slds-size_11-of-12">
+                                        <p class="slds-text-body_regular"><strong>Webhook Setup Failed</strong></p>
+                                        <p class="slds-text-body_small slds-m-top_x-small">{setupError}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-m-top_medium slds-text-align_right">
+                                <lightning-button 
+                                    variant="neutral" 
+                                    label="Try Again" 
+                                    icon-name="utility:refresh"
+                                    onclick={handleRefresh} 
+                                    disabled={isLoading}>
+                                </lightning-button>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <template if:true={webhookConfigured}>
+                        <div class="slds-p-around_medium">
+                            <div class="slds-box slds-theme_success">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col slds-size_12-of-12">
+                                        <p class="slds-text-body_regular"><strong>Webhook Successfully Configured!</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <template if:true={showHmacSection}>
+                                <div class="slds-m-top_medium">
+                                    <template if:true={showHmacError}>
+                                        <div class="slds-box slds-theme_warning slds-m-bottom_medium">
+                                            <div class="slds-grid slds-grid_vertical-align-center">
+                                                <div class="slds-col slds-size_1-of-12">
+                                                    <lightning-icon icon-name="utility:warning" size="small" variant="warning"></lightning-icon>
+                                                </div>
+                                                <div class="slds-col slds-size_11-of-12">
+                                                    <p class="slds-text-body_regular"><strong>HMAC Generation Failed</strong></p>
+                                                    <p class="slds-text-body_small slds-m-top_x-small">{hmacErrorMessage}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    
+                                    <template if:true={showHmacKey}>
+                                        <div class="slds-theme_default slds-m-bottom_medium">
+                                            <p class="slds-text-body_regular"><strong>Save HMAC Key & Webhook ID to Custom Metadata before proceeding.</strong></p>
+                                            
+                                            <div class="slds-form-element">
+                                                <label class="slds-form-element__label">HMAC Key</label>
+                                                <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+                                                    <div class="slds-grid slds-gutters_small slds-wrap">
+                                                        <div class="slds-col slds-size_10-of-12">
+                                                            <lightning-input 
+                                                                type={hmacInputType}
+                                                                value={hmacKey}
+                                                                readonly
+                                                                variant="label-hidden"
+                                                                class="slds-input_bare">
+                                                            </lightning-input>
+                                                        </div>
+                                                    
+                                                        <div class="slds-col slds-size_2-of-12">
+                                                            <div class="slds-button-group">
+                                                                <lightning-button-icon 
+                                                                    onclick={handleToggleHmacVisibility}
+                                                                    variant="border-filled"
+                                                                    title={hmacVisibilityTitle}
+                                                                    icon-name={hmacVisibilityIcon}
+                                                                    size="small"
+                                                                    alternative-text={hmacVisibilityTitle}
+                                                                    class="slds-m-right_x-small">
+                                                                </lightning-button-icon>
+                                                                <lightning-button-icon  
+                                                                    onclick={handleCopyHmacKey}
+                                                                    variant="border-filled"
+                                                                    title="Copy HMAC Key"
+                                                                    icon-name="utility:copy"
+                                                                    size="small"
+                                                                    alternative-text="Copy">
+                                                                </lightning-button-icon>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <template if:true={showWebhookId}>
+                                                <div class="slds-theme_default">
+                                                    <div class="slds-form-element slds-m-bottom_medium">
+                                                        <label class="slds-form-element__label">Webhook ID</label>
+                                                        <div class="slds-form-element__control">
+                                                            <div class="slds-grid slds-gutters_small slds-wrap">
+                                                                <div class="slds-col slds-size_10-of-12">
+                                                                    <lightning-input 
+                                                                        type="text"
+                                                                        value={webhookIdDisplay}
+                                                                        readonly
+                                                                        variant="label-hidden"
+                                                                        class="slds-input_bare">
+                                                                    </lightning-input>
+                                                                </div>
+                                                            
+                                                                <div class="slds-col slds-size_2-of-12">
+                                                                    <lightning-button-icon  
+                                                                        onclick={handleCopyWebhookId}
+                                                                        variant="border-filled"
+                                                                        title="Copy Webhook ID"
+                                                                        icon-name="utility:copy"
+                                                                        size="small"
+                                                                        alternative-text="Copy">
+                                                                    </lightning-button-icon>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template if:true={isMetadataSaveLoading}>
+                                                <div class="slds-grid slds-grid_align-center slds-m-top_medium">
+                                                    <div class="slds-grid slds-grid_vertical-align-center">
+                                                        <lightning-spinner size="small" alternative-text="Saving"></lightning-spinner>
+                                                        <span class="slds-m-left_small">Saving Webhook data to the custom metadata...</span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    
+                                    <template if:true={hmacSavedToMetadata}>
+                                        <div class="slds-box slds-theme_success slds-m-bottom_medium">
+                                            <div class="slds-grid slds-grid_vertical-align-center">
+                                                <div class="slds-col slds-size_12-of-12">
+                                                    <p class="slds-text-body_regular"><strong>Webhook Data Saved Successfully</strong></p>
+                                                    <p class="slds-text-body_small slds-m-top_x-small">
+                                                        The webhook data has been saved to the custom metadata.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <div class="slds-grid slds-grid_align-end slds-m-top_medium">
+                                        <template if:true={showSaveButton}>
+                                            <lightning-button 
+                                                variant="brand" 
+                                                label="Save to Metadata" 
+                                                icon-name="utility:save"
+                                                icon-position="left"
+                                                onclick={handleSaveToMetadata} 
+                                                disabled={isMetadataSaveLoading}>
+                                            </lightning-button>
+                                        </template>
+
+                                        <template if:true={showTestWebhookButton}>
+                                            <lightning-button 
+                                                variant="brand" 
+                                                label="Test Webhook"
+                                                onclick={handleTestWebhook} 
+                                                disabled={isLoading}
+                                                title="Test the webhook after saving data to metadata">
+                                            </lightning-button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    
+                    <template if:true={showContent}>
+                        <div class="slds-p-around_medium">
+                            <div class="slds-form-element slds-m-bottom_large">
+                                <div class="slds-form-element__control">
+                                    <lightning-input
+                                        id="description-input"
+                                        type="text"
+                                        label="Description"
+                                        value={description}
+                                        onchange={handleDescriptionChange}
+                                        placeholder="Enter webhook description"
+                                        required>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                            
+                            <div class="slds-form-element slds-m-bottom_large">
+                                <label class="slds-form-element__label" id="event-types-label">
+                                    <abbr class="slds-required" title="required">*</abbr>
+                                    Event Types
+                                </label>
+                                <div class="slds-form-element__control">
+                                    <div class={dropdownClass} aria-expanded={isDropdownOpen} aria-haspopup="listbox" role="combobox" data-id="event-dropdown" onfocusout={handleDropdownFocusOut} tabindex="0">
+                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                            <button 
+                                                class="slds-input slds-combobox__input slds-combobox__input-value slds-text-align_left" 
+                                                type="button"
+                                                aria-labelledby="event-types-label"
+                                                aria-controls="event-types-dropdown"
+                                                aria-expanded={isDropdownOpen}
+                                                data-id="dropdown-button"
+                                                onclick={handleDropdownToggle}>
+                                                <span class="slds-truncate">{selectedEventLabels}</span>
+                                            </button>
+                                            <span class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right">
+                                                <lightning-icon icon-name="utility:down" size="x-small" alternative-text="Show Options"></lightning-icon>
+                                            </span>
+                                        </div>
+                                        
+                                        <div id="event-types-dropdown" class="slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox">
+                                            <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                                <template for:each={eventCodeOptionsWithSelection} for:item="option">
+                                                    <li key={option.value} role="presentation" class="slds-listbox__item">
+                                                        <div class="slds-media slds-listbox__option slds-listbox__option_entity" role="option">
+                                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                                <lightning-input 
+                                                                    type="checkbox" 
+                                                                    checked={option.isSelected}
+                                                                    data-event={option.value}
+                                                                    onchange={handleEventSelectionChange}
+                                                                    variant="label-hidden">
+                                                                </lightning-input>
+                                                            </span>
+                                                            <button class="slds-media__body slds-button slds-button_reset" type="button" data-event={option.value} onclick={handleEventSelectionChange}>
+                                                                <span class="slds-text-body_regular">{option.label}</span>
+                                                            </button>
+                                                        </div>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-form-element__help">
+                                    Select the webhook events you want to receive notifications for
+                                </div>
+                            </div>
+                            
+                            <!-- Action Button -->
+                            <div class="slds-grid slds-grid_align-end slds-m-top_large">
+                                <lightning-button 
+                                    variant="brand" 
+                                    label={setupButtonLabel} 
+                                    onclick={handleSetupWebhook} 
+                                    disabled={isSetupDisabled}
+                                    class="slds-button_stretch">
+                                </lightning-button>
+                            </div>
+                        </div>
+                    </template>
+                     
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+             <div class="slds-col slds-size_1-of-2">
+            <div class="slds-box slds-box_x-small slds-is-relative">
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Instructions</h2>
+
+                <div class="slds-box slds-is-relative slds-scrollable" style="min-height: 350px; max-height: 350px;" data-id="instructions-container">
+                    <div class="slds-p-around_medium">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small">
+                            Webhook Setup
+                        </h3>
+                        <p class="slds-m-bottom_medium">
+                            Configure webhooks to receive payment notifications from Adyen to your Salesforce org.
+                        </p>
+                        <ol class="slds-list_ordered slds-m-left_medium">
+                            <li>Enter a description for your webhook</li>
+                            <li>Select the event types</li>
+                            <li>Click <strong>Setup Webhook</strong> to create the webhook</li>
+                            <li>Save the generated HMAC key and Webhook ID to the custom metadata</li>
+                        </ol>
+                        
+                        <div class="slds-p-around_small slds-m-top_medium slds-border_top">
+                            <p class="slds-text-heading_small slds-m-bottom_x-small">Event Types:</p>
+                            <ul class="slds-list_dotted slds-m-left_medium">
+                                <li><strong>CAPTURE/CAPTURE_FAILED:</strong> Payment capture events</li>
+                                <li><strong>REFUND/REFUND_FAILED:</strong> Refund processing events</li>
+                                <li><strong>CANCELLATION:</strong> Payment cancellation events</li>
+                                <li><strong>AUTHORISATION:</strong> Payment authorization events</li>
+                            </ul>
+                            <div class="slds-m-top_medium slds-p-around_small slds-theme_shade">
+                                <p class="slds-text-body_small">
+                                    <strong>Note:</strong> CAPTURE, CAPTURE_FAILED, REFUND, and REFUND_FAILED events are required for core functionality.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-p-around_small slds-m-top_medium slds-border_top">
+                            <p class="slds-text-heading_small slds-m-bottom_x-small">HMAC Key & Webhook ID:</p>
+                            <ul class="slds-list_dotted slds-m-left_medium">
+                                <li><strong>Generated automatically:</strong> An HMAC key and Webhook ID are created for webhook verification.</li>
+                                <li><strong>Save to metadata:</strong> Both must be saved to the custom metadata before proceeding.</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="slds-m-top_medium slds-text-color_weak">
+                            Note: Your API key must have create webhook and generate HMAC permissions in Adyen.
+                        </p>
+
+                        <template if:true={deploymentTimedOut}>
+                            <div class="slds-box slds-m-top_medium" data-id="manual-update-section">
+                                <h3 class="slds-text-heading_small slds-m-bottom_small">Manual Update Required</h3>
+                                <p class="slds-m-bottom_medium">
+                                    The webhook data update is taking longer than expected. Please manually update the Custom Metadata by following these steps:
+                                </p>
+                                <ol class="slds-list_ordered slds-m-left_large">
+                                    <li>Go to Setup > Custom Metadata Types.</li>
+                                    <li>Click "Manage Records" next to "Adyen Adapter".</li>
+                                    <li>Edit the "AdyenDefault" record.</li>
+                                    <li>Update the "HMAC Key" field with the generated HMAC key.</li>
+                                    <li>Update the "Webhook ID" field with the Webhook Id.</li>
+                                    <li>Click "Save".</li>
+                                </ol>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <template if:true={showWebhookExistsDialog}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button-icon class="slds-modal__close" title="Close" icon-name="utility:close" icon-class="slds-button_icon-inverse" onclick={handleDismissDialog}></lightning-button-icon>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Existing Webhook Found</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <div class="slds-box slds-theme_info slds-m-bottom_medium">
+                        <div class="slds-grid slds-grid_vertical-align-center">
+                            <div class="slds-col slds-size_1-of-12">
+                                <lightning-icon icon-name="utility:info" size="small" variant="inverse"></lightning-icon>
+                            </div>
+                            <div class="slds-col slds-size_11-of-12">
+                                <p class="slds-text-body_regular"><strong>Webhook Already Configured</strong></p>
+                                <p class="slds-text-body_small slds-m-top_x-small">
+                                    We found an existing webhook configuration for this merchant account (Webhook ID: <strong>{webhookId}</strong>). 
+                                    You can update the existing webhook.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slds-m-bottom_medium">
+                        <lightning-button 
+                            variant="neutral" 
+                            label={webhookDetailsToggleLabel}
+                            icon-name={webhookDetailsToggleIcon}
+                            icon-position="left"
+                            onclick={handleToggleWebhookDetails}
+                            class="slds-button_stretch">
+                        </lightning-button>
+                    </div>
+                    
+                    <template if:true={showWebhookDetails}>
+                        <div class="slds-box slds-box_x-small slds-theme_shade slds-m-bottom_medium">
+                            <h3 class="slds-text-heading_small slds-m-bottom_medium">Current Webhook Configuration</h3>
+                            
+                            <div class="slds-grid slds-wrap slds-gutters_small">
+                                <div class="slds-col slds-size_1-of-2">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label slds-text-body_small">Status</label>
+                                        <div class="slds-form-element__control">
+                                            <template if:true={existingWebhookDetails.webhookActive}>
+                                                <span class="slds-badge slds-theme_success">Active</span>
+                                            </template>
+                                            <template if:false={existingWebhookDetails.webhookActive}>
+                                                <span class="slds-badge slds-theme_error">Inactive</span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="slds-col slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label slds-text-body_small">Webhook URL</label>
+                                        <div class="slds-form-element__control">
+                                            <span class="slds-text-body_regular">{existingWebhookDetails.webhookUrl}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="slds-col slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label slds-text-body_small">Description</label>
+                                        <div class="slds-form-element__control">
+                                            <span class="slds-text-body_regular">{existingWebhookDetails.webhookDescription}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="slds-col slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label slds-text-body_small">Event Codes</label>
+                                        <div class="slds-form-element__control">
+                                            <span class="slds-text-body_regular">{existingWebhookEventCodesDisplay}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <div class="slds-col slds-size_12-of-12">
+                            <p class="slds-text-body_small">
+                                Click <strong>Update Webhook</strong> to proceed with modifying the existing webhook configuration.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="brand" label="Continue" onclick={handleContinueWithUpdate}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+    
+    <template if:true={showLevelMismatchDialog}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-02" aria-modal="true" aria-describedby="modal-content-id-2" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button-icon class="slds-modal__close" title="Close" icon-name="utility:close" icon-class="slds-button_icon-inverse" onclick={closeLevelMismatchDialog}></lightning-button-icon>
+                    <h2 id="modal-heading-02" class="slds-text-heading_medium slds-hyphenate">Existing Webhook Found</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+                    <div class="slds-box slds-theme_info slds-m-bottom_medium">
+                        <div class="slds-grid slds-grid_vertical-align-center">
+                            <div class="slds-col slds-size_1-of-12">
+                                <lightning-icon icon-name="utility:info" size="small" variant="inverse"></lightning-icon>
+                            </div>
+                            <div class="slds-col slds-size_11-of-12">
+                                <p class="slds-text-body_regular">
+                                    {levelMismatchMessage} (Webhook ID: <strong>{webhookId}</strong>)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slds-m-bottom_medium">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small">Choose how to proceed:</h3>
+                        
+                        <div class="slds-grid slds-gutters_small slds-wrap">
+                            <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-p-around_small slds-border_top slds-border_bottom">
+                                    <div class="slds-text-body_regular slds-text-color_default">
+                                        <strong>Create new webhook at {currentSelectionLevel} level</strong>
+                                    </div>
+                                    <div class="slds-text-body_small slds-text-color_weak">
+                                        Continue with your current selection
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-p-around_small slds-border_bottom">
+                                    <div class="slds-text-body_regular slds-text-color_default">
+                                        <strong>Update existing {existingWebhookLevel} level webhook</strong>
+                                    </div>
+                                    <div class="slds-text-body_small slds-text-color_weak">
+                                        Go back to the previous step and choose "{existingWebhookLevel}" Account option
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <div class="slds-col slds-size_12-of-12">
+                            <p class="slds-text-body_small">
+                                Click <strong>Create New Webhook</strong> to proceed with setting up a new webhook at the {currentSelectionLevel} level.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="brand" label="Create New Webhook" onclick={handleCreateNewWebhook}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

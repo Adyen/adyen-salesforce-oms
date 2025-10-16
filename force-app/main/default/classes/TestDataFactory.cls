@@ -15,7 +15,9 @@ public class TestDataFactory {
     public static final String NL_JSON_ADDRESS = '{"city": "Amsterdam", "country": "Netherlands", "postalCode": "1012 JS", "state": "", "street": "Dam Square 1"}';
     public static final String NO_NUMBER_JSON_ADDRESS = '{"city": "Amsterdam", "country": "Netherlands", "postalCode": "1012 JS", "state": "", "street": "Dam Square"}';
 
-
+    public static Boolean isMetadataAPISuccessful = true;
+    public static String mockDeploymentId = '0Af000000000000001';
+    
     public static AdyenGatewayAdapter adyenAdapter = new AdyenGatewayAdapter();
 
     public static Account createAccount() {
@@ -383,6 +385,165 @@ public class TestDataFactory {
         }
     }
 
+    public class WebhookSetupMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockWebhookSetupResponse(), 200);
+        }
+    }
+
+    public class HmacGenerationMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockHmacGenerationResponse(), 200);
+        }
+    }
+
+    public class WebhookTestMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.endsWith('/me')) {
+                return mockHttpResponse(mockApiCredentialResponse(), 200);
+            }
+            
+            if (req.getBody() != null && req.getBody().contains('notification') && req.getBody().contains('types')) {
+                Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
+                Map<String, Object> notification = (Map<String, Object>)requestBody.get('notification');
+                List<Object> types = (List<Object>)requestBody.get('types');
+                
+                if (notification != null && types != null && types.contains('CUSTOM')) {
+                    Map<String, Object> amount = (Map<String, Object>)notification.get('amount');
+                    if (amount != null && amount.containsKey('currency') && amount.get('currency') == 'EUR') {
+                        return mockHttpResponse(mockWebhookTestResponse(), 200);
+                    }
+                }
+            }
+            
+            return mockHttpResponse('{"status": "error", "message": "Invalid request body"}', 400);
+        }
+    }
+
+    public class WebhookTestFailureMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            if (req.getBody() != null && req.getBody().contains('notification') && req.getBody().contains('types')) {
+                Map<String, Object> requestBody = (Map<String, Object>)JSON.deserializeUntyped(req.getBody());
+                Map<String, Object> notification = (Map<String, Object>)requestBody.get('notification');
+                List<Object> types = (List<Object>)requestBody.get('types');
+                
+                if (notification != null && types != null && types.contains('CUSTOM')) {
+                    Map<String, Object> amount = (Map<String, Object>)notification.get('amount');
+                    if (amount != null && amount.containsKey('currency') && amount.get('currency') == 'EUR') {
+                        return mockHttpResponse(mockWebhookTestFailureResponse(), 200);
+                    }
+                }
+            }
+            
+            return mockHttpResponse('{"status": "error", "message": "Invalid request body"}', 400);
+        }
+    }
+
+    public class WebhookSetupWithHmacMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.contains('webhooks') && !endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockWebhookSetupResponse(), 200);
+            } else if (endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockHmacGenerationResponse(), 200);
+            }
+            
+            return mockHttpResponse(mockWebhookSetupResponse(), 200);
+        }
+    }
+
+    public class WebhookSetupWithHmacFailureMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.contains('webhooks') && !endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockWebhookSetupResponse(), 200);
+            } else if (endpoint.contains('generateHmac')) {
+                return mockHttpResponse(genericErrorResponse(), 400);
+            }
+            
+            return mockHttpResponse(mockWebhookSetupResponse(), 200);
+        }
+    }
+
+    public class MockMerchantAccountCallout implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockFetchMerchantAccountResponse(), 200);
+        }
+    }
+    public class MockMerchantAccountCalloutFailure implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockFetchMerchantAccountErrorResponse(), 401);
+        }
+    }
+
+    public class MockApiCredentialResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockApiCredentialResponse(), 200);
+        }
+    }
+
+    public class MockApiCredentialCalloutFailure implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockApiCredentialErrorResponse(), 403);
+        }
+    }
+
+    public class CompanyWebhookSetupMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.contains('webhooks') && !endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockWebhookSetupResponse(), 200);
+            } else if (endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockHmacGenerationResponse(), 200);
+            } else if (endpoint.endsWith('/me')) {
+                return mockHttpResponse(mockApiCredentialResponse(), 200);
+            }
+            
+            return mockHttpResponse(mockWebhookSetupResponse(), 200);
+        }
+    }
+    public class WebhookGetMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            if (endpoint.endsWith('/me')) {
+                return mockHttpResponse(mockApiCredentialResponse(), 200);
+            }
+            return mockHttpResponse(mockWebhookGetResponse(), 200);
+        }
+    }
+
+    public class NotFoundResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse('{"status": 404, "errorCode": "702", "message": "Resource not found", "errorType": "validation"}', 404);
+        }
+    }
+    public class WebhookUpdateMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            return mockHttpResponse(mockWebhookUpdateResponse(), 200);
+        }
+    }
+
+    public class WebhookUpdateWithHmacMockResponse implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            String endpoint = req.getEndpoint();
+            
+            if (endpoint.contains('webhooks') && !endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockWebhookUpdateResponse(), 200);
+            } else if (endpoint.contains('generateHmac')) {
+                return mockHttpResponse(mockHmacGenerationResponse(), 200);
+            } else if (endpoint.endsWith('/me')) {
+                return mockHttpResponse(mockApiCredentialResponse(), 200);
+            }
+            
+            return mockHttpResponse(mockWebhookUpdateResponse(), 200);
+        }
+    }
+
     public static HttpResponse mockHttpResponse(String body, Integer code) {
         HttpResponse res = new HttpResponse();
         res.setHeader('Content-Type', 'text/json');
@@ -406,6 +567,30 @@ public class TestDataFactory {
     private static String pblExpiredResponse() {
         return '{ "url": "https://test.payment.link", "expiresAt": "2024-01-01T12:00:00+00:00", "status": "expired", "id":"PLE5B4575C5A026A2B2"}';
     }
+    
+    private static String mockWebhookSetupResponse() {
+        return '{ "id": "WBHK12345678912345678912345678", "type": "standard", "description": "Test webhook" }';
+    }
+
+    private static String mockHmacGenerationResponse() {
+        return '{ "hmacKey": "test-hmac-key-123456789" }';
+    }
+
+    private static String mockWebhookTestResponse() {
+        return '{ "data": [{"merchantId": "TestMerchantAccount", "output": "", "requestSent": "{\\"live\\":\\"false\\",\\"notificationItems\\":[{\\"NotificationRequestItem\\":{\\"amount\\":{\\"currency\\":\\"EUR\\",\\"value\\":1000},\\"eventCode\\":\\"CAPTURE\\",\\"eventDate\\":\\"2024-01-01T01:00:00+01:00\\",\\"merchantAccountCode\\":\\"TestMerchantAccount\\",\\"merchantReference\\":\\"TEST-REF\\",\\"paymentMethod\\":\\"visa\\",\\"pspReference\\":\\"TEST-PSP-REF\\",\\"reason\\":\\"\\",\\"success\\":\\"true\\"}}]}", "responseCode": "200", "responseTime": "123 ms", "status": "success"}] }';
+    }
+
+    private static String mockWebhookTestFailureResponse() {
+        return '{ "data": [{"merchantId": "TestMerchantAccount", "output": "Connection refused", "requestSent": "{\\"live\\":\\"false\\",\\"notificationItems\\":[{\\"NotificationRequestItem\\":{\\"amount\\":{\\"currency\\":\\"EUR\\",\\"value\\":1000},\\"eventCode\\":\\"CAPTURE\\",\\"eventDate\\":\\"2024-01-01T01:00:00+01:00\\",\\"merchantAccountCode\\":\\"TestMerchantAccount\\",\\"merchantReference\\":\\"TEST-REF\\",\\"paymentMethod\\":\\"visa\\",\\"pspReference\\":\\"TEST-PSP-REF\\",\\"reason\\":\\"\\",\\"success\\":\\"true\\"}}]}", "responseCode": "500", "responseTime": "5000 ms", "status": "failed"}] }';
+    }
+
+    private static String mockWebhookGetResponse() {
+        return '{ "id": "test-webhook-id", "type": "standard", "description": "Test webhook description", "url": "https://test.webhook.url", "active": true, "communicationFormat": "json", "encryptionProtocol": "TLSv1.3", "additionalSettings": { "includeEventCodes": ["CAPTURE", "REFUND"] } }';
+    }
+
+    private static String mockWebhookUpdateResponse() {
+        return '{ "id": "WBHK12345678912345678912345678", "type": "standard", "description": "Updated test webhook", "url": "https://test.webhook.url", "active": true, "communicationFormat": "json", "encryptionProtocol": "TLSv1.3", "additionalSettings": { "includeEventCodes": ["CAPTURE", "REFUND", "CANCELLATION"] } }';
+    }
 
     public static String mockWebhookRequest(String eventCode, String pspReference, String originalReference, String merchantRef, Boolean success) {
         String merchantAccountName = [SELECT Merchant_Account__c FROM Adyen_Adapter__mdt LIMIT 1].Merchant_Account__c;
@@ -415,5 +600,38 @@ public class TestDataFactory {
     public static String mockPblWebhookRequest(String eventCode, String pspReference, String paymentLinkId, String merchantRef, Boolean success) {
         String merchantAccountName = [SELECT Merchant_Account__c FROM Adyen_Adapter__mdt LIMIT 1].Merchant_Account__c;
         return '{"live": "false", "notificationItems": [{"NotificationRequestItem": {"additionalData": {"hmacSignature": "testsignature", "paymentLinkId": "'+ paymentLinkId +'"}, "amount": {"currency": "'+ ACTIVE_CURRENCY +'", "value": 1000}, "eventCode": "' + eventCode + '", "eventDate": "2024-01-01T01:00:00+01:00", "merchantAccountCode": "' + merchantAccountName + '", "merchantReference": "' + merchantRef + '", "paymentMethod": "visa", "pspReference": "' + pspReference + '", "reason": "null", "success": "' + success + '"}}]}';
+    }
+
+    private static String mockFetchMerchantAccountResponse() {
+        return '{"data":[{"id":"merchant_1","name":"Merchant One","status":"Active","description":"Desc 1","companyId":"C1","captureDelay":"manual"},{"id":"merchant_2","name":"Merchant Two","status":"Inactive","description":"Desc 2","companyId":"C2","captureDelay":"auto"}],"itemsTotal":2,"pagesTotal":1}';
+    }
+
+    private static String mockFetchMerchantAccountErrorResponse() {
+        return '{"title":"Unauthorized"}';
+    }
+
+    private static String mockApiCredentialResponse() {
+        return '{"id":"test-credential-id","username":"test-user","companyName":"TestCompany","description":"Test API Credential","active":true,"roles":["Test Role"]}';
+    }
+
+    private static String mockApiCredentialErrorResponse() {
+        return '{"title":"Forbidden","detail":"Insufficient permissions to access API credentials"}';
+    }
+
+    public static Adyen_Adapter__mdt createMockAdapter() {
+        Adyen_Adapter__mdt mockAdapter = new Adyen_Adapter__mdt();
+        mockAdapter.DeveloperName = AdyenConstants.DEFAULT_ADAPTER_NAME;
+        mockAdapter.MasterLabel = 'Test Adyen Default';
+        mockAdapter.Package_Namespace__c = 'testns';
+        mockAdapter.Merchant_Account__c = 'TestMerchantAccount';
+        mockAdapter.HMAC_Key__c = 'TestHMACKey';
+        mockAdapter.Auto_Capture_Enabled__c = true;
+        mockAdapter.Manual_Capture_Payment_Methods__c = 'card,ideal';
+        mockAdapter.System_Integrator_Name__c = 'TestIntegrator';
+        mockAdapter.Payment_Link_Return_Url__c = 'https://test.example.com/return';
+        mockAdapter.Payment_Link_Theme_Id__c = 'test-theme-id';
+        mockAdapter.Payment_Link_Expiry_Duration__c = 24;
+
+        return mockAdapter;
     }
 }

@@ -18,6 +18,12 @@ public with sharing class AdyenOMSConstants {
 
     public static final String PAYMENT_GATEWAY_PROVIDER = 'Adyen_OMS_Provider';
     public static final String WEBHOOK_NAMED_CREDENTIAL_NAME = 'AdyenWebhookEndpoint';
+    public static final String CHECKOUT_NAMED_CREDENTIAL = 'AdyenCheckout';
+    public static final String MANAGEMENT_API_NAMED_CREDENTIAL = 'AdyenManagementAPI';
+
+    public static final String PAYMENT_INSTRUMENT_ADYEN_COMPONENT = 'Adyen_Component';
+    public static final String PAYMENT_INSTRUMENT_ADYEN_POS = 'Adyen_POS';
+
     public static final Set<String> OPEN_INVOICE_METHODS = new Set<String>{'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay', 'riverty'};
 
     public static final Set<String> VALID_NOTIFICATION_TYPES = new Set<String>{
@@ -59,4 +65,6 @@ public with sharing class AdyenOMSConstants {
     public static final String GATEWAY_RESULT_SUCCESS = 'success';
     public static final String GATEWAY_RESULT_SUCCESS_DESCRIPTION = 'Transaction Normal';
     public static final String INVALID_NOTIFICATION = 'Not a valid notification request';
+    
+    public static final String ORDER_MANAGEMENT_B2C_SERVICE_PERMISSION_SET = 'sfdc_ccordermanagement';
 }
