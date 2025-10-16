@@ -15,4 +15,49 @@ public with sharing class WebhookUtils {
         }
         return notificationRequestItem;
     }
+
+    public static String getPaymentGatewayProviderId() {
+        List<PaymentGatewayProvider> gatewayProviders = [
+            SELECT Id
+            FROM PaymentGatewayProvider
+            WHERE DeveloperName = :AdyenOMSConstants.PAYMENT_GATEWAY_PROVIDER
+            LIMIT 1
+        ];
+        return gatewayProviders.isEmpty() ? null : gatewayProviders[0].Id;
+    }
+
+    public static Boolean isStandardOMSNotification(NotificationRequestItem requestItem) {
+        if (!AdyenPaymentUtility.isValidNotification(requestItem)) {
+            return false;
+        }
+
+        if (requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE || requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE_FAILED) {
+            return relatedPaymentFound(requestItem.pspReference);
+        }
+        if (requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND || requestItem.eventCode == AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND_FAILED) {
+            return relatedRefundFound(requestItem.pspReference);
+        }
+    
+        return false;
+    }
+
+    public static Boolean relatedPaymentFound(String gatewayReference) {
+        List<Payment> payments = [
+            SELECT Id
+            FROM Payment
+            WHERE GatewayRefNumber = :gatewayReference 
+            AND OrderPaymentSummaryId != NULL
+        ];
+        return !payments.isEmpty();
+    }
+
+    public static Boolean relatedRefundFound(String gatewayReference) {
+        List<Refund> refunds = [
+            SELECT Id
+            FROM Refund
+            WHERE GatewayRefNumber = :gatewayReference 
+            AND OrderPaymentSummaryId != NULL
+        ];
+        return !refunds.isEmpty();
+    }
 }

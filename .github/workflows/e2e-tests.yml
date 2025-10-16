@@ -9,6 +9,9 @@ on:
       - 'e2e/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -89,4 +92,7 @@ jobs:
           SFCC_HOSTNAME: ${{ secrets.SFCC_HOSTNAME }}
           SFCC_STOREFRONT_USERNAME: ${{ secrets.SFCC_STOREFRONT_USERNAME }}
           SFCC_STOREFRONT_PASSWORD: ${{ secrets.SFCC_STOREFRONT_PASSWORD }}
+          SFCC_CLIENT_ID: ${{ secrets.SFCC_CLIENT_ID }}
+          SFCC_CLIENT_SECRET: ${{ secrets.SFCC_CLIENT_SECRET }}
+          SFCC_JOB_WAIT_TIME: ${{ secrets.SFCC_JOB_WAIT_TIME }}
           MAX_POLL_ATTEMPTS: ${{ vars.MAX_POLL_ATTEMPTS }}

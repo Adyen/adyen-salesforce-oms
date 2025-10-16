@@ -8,6 +8,7 @@ import { CardData } from '../playwright/data/cardData.mjs';
 const shopperData = new ShopperData();
 const cardData = new CardData();
 const maxPollAttempts = process.env.MAX_POLL_ATTEMPTS;
+const jobWaitTime = parseInt(process.env.SFCC_JOB_WAIT_TIME, 10) || 90000;
 let sfConnection;
 let checkoutPage;
 let cards;
@@ -48,9 +49,39 @@ test.describe('E2E Order Creation and Payment Capture', () => {
     const orderNumberElementContent = await orderNumberElement.textContent();
 
     orderNumber = orderNumberElementContent.trim();
-
     await browser.close();
-  }, 90000);
+
+    await new Promise(resolve => setTimeout(resolve, jobWaitTime));
+
+    const tokenResponse = await fetch(
+      `https://account.demandware.com/dw/oauth2/access_token`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + Buffer.from(`${process.env.SFCC_CLIENT_ID}:${process.env.SFCC_CLIENT_SECRET}`).toString('base64'),
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'grant_type=client_credentials',
+      }
+    );
+    if (!tokenResponse.ok) throw new Error(`Token request failed`);
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+
+    const jobResponse = await fetch(
+      `https://${process.env.SFCC_HOSTNAME}/s/-/dw/data/v24_5/jobs/Process/executions`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: '{}',
+      }
+    );
+    if (!jobResponse.ok) throw new Error(`Job execution failed with status: ${jobResponse.status}`);
+  
+  }, 90000 + jobWaitTime);
 
   test('should create a fulfillment order, invoice, and capture payment', async () => {
     const orderSummaryRecords = await pollOrderSummary(orderNumber, maxPollAttempts);

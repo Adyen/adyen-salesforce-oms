@@ -8,12 +8,21 @@ public with sharing class AdyenOMSConstants {
 
     public static final String EXTERNAL_PLATFORM_NAME_FOR_APP_INFO = 'Adyen Salesforce OMS';
     public static final String ADYEN_LIBRARY_NAME_FOR_APP_INFO = 'adyen-apex-api-library';
-    public static final String ADYEN_LIBRARY_VERSION_FOR_APP_INFO = '3.4.0';
+    public static final String ADYEN_LIBRARY_VERSION_FOR_APP_INFO = '3.5.0';
     public static final String MERCHANT_APP_NAME_FOR_APP_INFO = 'adyen-salesforce-oms';
-    public static final String MERCHANT_APP_VERSION_FOR_APP_INFO = '3.2.0';
+    public static final String MERCHANT_APP_VERSION_FOR_APP_INFO = '3.3.0';
+    public static final String SALESFORCE_API_VERSION = 'v60.0';
 
     public static final String CARD_PAYMENT_METHOD_OBJECT = 'CardPaymentMethod';
     public static final String ALTERNATIVE_PAYMENT_METHOD_OBJECT = 'AlternativePaymentMethod';
+
+    public static final String PAYMENT_GATEWAY_PROVIDER = 'Adyen_OMS_Provider';
+    public static final String WEBHOOK_NAMED_CREDENTIAL_NAME = 'AdyenWebhookEndpoint';
+    public static final String CHECKOUT_NAMED_CREDENTIAL = 'AdyenCheckout';
+    public static final String MANAGEMENT_API_NAMED_CREDENTIAL = 'AdyenManagementAPI';
+
+    public static final String PAYMENT_INSTRUMENT_ADYEN_COMPONENT = 'Adyen_Component';
+    public static final String PAYMENT_INSTRUMENT_ADYEN_POS = 'Adyen_POS';
 
     public static final Set<String> OPEN_INVOICE_METHODS = new Set<String>{'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay', 'riverty'};
 
@@ -56,4 +65,6 @@ public with sharing class AdyenOMSConstants {
     public static final String GATEWAY_RESULT_SUCCESS = 'success';
     public static final String GATEWAY_RESULT_SUCCESS_DESCRIPTION = 'Transaction Normal';
     public static final String INVALID_NOTIFICATION = 'Not a valid notification request';
+    
+    public static final String ORDER_MANAGEMENT_B2C_SERVICE_PERMISSION_SET = 'sfdc_ccordermanagement';
 }
