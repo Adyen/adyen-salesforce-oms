@@ -15,6 +15,10 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    env:
+      OMS_E2E_AUTH_URL: ${{ secrets.OMS_E2E_AUTH_URL }}
+
     steps:
       - name: Checkout This Repository
         uses: actions/checkout@v4
@@ -28,7 +32,7 @@ jobs:
         run: npm install @salesforce/cli --global
 
       - name: Authenticate to E2E org
-        run: echo "${{ secrets.OMS_E2E_AUTH_URL }}" | sf org login sfdx-url --set-default --alias e2eOrg --sfdx-url-stdin
+        run: echo "$OMS_E2E_AUTH_URL" | sf org login sfdx-url --set-default --alias e2eOrg --sfdx-url-stdin
 
       - name: Checkout Apex-Library Repository
         uses: actions/checkout@v4
