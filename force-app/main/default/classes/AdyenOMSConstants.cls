@@ -26,6 +26,8 @@ public with sharing class AdyenOMSConstants {
 
     public static final Set<String> OPEN_INVOICE_METHODS = new Set<String>{'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay', 'riverty'};
 
+    public static final Set<String> PAYMENT_METHODS_REQUIRING_CAPTURE_PSP_REFERENCE = new Set<String>{'paypal', 'scalapay'};
+
     public static final Set<String> VALID_NOTIFICATION_TYPES = new Set<String>{
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE,
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_REFUND,
