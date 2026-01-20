@@ -5,8 +5,8 @@
       "default": true,
       "package": "Adyen Salesforce Order Management",
       "definitionFile": "config/project-scratch-def.json",
-      "versionName": "version 3.3",
-      "versionNumber": "3.3.0.NEXT",
+      "versionName": "version 3.4.0",
+      "versionNumber": "3.4.0.NEXT",
       "postInstallScript": "PostInstallScript",
       "ancestorVersion": "HIGHEST",
       "dependencies": [
@@ -29,6 +29,7 @@
     "Adyen Salesforce Order Management@3.0.0-6": "04tRP0000000mW5YAI",
     "Adyen Salesforce Order Management@3.1.0-1": "04tRP0000000vcbYAA",
     "Adyen Salesforce Order Management@3.2.0-4": "04tRP0000001ZjhYAE",
-    "Adyen Salesforce Order Management@3.3.0-14": "04tRP0000002UQDYA2"
+    "Adyen Salesforce Order Management@3.3.0-14": "04tRP0000002UQDYA2",
+    "Adyen Salesforce Order Management@3.4.0-4": "04tRP000000GjArYAK"
   }
 }
