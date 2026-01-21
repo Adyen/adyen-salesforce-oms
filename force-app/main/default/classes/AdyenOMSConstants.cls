@@ -10,7 +10,7 @@ public with sharing class AdyenOMSConstants {
     public static final String ADYEN_LIBRARY_NAME_FOR_APP_INFO = 'adyen-apex-api-library';
     public static final String ADYEN_LIBRARY_VERSION_FOR_APP_INFO = '3.5.0';
     public static final String MERCHANT_APP_NAME_FOR_APP_INFO = 'adyen-salesforce-oms';
-    public static final String MERCHANT_APP_VERSION_FOR_APP_INFO = '3.3.0';
+    public static final String MERCHANT_APP_VERSION_FOR_APP_INFO = '3.4.0';
     public static final String SALESFORCE_API_VERSION = 'v60.0';
 
     public static final String CARD_PAYMENT_METHOD_OBJECT = 'CardPaymentMethod';
@@ -25,6 +25,8 @@ public with sharing class AdyenOMSConstants {
     public static final String PAYMENT_INSTRUMENT_ADYEN_POS = 'Adyen_POS';
 
     public static final Set<String> OPEN_INVOICE_METHODS = new Set<String>{'klarna', 'afterpay', 'ratepay', 'facilypay', 'zip', 'affirm', 'atome', 'walley', 'clearpay', 'riverty'};
+
+    public static final Set<String> PAYMENT_METHODS_REQUIRING_CAPTURE_PSP_REFERENCE = new Set<String>{'paypal', 'scalapay'};
 
     public static final Set<String> VALID_NOTIFICATION_TYPES = new Set<String>{
         AdyenConstants.NOTIFICATION_REQUEST_TYPE_CAPTURE,

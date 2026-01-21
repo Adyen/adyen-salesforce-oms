@@ -36,12 +36,23 @@ public with sharing class AdyenRefundHelper {
     @TestVisible
     private static CheckoutRefundRequest createRefundRequest(CommercePayments.ReferencedRefundRequest refundRequest, Payment payment, Adyen_Adapter__mdt adyenAdapter) {
         CheckoutRefundRequest modRequest = (CheckoutRefundRequest)AdyenPaymentUtility.createModificationRequest(refundRequest, payment.CurrencyIsoCode, adyenAdapter);
-        //Only for Paypal Refunds - Capture reference must be a substring of refund reference
         if (String.isNotBlank(payment.PaymentAuthorization?.Adyen_Payment_Method_Variant__c)) {
-            if (payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c.equalsIgnoreCase('Paypal') && String.isNotBlank(payment.GatewayRefDetails)) {
-                String refundReference = modRequest.getReference() + payment.GatewayRefDetails;
-                modRequest.setReference(refundReference);
-                modRequest.capturePspReference = payment.GatewayRefNumber;
+            String paymentMethodVariant = payment.PaymentAuthorization.Adyen_Payment_Method_Variant__c;
+            if (String.isNotBlank(paymentMethodVariant)) {
+                Boolean requiresCapturePsp = false;
+                for (String method : AdyenOMSConstants.PAYMENT_METHODS_REQUIRING_CAPTURE_PSP_REFERENCE) {
+                    if (paymentMethodVariant.containsIgnoreCase(method)) {
+                        requiresCapturePsp = true;
+                        break;
+                    }
+                }
+                if (requiresCapturePsp) {
+                    modRequest.capturePspReference = payment.GatewayRefNumber;
+                    if (paymentMethodVariant.containsIgnoreCase('paypal') && String.isNotBlank(payment.GatewayRefDetails)) {
+                        String refundReference = modRequest.getReference() + payment.GatewayRefDetails;
+                        modRequest.setReference(refundReference);
+                    }
+                }
             }
         }
         // Line items required for partial refunds for Open Invoice methods
