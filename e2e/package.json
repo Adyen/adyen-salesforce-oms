@@ -7,7 +7,7 @@
         "test": "npx playwright install --with-deps && npx playwright test"
     },
     "dependencies": {
-        "jsforce": "^3.2.2"
+        "jsforce": "^3.10.14"
     },
     "devDependencies": {
         "@playwright/test": "^1.38.0"
