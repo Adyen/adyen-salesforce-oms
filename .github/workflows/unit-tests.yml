@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout This Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,7 +36,7 @@ jobs:
         run: sf org create scratch -f config/project-scratch-def.json --set-default --alias ScratchOrg -y 1
 
       - name: Checkout Apex-Library Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: Adyen/adyen-apex-api-library
           ref: develop
@@ -48,7 +48,7 @@ jobs:
           sf project deploy start --target-org ScratchOrg
 
       - name: Checkout This Repository Back
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Deploy This Repository Code
         run: sf project deploy start --target-org ScratchOrg --ignore-conflicts
