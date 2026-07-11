@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout This Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -35,7 +35,7 @@ jobs:
         run: echo "$OMS_E2E_AUTH_URL" | sf org login sfdx-url --set-default --alias e2eOrg --sfdx-url-stdin
 
       - name: Checkout Apex-Library Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Adyen/adyen-apex-api-library
           ref: develop
@@ -47,7 +47,7 @@ jobs:
           sf project deploy start --target-org e2eOrg
 
       - name: Checkout This Repository Back
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install xmlstarlet
         run: sudo apt-get install -y xmlstarlet
@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v4
